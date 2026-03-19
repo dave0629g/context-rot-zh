@@ -1,0 +1,32 @@
+模型: llama3.1:8b
+══════════════════════════════════════════════════
+
+📝 文本統計
+  繁體字元數: 623
+  簡體字元數: 623
+
+🔢 Token 數比較
+  繁體 tokens: 568
+  簡體 tokens: 544
+  繁/簡比值:   1.0441
+  → 繁體比簡體多 4.4% 的 tokens
+
+🔍 測試繁體版本
+  回答: 超過三千八百年。
+  包含正確答案: ✓
+
+🔍 測試簡體版本
+  回答: 超过三千八百年。
+  包含正確答案: ✓
+
+══════════════════════════════════════════════════
+📊 快速測試結果
+  繁體 tokens / 簡體 tokens = 568 / 544
+  繁體正確: ✓
+  簡體正確: ✓
+
+  如果此結果合理，可以開始完整實驗：
+    python scripts/01_fetch_wiki.py
+    python scripts/02_build_haystacks.py
+    python scripts/03_run_experiment.py --model llama3.1:8b
+    python scripts/04_analyze.py --model llama3.1:8b

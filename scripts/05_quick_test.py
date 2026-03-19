@@ -40,16 +40,23 @@ EXPECTED = "三千八百年"
 
 
 def ollama_tokenize(model: str, text: str) -> list[int]:
-    """取得 token 列表"""
-    url = f"{OLLAMA_BASE}/api/tokenize"
-    payload = json.dumps({"model": model, "text": text}).encode("utf-8")
+    """取得 token 數量（透過 generate API 的 prompt_eval_count）"""
+    url = f"{OLLAMA_BASE}/api/generate"
+    payload = json.dumps({
+        "model": model,
+        "prompt": text,
+        "stream": False,
+        "options": {"num_predict": 1, "think": False},
+    }).encode("utf-8")
     req = urllib.request.Request(
         url, data=payload, headers={"Content-Type": "application/json"}
     )
     try:
-        with urllib.request.urlopen(req) as response:
+        with urllib.request.urlopen(req, timeout=120) as response:
             data = json.loads(response.read().decode("utf-8"))
-        return data.get("tokens", [])
+        count = data.get("prompt_eval_count", 0)
+        # 回傳假 token 列表以維持介面相容性（長度即 token 數）
+        return list(range(count))
     except Exception as e:
         print(f"  tokenize API 錯誤: {e}")
         return []
@@ -62,7 +69,7 @@ def ollama_generate(model: str, prompt: str) -> str:
         "model": model,
         "prompt": prompt,
         "stream": False,
-        "options": {"temperature": 0.0, "num_predict": 128},
+        "options": {"temperature": 0.0, "num_predict": 1024},
     }).encode("utf-8")
     req = urllib.request.Request(
         url, data=payload, headers={"Content-Type": "application/json"}
@@ -151,3 +158,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
