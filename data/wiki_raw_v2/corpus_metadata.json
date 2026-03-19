@@ -1,0 +1,1219 @@
+{
+  "download_date": "2026-03-19",
+  "min_chars_threshold": 3000,
+  "zh_articles": 43,
+  "en_articles": 18,
+  "articles": [
+    {
+      "index": 0,
+      "title": "半導體",
+      "directions": [
+        "D1_fragmentation",
+        "D3_semantic_density"
+      ],
+      "en_title": null,
+      "zh_file": "00_半導體.txt",
+      "zh_properties": {
+        "total_chars": 8990,
+        "chinese_chars": 4984,
+        "chinese_ratio": 0.5544,
+        "trad_diff_char_count": 1123,
+        "trad_diff_char_density": 0.2253,
+        "radical_distribution": {
+          "other": 4877,
+          "水": 49,
+          "土": 34,
+          "肉": 2,
+          "金": 13,
+          "木": 5,
+          "火": 4
+        },
+        "sentence_count": 110,
+        "avg_sentence_length": 80.7
+      }
+    },
+    {
+      "index": 1,
+      "title": "量子計算",
+      "directions": [
+        "D1_fragmentation",
+        "D3_semantic_density"
+      ],
+      "en_title": null,
+      "zh_file": "01_量子計算.txt",
+      "zh_properties": {
+        "total_chars": 6236,
+        "chinese_chars": 4391,
+        "chinese_ratio": 0.7041,
+        "trad_diff_char_count": 648,
+        "trad_diff_char_density": 0.1476,
+        "radical_distribution": {
+          "other": 4255,
+          "肉": 77,
+          "土": 31,
+          "水": 8,
+          "金": 11,
+          "火": 5,
+          "木": 4
+        },
+        "sentence_count": 101,
+        "avg_sentence_length": 60.7
+      }
+    },
+    {
+      "index": 2,
+      "title": "臺灣教育",
+      "directions": [
+        "D1_fragmentation",
+        "D2_no_boundary"
+      ],
+      "en_title": null,
+      "zh_file": "02_臺灣教育.txt",
+      "zh_properties": {
+        "total_chars": 7548,
+        "chinese_chars": 6123,
+        "chinese_ratio": 0.8112,
+        "trad_diff_char_count": 1159,
+        "trad_diff_char_density": 0.1893,
+        "radical_distribution": {
+          "other": 5938,
+          "水": 112,
+          "土": 62,
+          "金": 7,
+          "木": 3,
+          "肉": 1
+        },
+        "sentence_count": 121,
+        "avg_sentence_length": 61.4
+      }
+    },
+    {
+      "index": 3,
+      "title": "國際貨幣基金組織",
+      "directions": [
+        "D1_fragmentation",
+        "D3_semantic_density"
+      ],
+      "en_title": null,
+      "zh_file": "03_國際貨幣基金組織.txt",
+      "zh_properties": {
+        "total_chars": 3916,
+        "chinese_chars": 3100,
+        "chinese_ratio": 0.7916,
+        "trad_diff_char_count": 495,
+        "trad_diff_char_density": 0.1597,
+        "radical_distribution": {
+          "other": 2930,
+          "土": 67,
+          "金": 77,
+          "木": 15,
+          "火": 1,
+          "水": 8,
+          "肉": 2
+        },
+        "sentence_count": 76,
+        "avg_sentence_length": 50.5
+      }
+    },
+    {
+      "index": 4,
+      "title": "中華民國政治",
+      "directions": [
+        "D1_fragmentation"
+      ],
+      "en_title": null,
+      "zh_file": "04_中華民國政治.txt",
+      "zh_properties": {
+        "total_chars": 7878,
+        "chinese_chars": 6493,
+        "chinese_ratio": 0.8242,
+        "trad_diff_char_count": 1245,
+        "trad_diff_char_density": 0.1917,
+        "radical_distribution": {
+          "other": 6335,
+          "水": 79,
+          "木": 11,
+          "土": 58,
+          "金": 8,
+          "火": 2
+        },
+        "sentence_count": 135,
+        "avg_sentence_length": 57.4
+      }
+    },
+    {
+      "index": 5,
+      "title": "全民健康保險",
+      "directions": [
+        "D1_fragmentation",
+        "D2_no_boundary"
+      ],
+      "en_title": null,
+      "zh_file": "05_全民健康保險.txt",
+      "zh_properties": {
+        "total_chars": 8840,
+        "chinese_chars": 7497,
+        "chinese_ratio": 0.8481,
+        "trad_diff_char_count": 811,
+        "trad_diff_char_density": 0.1082,
+        "radical_distribution": {
+          "other": 7369,
+          "土": 43,
+          "水": 37,
+          "火": 3,
+          "木": 10,
+          "金": 31,
+          "肉": 4
+        },
+        "sentence_count": 146,
+        "avg_sentence_length": 59.5
+      }
+    },
+    {
+      "index": 6,
+      "title": "人工智慧",
+      "directions": [
+        "D1_fragmentation",
+        "D3_semantic_density"
+      ],
+      "en_title": null,
+      "zh_file": "06_人工智慧.txt",
+      "zh_properties": {
+        "total_chars": 15445,
+        "chinese_chars": 11817,
+        "chinese_ratio": 0.7651,
+        "trad_diff_char_count": 1741,
+        "trad_diff_char_density": 0.1473,
+        "radical_distribution": {
+          "other": 11599,
+          "肉": 33,
+          "土": 124,
+          "金": 18,
+          "火": 5,
+          "水": 24,
+          "木": 14
+        },
+        "sentence_count": 273,
+        "avg_sentence_length": 55.6
+      }
+    },
+    {
+      "index": 7,
+      "title": "雲端運算",
+      "directions": [
+        "D1_fragmentation"
+      ],
+      "en_title": null,
+      "zh_file": "07_雲端運算.txt",
+      "zh_properties": {
+        "total_chars": 6633,
+        "chinese_chars": 5037,
+        "chinese_ratio": 0.7594,
+        "trad_diff_char_count": 837,
+        "trad_diff_char_density": 0.1662,
+        "radical_distribution": {
+          "other": 4922,
+          "土": 69,
+          "肉": 17,
+          "水": 6,
+          "木": 20,
+          "金": 2,
+          "火": 1
+        },
+        "sentence_count": 111,
+        "avg_sentence_length": 58.8
+      }
+    },
+    {
+      "index": 8,
+      "title": "中華民國法律",
+      "directions": [
+        "D2_no_boundary",
+        "D1_fragmentation"
+      ],
+      "en_title": null,
+      "zh_file": "08_中華民國法律.txt",
+      "zh_properties": {
+        "total_chars": 8092,
+        "chinese_chars": 6747,
+        "chinese_ratio": 0.8338,
+        "trad_diff_char_count": 814,
+        "trad_diff_char_density": 0.1206,
+        "radical_distribution": {
+          "other": 6620,
+          "木": 14,
+          "土": 61,
+          "水": 41,
+          "肉": 2,
+          "金": 5,
+          "火": 4
+        },
+        "sentence_count": 124,
+        "avg_sentence_length": 64.3
+      }
+    },
+    {
+      "index": 9,
+      "title": "儒家",
+      "directions": [
+        "D2_no_boundary",
+        "D4_positional_bias"
+      ],
+      "en_title": null,
+      "zh_file": "09_儒家.txt",
+      "zh_properties": {
+        "total_chars": 23921,
+        "chinese_chars": 20321,
+        "chinese_ratio": 0.8495,
+        "trad_diff_char_count": 2526,
+        "trad_diff_char_density": 0.1243,
+        "radical_distribution": {
+          "other": 19942,
+          "水": 155,
+          "土": 162,
+          "肉": 11,
+          "木": 28,
+          "火": 15,
+          "金": 8
+        },
+        "sentence_count": 466,
+        "avg_sentence_length": 50.3
+      }
+    },
+    {
+      "index": 10,
+      "title": "中醫學",
+      "directions": [
+        "D2_no_boundary",
+        "D5_glyph_interference"
+      ],
+      "en_title": null,
+      "zh_file": "10_中醫學.txt",
+      "zh_properties": {
+        "total_chars": 17683,
+        "chinese_chars": 14225,
+        "chinese_ratio": 0.8044,
+        "trad_diff_char_count": 2042,
+        "trad_diff_char_density": 0.1436,
+        "radical_distribution": {
+          "other": 13627,
+          "水": 114,
+          "土": 103,
+          "肉": 180,
+          "金": 88,
+          "火": 82,
+          "木": 31
+        },
+        "sentence_count": 341,
+        "avg_sentence_length": 50.9
+      }
+    },
+    {
+      "index": 11,
+      "title": "臺灣原住民族",
+      "directions": [
+        "D2_no_boundary"
+      ],
+      "en_title": null,
+      "zh_file": "11_臺灣原住民族.txt",
+      "zh_properties": {
+        "total_chars": 12148,
+        "chinese_chars": 10141,
+        "chinese_ratio": 0.8348,
+        "trad_diff_char_count": 1077,
+        "trad_diff_char_density": 0.1062,
+        "radical_distribution": {
+          "other": 9801,
+          "水": 215,
+          "土": 97,
+          "木": 16,
+          "火": 3,
+          "肉": 4,
+          "金": 5
+        },
+        "sentence_count": 201,
+        "avg_sentence_length": 59.4
+      }
+    },
+    {
+      "index": 12,
+      "title": "佛教",
+      "directions": [
+        "D2_no_boundary",
+        "D4_positional_bias"
+      ],
+      "en_title": null,
+      "zh_file": "12_佛教.txt",
+      "zh_properties": {
+        "total_chars": 34691,
+        "chinese_chars": 24953,
+        "chinese_ratio": 0.7193,
+        "trad_diff_char_count": 2398,
+        "trad_diff_char_density": 0.0961,
+        "radical_distribution": {
+          "other": 24409,
+          "水": 156,
+          "土": 243,
+          "火": 31,
+          "金": 31,
+          "肉": 24,
+          "木": 59
+        },
+        "sentence_count": 583,
+        "avg_sentence_length": 58.5
+      }
+    },
+    {
+      "index": 13,
+      "title": "刑法",
+      "directions": [
+        "D2_no_boundary"
+      ],
+      "en_title": null,
+      "zh_file": "13_刑法.txt",
+      "zh_properties": {
+        "total_chars": 3177,
+        "chinese_chars": 2552,
+        "chinese_ratio": 0.8033,
+        "trad_diff_char_count": 334,
+        "trad_diff_char_density": 0.1309,
+        "radical_distribution": {
+          "other": 2534,
+          "金": 2,
+          "水": 3,
+          "土": 9,
+          "木": 4
+        },
+        "sentence_count": 63,
+        "avg_sentence_length": 49.4
+      }
+    },
+    {
+      "index": 14,
+      "title": "細胞生物學",
+      "directions": [
+        "D2_no_boundary",
+        "D3_semantic_density"
+      ],
+      "en_title": null,
+      "zh_file": "14_細胞生物學.txt",
+      "zh_properties": {
+        "total_chars": 3323,
+        "chinese_chars": 2700,
+        "chinese_ratio": 0.8125,
+        "trad_diff_char_count": 353,
+        "trad_diff_char_density": 0.1307,
+        "radical_distribution": {
+          "other": 2476,
+          "肉": 164,
+          "水": 13,
+          "土": 35,
+          "木": 5,
+          "金": 7
+        },
+        "sentence_count": 70,
+        "avg_sentence_length": 46.5
+      }
+    },
+    {
+      "index": 15,
+      "title": "太陽系",
+      "directions": [
+        "D3_semantic_density",
+        "D4_positional_bias"
+      ],
+      "en_title": "Solar System",
+      "zh_file": "15_太陽系.txt",
+      "zh_properties": {
+        "total_chars": 21001,
+        "chinese_chars": 16743,
+        "chinese_ratio": 0.7972,
+        "trad_diff_char_count": 1815,
+        "trad_diff_char_density": 0.1084,
+        "radical_distribution": {
+          "other": 16108,
+          "土": 230,
+          "水": 156,
+          "金": 64,
+          "火": 78,
+          "木": 92,
+          "肉": 15
+        },
+        "sentence_count": 475,
+        "avg_sentence_length": 43.2
+      },
+      "en_file": "15_Solar System.txt"
+    },
+    {
+      "index": 16,
+      "title": "第二次世界大戰",
+      "directions": [
+        "D3_semantic_density",
+        "D4_positional_bias"
+      ],
+      "en_title": "World War II",
+      "zh_file": "16_第二次世界大戰.txt",
+      "zh_properties": {
+        "total_chars": 28632,
+        "chinese_chars": 24968,
+        "chinese_ratio": 0.872,
+        "trad_diff_char_count": 3938,
+        "trad_diff_char_density": 0.1577,
+        "radical_distribution": {
+          "other": 24313,
+          "火": 65,
+          "土": 282,
+          "木": 44,
+          "水": 232,
+          "肉": 4,
+          "金": 28
+        },
+        "sentence_count": 454,
+        "avg_sentence_length": 62.1
+      },
+      "en_file": "16_World War II.txt"
+    },
+    {
+      "index": 17,
+      "title": "光合作用",
+      "directions": [
+        "D3_semantic_density"
+      ],
+      "en_title": "Photosynthesis",
+      "zh_file": "17_光合作用.txt",
+      "zh_properties": {
+        "total_chars": 10315,
+        "chinese_chars": 5037,
+        "chinese_ratio": 0.4883,
+        "trad_diff_char_count": 566,
+        "trad_diff_char_density": 0.1124,
+        "radical_distribution": {
+          "other": 4895,
+          "土": 33,
+          "肉": 30,
+          "木": 11,
+          "水": 37,
+          "火": 12,
+          "金": 19
+        },
+        "sentence_count": 131,
+        "avg_sentence_length": 77.7
+      },
+      "en_file": "17_Photosynthesis.txt"
+    },
+    {
+      "index": 18,
+      "title": "相對論",
+      "directions": [
+        "D3_semantic_density"
+      ],
+      "en_title": "Theory of relativity",
+      "zh_file": "18_相對論.txt",
+      "zh_properties": {
+        "total_chars": 6426,
+        "chinese_chars": 4071,
+        "chinese_ratio": 0.6335,
+        "trad_diff_char_count": 628,
+        "trad_diff_char_density": 0.1543,
+        "radical_distribution": {
+          "other": 3987,
+          "土": 55,
+          "肉": 11,
+          "水": 9,
+          "木": 3,
+          "金": 6
+        },
+        "sentence_count": 84,
+        "avg_sentence_length": 75.5
+      },
+      "en_file": "18_Theory of relativity.txt"
+    },
+    {
+      "index": 19,
+      "title": "元素週期表",
+      "directions": [
+        "D3_semantic_density",
+        "D5_glyph_interference"
+      ],
+      "en_title": "Periodic table",
+      "zh_file": "19_元素週期表.txt",
+      "zh_properties": {
+        "total_chars": 15994,
+        "chinese_chars": 12796,
+        "chinese_ratio": 0.8001,
+        "trad_diff_char_count": 1598,
+        "trad_diff_char_density": 0.1249,
+        "radical_distribution": {
+          "other": 12410,
+          "金": 181,
+          "土": 122,
+          "木": 21,
+          "火": 14,
+          "水": 47,
+          "肉": 1
+        },
+        "sentence_count": 327,
+        "avg_sentence_length": 47.9
+      },
+      "en_file": "19_Periodic table.txt"
+    },
+    {
+      "index": 20,
+      "title": "地球",
+      "directions": [
+        "D3_semantic_density",
+        "D5_glyph_interference"
+      ],
+      "en_title": "Earth",
+      "zh_file": "20_地球.txt",
+      "zh_properties": {
+        "total_chars": 17952,
+        "chinese_chars": 14562,
+        "chinese_ratio": 0.8112,
+        "trad_diff_char_count": 1629,
+        "trad_diff_char_density": 0.1119,
+        "radical_distribution": {
+          "土": 663,
+          "other": 13383,
+          "水": 309,
+          "火": 92,
+          "金": 21,
+          "木": 70,
+          "肉": 24
+        },
+        "sentence_count": 368,
+        "avg_sentence_length": 47.8
+      },
+      "en_file": "20_Earth.txt"
+    },
+    {
+      "index": 21,
+      "title": "演化論",
+      "directions": [
+        "D3_semantic_density"
+      ],
+      "en_title": "Evolution",
+      "zh_file": "21_演化論.txt",
+      "zh_properties": {
+        "total_chars": 16350,
+        "chinese_chars": 13703,
+        "chinese_ratio": 0.8381,
+        "trad_diff_char_count": 2087,
+        "trad_diff_char_density": 0.1523,
+        "radical_distribution": {
+          "other": 13340,
+          "土": 233,
+          "水": 49,
+          "木": 29,
+          "肉": 38,
+          "金": 6,
+          "火": 8
+        },
+        "sentence_count": 334,
+        "avg_sentence_length": 48.0
+      },
+      "en_file": "21_Evolution.txt"
+    },
+    {
+      "index": 22,
+      "title": "數學",
+      "directions": [
+        "D3_semantic_density",
+        "D1_fragmentation"
+      ],
+      "en_title": "Mathematics",
+      "zh_file": "22_數學.txt",
+      "zh_properties": {
+        "total_chars": 7638,
+        "chinese_chars": 6317,
+        "chinese_ratio": 0.827,
+        "trad_diff_char_count": 1258,
+        "trad_diff_char_density": 0.1991,
+        "radical_distribution": {
+          "other": 6198,
+          "土": 84,
+          "金": 8,
+          "水": 10,
+          "木": 5,
+          "火": 1,
+          "肉": 11
+        },
+        "sentence_count": 180,
+        "avg_sentence_length": 41.4
+      },
+      "en_file": "22_Mathematics.txt"
+    },
+    {
+      "index": 23,
+      "title": "臺灣歷史",
+      "directions": [
+        "D4_positional_bias"
+      ],
+      "en_title": null,
+      "zh_file": "23_臺灣歷史.txt",
+      "zh_properties": {
+        "total_chars": 24297,
+        "chinese_chars": 20116,
+        "chinese_ratio": 0.8279,
+        "trad_diff_char_count": 2629,
+        "trad_diff_char_density": 0.1307,
+        "radical_distribution": {
+          "other": 19137,
+          "水": 645,
+          "木": 36,
+          "土": 216,
+          "火": 31,
+          "金": 35,
+          "肉": 16
+        },
+        "sentence_count": 482,
+        "avg_sentence_length": 49.4
+      }
+    },
+    {
+      "index": 24,
+      "title": "台灣地理",
+      "directions": [
+        "D4_positional_bias",
+        "D5_glyph_interference"
+      ],
+      "en_title": null,
+      "zh_file": "24_台灣地理.txt",
+      "zh_properties": {
+        "total_chars": 6595,
+        "chinese_chars": 5267,
+        "chinese_ratio": 0.7986,
+        "trad_diff_char_count": 607,
+        "trad_diff_char_density": 0.1152,
+        "radical_distribution": {
+          "other": 4738,
+          "水": 268,
+          "金": 9,
+          "土": 145,
+          "肉": 34,
+          "火": 23,
+          "木": 50
+        },
+        "sentence_count": 144,
+        "avg_sentence_length": 44.8
+      }
+    },
+    {
+      "index": 25,
+      "title": "氣候變遷",
+      "directions": [
+        "D4_positional_bias",
+        "D3_semantic_density"
+      ],
+      "en_title": "Climate change",
+      "zh_file": "25_氣候變遷.txt",
+      "zh_properties": {
+        "total_chars": 19379,
+        "chinese_chars": 15737,
+        "chinese_ratio": 0.8121,
+        "trad_diff_char_count": 2087,
+        "trad_diff_char_density": 0.1326,
+        "radical_distribution": {
+          "other": 14918,
+          "土": 268,
+          "水": 309,
+          "火": 142,
+          "木": 82,
+          "金": 15,
+          "肉": 3
+        },
+        "sentence_count": 489,
+        "avg_sentence_length": 38.6
+      },
+      "en_file": "25_Climate change.txt"
+    },
+    {
+      "index": 26,
+      "title": "台灣積體電路製造",
+      "directions": [
+        "D4_positional_bias",
+        "D1_fragmentation"
+      ],
+      "en_title": "TSMC",
+      "zh_file": "26_台灣積體電路製造.txt",
+      "zh_properties": {
+        "total_chars": 5949,
+        "chinese_chars": 4010,
+        "chinese_ratio": 0.6741,
+        "trad_diff_char_count": 838,
+        "trad_diff_char_density": 0.209,
+        "radical_distribution": {
+          "other": 3944,
+          "水": 28,
+          "土": 20,
+          "木": 5,
+          "金": 11,
+          "肉": 2
+        },
+        "sentence_count": 71,
+        "avg_sentence_length": 82.8
+      },
+      "en_file": "26_TSMC.txt"
+    },
+    {
+      "index": 27,
+      "title": "二二八事件",
+      "directions": [
+        "D4_positional_bias"
+      ],
+      "en_title": null,
+      "zh_file": "27_二二八事件.txt",
+      "zh_properties": {
+        "total_chars": 33504,
+        "chinese_chars": 29079,
+        "chinese_ratio": 0.8679,
+        "trad_diff_char_count": 4080,
+        "trad_diff_char_density": 0.1403,
+        "radical_distribution": {
+          "other": 27960,
+          "水": 510,
+          "土": 404,
+          "火": 50,
+          "肉": 19,
+          "木": 81,
+          "金": 55
+        },
+        "sentence_count": 548,
+        "avg_sentence_length": 60.1
+      }
+    },
+    {
+      "index": 28,
+      "title": "核能發電",
+      "directions": [
+        "D4_positional_bias",
+        "D1_fragmentation"
+      ],
+      "en_title": null,
+      "zh_file": "28_核能發電.txt",
+      "zh_properties": {
+        "total_chars": 18930,
+        "chinese_chars": 16107,
+        "chinese_ratio": 0.8509,
+        "trad_diff_char_count": 2319,
+        "trad_diff_char_density": 0.144,
+        "radical_distribution": {
+          "other": 15405,
+          "火": 396,
+          "金": 45,
+          "土": 155,
+          "水": 89,
+          "木": 13,
+          "肉": 4
+        },
+        "sentence_count": 390,
+        "avg_sentence_length": 47.5
+      }
+    },
+    {
+      "index": 29,
+      "title": "民主",
+      "directions": [
+        "D4_positional_bias",
+        "D1_fragmentation"
+      ],
+      "en_title": "Democracy",
+      "zh_file": "29_民主.txt",
+      "zh_properties": {
+        "total_chars": 24415,
+        "chinese_chars": 20334,
+        "chinese_ratio": 0.8328,
+        "trad_diff_char_count": 2752,
+        "trad_diff_char_density": 0.1353,
+        "radical_distribution": {
+          "other": 20113,
+          "土": 114,
+          "水": 49,
+          "木": 30,
+          "肉": 10,
+          "金": 10,
+          "火": 8
+        },
+        "sentence_count": 387,
+        "avg_sentence_length": 62.1
+      },
+      "en_file": "29_Democracy.txt"
+    },
+    {
+      "index": 30,
+      "title": "海洋",
+      "directions": [
+        "D5_glyph_interference"
+      ],
+      "en_title": "Ocean",
+      "zh_file": "30_海洋.txt",
+      "zh_properties": {
+        "total_chars": 27424,
+        "chinese_chars": 23323,
+        "chinese_ratio": 0.8505,
+        "trad_diff_char_count": 2489,
+        "trad_diff_char_density": 0.1067,
+        "radical_distribution": {
+          "水": 1793,
+          "other": 20848,
+          "土": 460,
+          "金": 63,
+          "火": 71,
+          "木": 73,
+          "肉": 15
+        },
+        "sentence_count": 553,
+        "avg_sentence_length": 48.6
+      },
+      "en_file": "30_Ocean.txt"
+    },
+    {
+      "index": 31,
+      "title": "河流",
+      "directions": [
+        "D5_glyph_interference"
+      ],
+      "en_title": null,
+      "zh_file": "31_河流.txt",
+      "zh_properties": {
+        "total_chars": 7024,
+        "chinese_chars": 5100,
+        "chinese_ratio": 0.7261,
+        "trad_diff_char_count": 575,
+        "trad_diff_char_density": 0.1127,
+        "radical_distribution": {
+          "水": 590,
+          "other": 4365,
+          "土": 116,
+          "火": 11,
+          "肉": 2,
+          "木": 15,
+          "金": 1
+        },
+        "sentence_count": 142,
+        "avg_sentence_length": 48.5
+      }
+    },
+    {
+      "index": 32,
+      "title": "臺灣河流列表",
+      "directions": [
+        "D5_glyph_interference"
+      ],
+      "en_title": null,
+      "zh_file": "32_臺灣河流列表.txt",
+      "zh_properties": {
+        "total_chars": 5671,
+        "chinese_chars": 4296,
+        "chinese_ratio": 0.7575,
+        "trad_diff_char_count": 336,
+        "trad_diff_char_density": 0.0782,
+        "radical_distribution": {
+          "other": 3258,
+          "水": 837,
+          "肉": 6,
+          "土": 92,
+          "金": 30,
+          "木": 69,
+          "火": 4
+        },
+        "sentence_count": 16,
+        "avg_sentence_length": 353.5
+      }
+    },
+    {
+      "index": 33,
+      "title": "冶金學",
+      "directions": [
+        "D5_glyph_interference",
+        "D3_semantic_density"
+      ],
+      "en_title": "Metallurgy",
+      "zh_file": "33_冶金學.txt",
+      "zh_properties": {
+        "total_chars": 3786,
+        "chinese_chars": 3095,
+        "chinese_ratio": 0.8175,
+        "trad_diff_char_count": 355,
+        "trad_diff_char_density": 0.1147,
+        "radical_distribution": {
+          "other": 2719,
+          "金": 241,
+          "火": 74,
+          "木": 6,
+          "水": 25,
+          "土": 30
+        },
+        "sentence_count": 80,
+        "avg_sentence_length": 46.3
+      },
+      "en_file": "33_Metallurgy.txt"
+    },
+    {
+      "index": 34,
+      "title": "化學元素",
+      "directions": [
+        "D5_glyph_interference",
+        "D3_semantic_density"
+      ],
+      "en_title": "Chemical element",
+      "zh_file": "34_化學元素.txt",
+      "zh_properties": {
+        "total_chars": 12826,
+        "chinese_chars": 8903,
+        "chinese_ratio": 0.6941,
+        "trad_diff_char_count": 1067,
+        "trad_diff_char_density": 0.1198,
+        "radical_distribution": {
+          "other": 8645,
+          "土": 62,
+          "金": 139,
+          "木": 11,
+          "火": 24,
+          "水": 21,
+          "肉": 1
+        },
+        "sentence_count": 207,
+        "avg_sentence_length": 61.0
+      },
+      "en_file": "34_Chemical element.txt"
+    },
+    {
+      "index": 35,
+      "title": "森林",
+      "directions": [
+        "D5_glyph_interference"
+      ],
+      "en_title": null,
+      "zh_file": "35_森林.txt",
+      "zh_properties": {
+        "total_chars": 3138,
+        "chinese_chars": 2255,
+        "chinese_ratio": 0.7186,
+        "trad_diff_char_count": 275,
+        "trad_diff_char_density": 0.122,
+        "radical_distribution": {
+          "木": 227,
+          "other": 1943,
+          "土": 57,
+          "水": 11,
+          "火": 10,
+          "金": 7
+        },
+        "sentence_count": 48,
+        "avg_sentence_length": 64.4
+      }
+    },
+    {
+      "index": 36,
+      "title": "台灣農業",
+      "directions": [
+        "D5_glyph_interference"
+      ],
+      "en_title": null,
+      "zh_file": "36_台灣農業.txt",
+      "zh_properties": {
+        "total_chars": 7955,
+        "chinese_chars": 6478,
+        "chinese_ratio": 0.8143,
+        "trad_diff_char_count": 977,
+        "trad_diff_char_density": 0.1508,
+        "radical_distribution": {
+          "other": 6075,
+          "水": 239,
+          "土": 109,
+          "金": 16,
+          "火": 7,
+          "木": 28,
+          "肉": 4
+        },
+        "sentence_count": 221,
+        "avg_sentence_length": 35.0
+      }
+    },
+    {
+      "index": 37,
+      "title": "地質學",
+      "directions": [
+        "D5_glyph_interference",
+        "D3_semantic_density"
+      ],
+      "en_title": "Geology",
+      "en_file": "37_Geology.txt"
+    },
+    {
+      "index": 38,
+      "title": "火山",
+      "directions": [
+        "D5_glyph_interference"
+      ],
+      "en_title": null,
+      "zh_file": "38_火山.txt",
+      "zh_properties": {
+        "total_chars": 11901,
+        "chinese_chars": 9420,
+        "chinese_ratio": 0.7915,
+        "trad_diff_char_count": 1043,
+        "trad_diff_char_density": 0.1107,
+        "radical_distribution": {
+          "火": 561,
+          "other": 8327,
+          "土": 228,
+          "水": 229,
+          "木": 52,
+          "肉": 8,
+          "金": 15
+        },
+        "sentence_count": 265,
+        "avg_sentence_length": 43.9
+      }
+    },
+    {
+      "index": 39,
+      "title": "人體解剖學",
+      "directions": [
+        "D5_glyph_interference",
+        "D2_no_boundary"
+      ],
+      "en_title": null
+    },
+    {
+      "index": 40,
+      "title": "奧林匹克運動會",
+      "directions": [
+        "baseline"
+      ],
+      "en_title": "Olympic Games",
+      "zh_file": "40_奧林匹克運動會.txt",
+      "zh_properties": {
+        "total_chars": 10441,
+        "chinese_chars": 8372,
+        "chinese_ratio": 0.8018,
+        "trad_diff_char_count": 1363,
+        "trad_diff_char_density": 0.1628,
+        "radical_distribution": {
+          "other": 8141,
+          "木": 92,
+          "土": 68,
+          "水": 9,
+          "金": 42,
+          "肉": 4,
+          "火": 16
+        },
+        "sentence_count": 166,
+        "avg_sentence_length": 61.9
+      },
+      "en_file": "40_Olympic Games.txt"
+    },
+    {
+      "index": 41,
+      "title": "音樂",
+      "directions": [
+        "baseline"
+      ],
+      "en_title": "Music",
+      "zh_file": "41_音樂.txt",
+      "zh_properties": {
+        "total_chars": 6990,
+        "chinese_chars": 4002,
+        "chinese_ratio": 0.5725,
+        "trad_diff_char_count": 489,
+        "trad_diff_char_density": 0.1222,
+        "radical_distribution": {
+          "other": 3928,
+          "土": 45,
+          "肉": 4,
+          "水": 18,
+          "木": 1,
+          "金": 2,
+          "火": 4
+        },
+        "sentence_count": 88,
+        "avg_sentence_length": 78.4
+      },
+      "en_file": "41_Music.txt"
+    },
+    {
+      "index": 42,
+      "title": "臺灣料理",
+      "directions": [
+        "baseline"
+      ],
+      "en_title": null,
+      "zh_file": "42_臺灣料理.txt",
+      "zh_properties": {
+        "total_chars": 3228,
+        "chinese_chars": 2684,
+        "chinese_ratio": 0.8315,
+        "trad_diff_char_count": 213,
+        "trad_diff_char_density": 0.0794,
+        "radical_distribution": {
+          "other": 2485,
+          "水": 95,
+          "木": 8,
+          "土": 20,
+          "火": 52,
+          "金": 11,
+          "肉": 13
+        },
+        "sentence_count": 55,
+        "avg_sentence_length": 57.7
+      }
+    },
+    {
+      "index": 43,
+      "title": "攝影",
+      "directions": [
+        "baseline"
+      ],
+      "en_title": null,
+      "zh_file": "43_攝影.txt",
+      "zh_properties": {
+        "total_chars": 7138,
+        "chinese_chars": 5531,
+        "chinese_ratio": 0.7749,
+        "trad_diff_char_count": 655,
+        "trad_diff_char_density": 0.1184,
+        "radical_distribution": {
+          "other": 5320,
+          "土": 36,
+          "金": 57,
+          "水": 80,
+          "木": 15,
+          "肉": 6,
+          "火": 17
+        },
+        "sentence_count": 155,
+        "avg_sentence_length": 45.1
+      }
+    },
+    {
+      "index": 44,
+      "title": "足球",
+      "directions": [
+        "baseline"
+      ],
+      "en_title": "Association football",
+      "zh_file": "44_足球.txt",
+      "zh_properties": {
+        "total_chars": 13908,
+        "chinese_chars": 10778,
+        "chinese_ratio": 0.7749,
+        "trad_diff_char_count": 1262,
+        "trad_diff_char_density": 0.1171,
+        "radical_distribution": {
+          "other": 10538,
+          "水": 49,
+          "土": 128,
+          "火": 9,
+          "木": 27,
+          "肉": 18,
+          "金": 9
+        },
+        "sentence_count": 237,
+        "avg_sentence_length": 57.7
+      },
+      "en_file": "44_Association football.txt"
+    }
+  ]
+}
