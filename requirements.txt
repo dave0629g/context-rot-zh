@@ -1,0 +1,4 @@
+# 繁體中文 Context Rot 實驗 - 依賴套件
+
+# 繁簡轉換（純 Python 實作，不需要 C 編譯）
+opencc-python-reimplemented>=0.1.7

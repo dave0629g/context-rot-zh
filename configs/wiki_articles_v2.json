@@ -1,0 +1,443 @@
+{
+    "version": "2.0",
+    "description": "針對五個實驗方向精心挑選的維基百科條目",
+    "selection_methodology": "不是按主題分類，而是按『語言特性』選擇。每篇文章標註它能服務哪些實驗方向，以及為什麼。",
+    "wikipedia_variant": "zh-tw",
+    "note": "所有條目需下載繁體中文版本（variant=zh-tw），並記錄下載日期作為版本標記",
+
+
+    "direction_requirements": {
+        "D1_fragmentation": {
+            "name": "碎片化",
+            "needs": "繁簡體 tokenizer 切法差異大的文本。需要大量繁體特有字（機/机、學/学、國/国、發/发、關/关、體/体、點/点、數/数），這些字在繁體是複雜字形（3 bytes 的高區段），簡體是簡單字形（可能落在不同 byte 範圍），tokenizer 的 merge 路徑不同。",
+            "ideal_text": "政治、科技、教育、醫學領域——這些領域的常用詞大量包含繁簡差異字"
+        },
+        "D2_no_boundary": {
+            "name": "無詞界",
+            "needs": "斷詞歧義高的文本。中文的斷詞歧義出現在：(1)複合詞邊界模糊，如『研究生命科學』可以是『研究/生命/科學』或『研究生/命/科學』；(2)專有名詞與普通詞混淆；(3)數量詞與名詞的邊界。",
+            "ideal_text": "學術論述、法律條文、哲學討論——句子長、複合詞多、斷詞歧義高"
+        },
+        "D3_semantic_density": {
+            "name": "語意密度",
+            "needs": "有高品質英文對照版本的條目。兩個語言版本需覆蓋相同事實，才能比較『同一份語意在中文 vs 英文各佔多少 tokens』。",
+            "ideal_text": "自然科學、數學、國際事務——事實密集、中英版本內容重疊度高"
+        },
+        "D4_positional_bias": {
+            "name": "位置偏差",
+            "needs": "不同語篇結構的文本：(1)說明文（結構化、分點敘述）；(2)敘事文（時間線性）；(3)論說文（先論後證或先證後論）；(4)描寫文（空間或感官描述）。",
+            "ideal_text": "歷史事件（敘事）、科學原理（說明）、社會議題（論說）、地理景觀（描寫）"
+        },
+        "D5_glyph_interference": {
+            "name": "字形干擾",
+            "needs": "特定部首字高度集中的文本。我們需要能建構『部首密度高 vs 低』的對照組。雖然部首在 tokenizer 層面沒有直接資訊，但要測試的是 LLM 的 embedding 層是否學到了字形結構。需要多組不同部首的高密度文章。",
+            "ideal_text": "水文地理（氵部）、冶金材料（金部）、植物森林（木部）、地質土壤（土部）——作為各部首的高密度來源"
+        }
+    },
+
+
+    "articles": [
+
+        {"_comment": "===== 第一組：碎片化核心語料 ====="},
+        {"_comment": "選擇標準：繁簡差異字密度最高的領域"},
+
+        {
+            "title": "半導體",
+            "directions": ["D1_fragmentation", "D3_semantic_density"],
+            "justification": "半/導/體/積/電/製/機/數/運/關——幾乎每句都有繁簡差異字。英文版完整，可做語意密度對照。"
+        },
+        {
+            "title": "量子計算",
+            "directions": ["D1_fragmentation", "D3_semantic_density"],
+            "justification": "計/算/機/學/態/數/體/點——理工類繁簡差異密集。量子力學概念的英文版詳盡。"
+        },
+        {
+            "title": "中華民國教育",
+            "directions": ["D1_fragmentation", "D2_no_boundary"],
+            "justification": "學/國/體/點/數/發/關——教育政策用語繁簡差異極大。且『大學學測』『研究生』等詞斷詞歧義高。"
+        },
+        {
+            "title": "國際貨幣基金組織",
+            "directions": ["D1_fragmentation", "D3_semantic_density"],
+            "justification": "國/際/組/織/經/濟/發/點/數——金融政治術語繁簡差異密集。英文版非常完整。"
+        },
+        {
+            "title": "中華民國政治",
+            "directions": ["D1_fragmentation"],
+            "justification": "黨/國/會/選/舉/議/權/關——政治用語是繁簡差異最密集的領域之一。"
+        },
+        {
+            "title": "台灣醫療",
+            "directions": ["D1_fragmentation", "D2_no_boundary"],
+            "justification": "醫/藥/體/檢/術/點/數——醫學術語繁簡差異大。且醫學複合詞斷詞困難：『心臟外科手術室』的切分方式多種。"
+        },
+        {
+            "title": "人工智慧",
+            "directions": ["D1_fragmentation", "D3_semantic_density"],
+            "justification": "機/學/網/絡/數/據/訓/練/運/算——AI 領域繁簡差異密集。英文版詳盡。"
+        },
+        {
+            "title": "雲端運算",
+            "directions": ["D1_fragmentation"],
+            "justification": "運/算/網/絡/機/虛/擬/體——雲端技術用語幾乎每個關鍵詞都有繁簡差異。"
+        },
+
+
+        {"_comment": "===== 第二組：無詞界核心語料 ====="},
+        {"_comment": "選擇標準：長句、複合詞多、斷詞歧義高"},
+
+        {
+            "title": "中華民國法律",
+            "directions": ["D2_no_boundary", "D1_fragmentation"],
+            "justification": "法律條文是斷詞歧義最高的中文文體。『依前項規定辦理者不在此限』——『前項規定』還是『前項/規定』？且法律用語繁簡差異大。"
+        },
+        {
+            "title": "儒家",
+            "directions": ["D2_no_boundary", "D4_positional_bias"],
+            "justification": "哲學討論句式長、複合概念多。『仁義禮智信』的每個字都可獨立也可組合。且論述結構是典型的『先提問後推論』。"
+        },
+        {
+            "title": "中醫學",
+            "directions": ["D2_no_boundary", "D5_glyph_interference"],
+            "justification": "中醫術語斷詞極困難：『氣血不足肝腎虧虛』怎麼切？且大量身體部位字共享相同部首。"
+        },
+        {
+            "title": "台灣原住民族",
+            "directions": ["D2_no_boundary"],
+            "justification": "含大量音譯專有名詞（如族名、地名），斷詞系統通常無法正確切分音譯詞。"
+        },
+        {
+            "title": "佛教",
+            "directions": ["D2_no_boundary", "D4_positional_bias"],
+            "justification": "佛學術語如『般若波羅蜜多』是音譯詞，斷詞系統難以處理。論述結構有獨特的東方邏輯。"
+        },
+        {
+            "title": "刑法",
+            "directions": ["D2_no_boundary"],
+            "justification": "法條的長定語結構是斷詞歧義的極端案例：『意圖為自己或第三人不法之所有而竊取他人之動產者』。"
+        },
+        {
+            "title": "細胞生物學",
+            "directions": ["D2_no_boundary", "D3_semantic_density"],
+            "justification": "生物學複合詞如『去氧核醣核酸聚合酶連鎖反應』，斷詞方式影響語意理解。英文版詳盡。"
+        },
+
+
+        {"_comment": "===== 第三組：語意密度核心語料 ====="},
+        {"_comment": "選擇標準：中英版本內容高度重疊的事實密集條目"},
+
+        {
+            "title": "太陽系",
+            "directions": ["D3_semantic_density", "D4_positional_bias"],
+            "justification": "天文數據密集（距離、質量、溫度），中英版本覆蓋相同事實。結構為說明文。",
+            "en_title": "Solar System"
+        },
+        {
+            "title": "第二次世界大戰",
+            "directions": ["D3_semantic_density", "D4_positional_bias"],
+            "justification": "歷史事實密集（日期、數字、地名），中英版本覆蓋相同事件。結構為敘事文。",
+            "en_title": "World War II"
+        },
+        {
+            "title": "光合作用",
+            "directions": ["D3_semantic_density"],
+            "justification": "生物化學過程描述，中英版本步驟一致，事實密度高。",
+            "en_title": "Photosynthesis"
+        },
+        {
+            "title": "相對論",
+            "directions": ["D3_semantic_density"],
+            "justification": "物理學概念，公式和原理中英一致，可精確比較語意密度。",
+            "en_title": "Theory of relativity"
+        },
+        {
+            "title": "元素週期表",
+            "directions": ["D3_semantic_density", "D5_glyph_interference"],
+            "justification": "化學元素名稱中英對照明確。且中文元素名大量使用金部（鐵鋁銅鋅）、氣部等特定部首。",
+            "en_title": "Periodic table"
+        },
+        {
+            "title": "地球",
+            "directions": ["D3_semantic_density", "D5_glyph_interference"],
+            "justification": "地球科學數據中英高度重疊。包含大量水文（氵）和地質（土）相關字。",
+            "en_title": "Earth"
+        },
+        {
+            "title": "演化論",
+            "directions": ["D3_semantic_density"],
+            "justification": "生物學核心理論，中英版本概念對等，術語翻譯穩定。",
+            "en_title": "Evolution"
+        },
+        {
+            "title": "數學",
+            "directions": ["D3_semantic_density", "D1_fragmentation"],
+            "justification": "數學概念中英通用，公式符號一致。且『數/學/計/算/運/積』等字繁簡差異大。",
+            "en_title": "Mathematics"
+        },
+
+
+        {"_comment": "===== 第四組：位置偏差核心語料 ====="},
+        {"_comment": "選擇標準：不同語篇結構類型"},
+
+        {
+            "title": "台灣歷史",
+            "directions": ["D4_positional_bias"],
+            "justification": "典型敘事結構——按時間順序從史前到現代，資訊沿時間軸線性分布。",
+            "discourse_type": "narrative_chronological"
+        },
+        {
+            "title": "台灣地理",
+            "directions": ["D4_positional_bias", "D5_glyph_interference"],
+            "justification": "典型描寫結構——按空間分布描述山川河流。包含大量水部和土部字。",
+            "discourse_type": "descriptive_spatial"
+        },
+        {
+            "title": "氣候變遷",
+            "directions": ["D4_positional_bias", "D3_semantic_density"],
+            "justification": "典型論說結構——先提出問題、列舉證據、推導結論。英文版詳盡。",
+            "discourse_type": "argumentative",
+            "en_title": "Climate change"
+        },
+        {
+            "title": "台灣積體電路製造",
+            "directions": ["D4_positional_bias", "D1_fragmentation"],
+            "justification": "典型說明結構——公司沿革、技術說明、財務數據分段呈現。繁簡差異大。",
+            "discourse_type": "expository",
+            "en_title": "TSMC"
+        },
+        {
+            "title": "二二八事件",
+            "directions": ["D4_positional_bias"],
+            "justification": "事件敘事——有明確的起因、經過、結果結構。是台灣特有歷史事件，繁體語料豐富。",
+            "discourse_type": "narrative_event"
+        },
+        {
+            "title": "核能發電",
+            "directions": ["D4_positional_bias", "D1_fragmentation"],
+            "justification": "混合論說+說明——先說明原理，再討論正反觀點。且『核/電/機/組/發/廠』繁簡差異大。",
+            "discourse_type": "mixed_argumentative_expository"
+        },
+        {
+            "title": "民主",
+            "directions": ["D4_positional_bias", "D1_fragmentation"],
+            "justification": "典型論說結構——概念定義、歷史演進、各派觀點。政治術語繁簡差異大。",
+            "discourse_type": "argumentative",
+            "en_title": "Democracy"
+        },
+
+
+        {"_comment": "===== 第五組：字形干擾核心語料 ====="},
+        {"_comment": "選擇標準：特定部首字高密度集中"},
+
+        {
+            "title": "海洋",
+            "directions": ["D5_glyph_interference"],
+            "justification": "水部（氵）字極高密度：海/洋/洲/流/波/浪/潮/湧/淺/深/沿/港/灣/湖/河/泊/沉/浮/漂/溫/溶",
+            "target_radical": "水(氵)",
+            "en_title": "Ocean"
+        },
+        {
+            "title": "河流",
+            "directions": ["D5_glyph_interference"],
+            "justification": "水部字高密度：河/溪/江/流/淡/清/濁/漲/洪/淹/溢/渡/灌/溉/渠/池/沼/澤/瀑/泉/湧",
+            "target_radical": "水(氵)"
+        },
+        {
+            "title": "台灣河流列表",
+            "directions": ["D5_glyph_interference"],
+            "justification": "純粹的河流名稱列表，水部字密度可能是所有維基條目中最高的。",
+            "target_radical": "水(氵)"
+        },
+        {
+            "title": "冶金學",
+            "directions": ["D5_glyph_interference", "D3_semantic_density"],
+            "justification": "金部（釒/钅）字高密度：鐵/鋼/銅/鋁/鋅/錫/鉛/鎳/鉻/鎢/鑄/鍛/鍊/鍍/釘/鏈/錠/鑽",
+            "target_radical": "金(釒)",
+            "en_title": "Metallurgy"
+        },
+        {
+            "title": "化學元素",
+            "directions": ["D5_glyph_interference", "D3_semantic_density"],
+            "justification": "金部字和氣部字的混合高密度：所有金屬元素名都有金部，氣態元素有氣部。",
+            "target_radical": "金(釒)+氣",
+            "en_title": "Chemical element"
+        },
+        {
+            "title": "森林",
+            "directions": ["D5_glyph_interference"],
+            "justification": "木部字高密度：林/森/樹/木/枝/根/棵/株/桿/板/柱/棚/架/柵/欄/杉/松/柏/楓/櫻/橡/榕",
+            "target_radical": "木"
+        },
+        {
+            "title": "台灣植物",
+            "directions": ["D5_glyph_interference"],
+            "justification": "木部和草部（艹）字高密度：草本植物名大量使用草部，木本使用木部。",
+            "target_radical": "木+艹"
+        },
+        {
+            "title": "地質學",
+            "directions": ["D5_glyph_interference", "D3_semantic_density"],
+            "justification": "土部和石部字高密度：地/坡/塊/堆/埋/填/基/壁/壤/岩/礦/�ite/砂/礫/碎",
+            "target_radical": "土+石",
+            "en_title": "Geology"
+        },
+        {
+            "title": "火山",
+            "directions": ["D5_glyph_interference"],
+            "justification": "火部（灬）字集中：火/焰/燃/燒/熔/煙/熱/烈/炸/爆/灰/灼/烘/炙。同時有土/石部的對比。",
+            "target_radical": "火(灬)"
+        },
+        {
+            "title": "人體解剖學",
+            "directions": ["D5_glyph_interference", "D2_no_boundary"],
+            "justification": "肉部（月旁）字高密度：臟/腑/腸/胃/肝/脾/腎/肺/腦/膜/腺/肌/膚/脂/膝/臂/腿/腰。且解剖學術語斷詞困難。",
+            "target_radical": "肉(月)"
+        },
+
+
+        {"_comment": "===== 第六組：對照基線語料 ====="},
+        {"_comment": "選擇標準：語言特性平均、不偏向任何特定方向，作為各實驗的 baseline"},
+
+        {
+            "title": "奧林匹克運動會",
+            "directions": ["baseline"],
+            "justification": "體育類文章，用詞日常、語篇結構混合、沒有特定部首偏向。",
+            "en_title": "Olympic Games"
+        },
+        {
+            "title": "音樂",
+            "directions": ["baseline"],
+            "justification": "藝術類文章，詞彙日常化，無特殊語言偏向。",
+            "en_title": "Music"
+        },
+        {
+            "title": "飲食文化",
+            "directions": ["baseline"],
+            "justification": "日常生活用語，句式簡單，斷詞歧義低，部首分布均勻。"
+        },
+        {
+            "title": "攝影",
+            "directions": ["baseline"],
+            "justification": "中性技術類文章，不偏向特定語言特性。"
+        },
+        {
+            "title": "足球",
+            "directions": ["baseline"],
+            "justification": "運動類文章，用詞簡單，作為所有實驗方向的中性 baseline。",
+            "en_title": "Association football"
+        }
+    ],
+
+
+    "needles": {
+        "description": "每個方向需要不同特性的 needle",
+
+        "general": [
+            {
+                "id": "N01",
+                "fact": "根據內部研究報告，鳳梨酥的全球年銷售額在二零二三年達到了新台幣四百七十三億元。",
+                "question": "鳳梨酥的全球年銷售額是多少？",
+                "expected": "四百七十三億元",
+                "note": "通用 needle，數字用中文避免繁簡無差異"
+            },
+            {
+                "id": "N02",
+                "fact": "瑞典皇家科學院宣布，二零二四年的特別成就獎頒發給了在深海珊瑚復育領域有卓越貢獻的陳美玲博士。",
+                "question": "二零二四年特別成就獎頒給了誰？",
+                "expected": "陳美玲博士",
+                "note": "人名類 needle"
+            },
+            {
+                "id": "N03",
+                "fact": "根據最新的地質調查，玉山山脈的東側發現了一處面積約為三點七平方公里的罕見礦物沉積區。",
+                "question": "玉山山脈東側的礦物沉積區面積是多少？",
+                "expected": "三點七平方公里",
+                "note": "地理事實 needle"
+            },
+            {
+                "id": "N04",
+                "fact": "在最近一次的國際會議上，與會學者一致認為台灣黑熊的野外族群數量已恢復至約八百五十隻。",
+                "question": "台灣黑熊的野外族群數量是多少？",
+                "expected": "八百五十隻",
+                "note": "生態事實 needle"
+            },
+            {
+                "id": "N05",
+                "fact": "經過為期三年的大規模臨床試驗，研究團隊證實該新型疫苗對高齡族群的保護效力達到百分之九十二點六。",
+                "question": "新型疫苗對高齡族群的保護效力是多少？",
+                "expected": "百分之九十二點六",
+                "note": "醫學事實 needle"
+            }
+        ],
+
+        "water_radical_needle": {
+            "id": "N_WATER",
+            "fact": "該研究站位於淡水河與基隆河匯流處的觀測平台，每日監測河川流量與潮汐漲退的變化。",
+            "question": "研究站位於哪裡？",
+            "expected": "淡水河與基隆河匯流處",
+            "note": "字形干擾實驗專用：needle 本身包含大量水部字"
+        },
+        "metal_radical_needle": {
+            "id": "N_METAL",
+            "fact": "冶煉廠的鋼鐵鑄鍛車間裡，技師使用新型鎢鉻合金鑽頭完成了精密銑削加工。",
+            "question": "技師使用什麼完成加工？",
+            "expected": "鎢鉻合金鑽頭",
+            "note": "字形干擾實驗專用：needle 本身包含大量金部字"
+        },
+        "neutral_needle": {
+            "id": "N_NEUTRAL",
+            "fact": "記者會上宣布的消息指出，明年度的文化節活動將在十月的第二個週末正式開幕。",
+            "question": "文化節活動什麼時候開幕？",
+            "expected": "十月的第二個週末",
+            "note": "字形干擾實驗的對照組：needle 不包含任何特定部首高密度字"
+        }
+    },
+
+
+    "experiment_params": {
+        "context_lengths_chars": [500, 1000, 2000, 4000, 8000, 16000, 32000],
+        "needle_positions": [0.1, 0.3, 0.5, 0.7, 0.9],
+        "trials_per_combination": 10,
+        "random_seed": 42,
+        "models": ["qwen3", "llama3.1", "gemma3"],
+
+        "direction_specific": {
+            "D1_fragmentation": {
+                "note": "繁簡對照，用 OpenCC 轉換，同一模型測兩版",
+                "source_articles": "D1 標記的文章",
+                "needle_set": "general"
+            },
+            "D2_no_boundary": {
+                "note": "原始文本 vs CKIP斷詞加空格版本",
+                "source_articles": "D2 標記的文章",
+                "needle_set": "general"
+            },
+            "D3_semantic_density": {
+                "note": "同一條目的中文版 vs 英文版，比較 token 數和準確率",
+                "source_articles": "D3 標記且有 en_title 的文章",
+                "needle_set": "general (中英各一版)"
+            },
+            "D4_positional_bias": {
+                "note": "同一文本的原序 vs 打散 vs 反序，比較 needle 位置效應",
+                "source_articles": "D4 標記的文章，按 discourse_type 分組",
+                "needle_set": "general"
+            },
+            "D5_glyph_interference": {
+                "note": "高密度部首文章 vs baseline 文章 vs 同部首needle/不同部首needle",
+                "source_articles": "D5 標記的文章，按 target_radical 分組",
+                "needle_set": "water_radical_needle + metal_radical_needle + neutral_needle"
+            }
+        }
+    },
+
+
+    "article_count_summary": {
+        "D1_fragmentation": 8,
+        "D2_no_boundary": 7,
+        "D3_semantic_density": 8,
+        "D4_positional_bias": 7,
+        "D5_glyph_interference": 10,
+        "baseline": 5,
+        "total_unique": 45,
+        "note": "很多文章服務多個方向，去重後約 45 篇"
+    }
+}
