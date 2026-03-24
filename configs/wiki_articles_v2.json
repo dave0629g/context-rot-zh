@@ -394,7 +394,7 @@
 
 
     "experiment_params": {
-        "context_lengths_chars": [500, 1000, 2000, 4000, 8000, 16000, 32000],
+        "context_lengths_chars": [500, 2000, 4000, 6000, 8000, 12000, 16000, 24000, 32000, 65000],
         "needle_positions": [0.1, 0.3, 0.5, 0.7, 0.9],
         "trials_per_combination": 10,
         "random_seed": 42,

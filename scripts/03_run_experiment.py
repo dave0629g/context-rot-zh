@@ -55,7 +55,7 @@ def ollama_generate(model: str, prompt: str, temperature: float = 0.0) -> dict:
         "options": {
             "temperature": temperature,
             "num_predict": 256,         # 限制輸出長度
-            "num_ctx": 65536,           # 確保 context window 夠大
+            "num_ctx": 100000,           # 確保 context window 夠大
         },
     }).encode("utf-8")
 
