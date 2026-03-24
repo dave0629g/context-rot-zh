@@ -29,9 +29,9 @@ except ImportError:
     print("請執行: pip install opencc-python-reimplemented")
 
 
-RAW_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "wiki_raw")
+RAW_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "wiki_raw_v2", "zh")
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "haystacks")
-CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "configs", "wiki_articles.json")
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "..", "configs", "wiki_articles_v2.json")
 
 
 def load_config():
@@ -170,7 +170,7 @@ def main():
 
     config = load_config()
     params = config["experiment_params"]
-    needles = config["needles"]
+    needles = config["needles"]["general"]  # v2: needles 是 dict，取 general 清單
 
     context_lengths = params["context_lengths_chars"]
     needle_positions = params["needle_positions"]
@@ -179,8 +179,8 @@ def main():
     # 載入文章
     articles = load_wiki_articles()
     if not articles:
-        print("錯誤: data/wiki_raw/ 目錄下沒有文章")
-        print("請先執行: python scripts/01_fetch_wiki.py")
+        print("錯誤: data/wiki_raw_v2/zh/ 目錄下沒有文章")
+        print("請先執行: python scripts/01_fetch_wiki_v2.py")
         return
 
     print(f"載入 {len(articles)} 篇文章")
@@ -195,7 +195,7 @@ def main():
     for length in context_lengths:
         for pos in needle_positions:
             # 每個 (長度, 位置) 組合，用不同 seed 產生多個 haystack
-            for trial in range(params["articles_per_combination"]):
+            for trial in range(params["trials_per_combination"]):
                 # 為每個 trial 建立獨立的 rng
                 trial_rng = random.Random(seed + experiment_id)
 
@@ -227,7 +227,7 @@ def main():
                     "trial": trial,
                     "needle_id": needle_info["id"],
                     "question": needle_info["question"],
-                    "expected_answer": needle_info["expected_answer"],
+                    "expected_answer": needle_info["expected"],
                     "traditional": {
                         "text": full_traditional,
                         "needle": needle_traditional,
@@ -256,7 +256,7 @@ def main():
     print("\n=== 實驗矩陣摘要 ===")
     print(f"  Context 長度:   {len(context_lengths)} 級")
     print(f"  Needle 位置:    {len(needle_positions)} 個")
-    print(f"  每組合重複:     {params['articles_per_combination']} 次")
+    print(f"  每組合重複:     {params['trials_per_combination']} 次")
     print(f"  字形版本:       2 (繁體/簡體)")
     print(f"  總實驗數:       {len(all_experiments)} × 2 = {len(all_experiments) * 2}")
 

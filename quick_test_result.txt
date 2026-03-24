@@ -1,0 +1,32 @@
+模型: qwen3:8b
+══════════════════════════════════════════════════
+
+📝 文本統計
+  繁體字元數: 623
+  簡體字元數: 623
+
+🔢 Token 數比較
+  繁體 tokens: 475
+  簡體 tokens: 415
+  繁/簡比值:   1.1446
+  → 繁體比簡體多 14.5% 的 tokens
+
+🔍 測試繁體版本
+  回答: 台灣最古老的樹木樹齡超過三千八百歲。
+  包含正確答案: ✗
+
+🔍 測試簡體版本
+  回答: 台湾最古老的树木树龄是三千八百年。
+  包含正確答案: ✓
+
+══════════════════════════════════════════════════
+📊 快速測試結果
+  繁體 tokens / 簡體 tokens = 475 / 415
+  繁體正確: ✗
+  簡體正確: ✓
+
+  如果此結果合理，可以開始完整實驗：
+    python scripts/01_fetch_wiki.py
+    python scripts/02_build_haystacks.py
+    python scripts/03_run_experiment.py --model qwen3:8b
+    python scripts/04_analyze.py --model qwen3:8b
