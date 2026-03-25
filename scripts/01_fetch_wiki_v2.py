@@ -104,6 +104,32 @@ def analyze_text_properties(text: str) -> dict:
     }
 
 
+# --- 數學公式清理 ---
+
+def clean_math_markup(text: str) -> str:
+    """
+    移除維基百科 API 留下的數學公式標記殘留。
+
+    Wikipedia 的 explaintext=true 無法完整清除 <math> 標籤，會留下：
+    1. {\displaystyle ...} LaTeX 源碼行
+    2. MathML 文字樹的深縮排碎片（如 "          10"、"            7"）
+
+    清理策略：
+    1. 移除 {\displaystyle ...} 整行（含前後空白）
+    2. 移除 6 個空格以上縮排的行（MathML 樹結構殘留）
+    3. 合併多餘空行
+    """
+    # 移除 {\displaystyle ...} 行（含前後空白換行）
+    text = re.sub(r'\n\s*\{\\displaystyle[^\n]*\}\s*', '\n', text)
+    # 移除 MathML 文字樹深縮排殘留（6 個空格以上）
+    text = re.sub(r'\n {6,}[^\n]*', '', text)
+    # 將所有只含空白字元的行清空（MathML 外層結構殘留，任何縮排量）
+    text = re.sub(r'^[ \t]+$', '', text, flags=re.MULTILINE)
+    # 合併 3 個以上連續空行為最多 2 個
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
+
+
 # --- 維基百科 API ---
 
 def fetch_wiki(title: str, lang: str = "zh", variant: str = "zh-tw",
@@ -188,6 +214,12 @@ def main():
         if os.path.exists(zh_path):
             with open(zh_path, "r", encoding="utf-8") as f:
                 zh_text = f.read()
+            # 對快取檔案補做數學公式清理（向下相容舊版本下載的檔案）
+            cleaned = clean_math_markup(zh_text)
+            if cleaned != zh_text:
+                zh_text = cleaned
+                with open(zh_path, "w", encoding="utf-8") as f:
+                    f.write(zh_text)
             char_count = len(zh_text)
             status_str = f"{char_count:,} 字元（快取）"
             if char_count < MIN_CHARS:
@@ -215,6 +247,7 @@ def main():
                 failures.append({"title": title, "lang": "zh",
                                   "reason": f"too_short:{actual}"})
             else:
+                text = clean_math_markup(text)
                 with open(zh_path, "w", encoding="utf-8") as f:
                     f.write(text)
                 zh_text = text
