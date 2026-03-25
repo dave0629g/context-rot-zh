@@ -59,6 +59,12 @@ def load_results(model: str, eval_file: str = None, reeval: bool = False) -> lis
             if line.strip():
                 results.append(json.loads(line))
 
+    # 排除已標記為跳過的記錄
+    skipped = [r for r in results if r.get("skipped")]
+    if skipped:
+        results = [r for r in results if not r.get("skipped")]
+        print(f"排除 {len(skipped)} 筆 context_length_exceeded 記錄")
+
     if reeval:
         for r in results:
             r["evaluation"]["is_correct"] = reevaluate(r)
@@ -84,6 +90,27 @@ def load_results(model: str, eval_file: str = None, reeval: bool = False) -> lis
         print(f"已套用 LLM 評估：{applied}/{len(results)} 筆")
 
     return results
+
+
+def detect_truncated_lengths(results: list[dict]) -> list[int]:
+    """
+    偵測可能因 context window 截斷而失真的實驗長度。
+
+    判斷依據：同一長度下，所有記錄的 token_count_prompt 完全相同（零變異），
+    代表全部撞到模型上限被截斷，而非自然的 token 數差異。
+    """
+    from collections import defaultdict
+    length_tokens = defaultdict(list)
+    for r in results:
+        tp = r.get("token_count_prompt")
+        if tp and tp > 0:
+            length_tokens[r["context_length_chars"]].append(tp)
+
+    truncated = []
+    for length, tokens in length_tokens.items():
+        if len(tokens) >= 2 and len(set(tokens)) == 1:
+            truncated.append(length)
+    return sorted(truncated)
 
 
 def compute_accuracy_by_length(results: list[dict]) -> dict:
@@ -267,6 +294,14 @@ def generate_report(model: str, results: list[dict]):
     print(f"  最大比值: {token_stats.get('max_ratio', 'N/A')}")
     print(f"  最小比值: {token_stats.get('min_ratio', 'N/A')}")
     print(f"  解讀: {token_stats.get('interpretation', 'N/A')}")
+
+    # 偵測截斷長度並警告
+    truncated_lengths = detect_truncated_lengths(results)
+    if truncated_lengths:
+        lengths_str = ", ".join(f"{l:,}" for l in truncated_lengths)
+        print(f"\n⚠️  警告：以下長度的 token_count_prompt 全部相同，")
+        print(f"   疑似超出模型 context window 而被截斷，結果不可信：")
+        print(f"   {lengths_str} 字元")
 
     # 2. 按長度的準確率
     acc_by_length = compute_accuracy_by_length(results)
