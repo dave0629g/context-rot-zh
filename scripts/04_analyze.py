@@ -18,14 +18,37 @@ Step 4: 分析實驗結果
 import argparse
 import json
 import os
+import re
 from collections import defaultdict
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 ANALYSIS_DIR = os.path.join(RESULTS_DIR, "analysis")
 
 
-def load_results(model: str) -> list[dict]:
-    """載入指定模型的結果"""
+def reevaluate(r: dict) -> bool:
+    """用修正後的文字比對重算 is_correct（簡體 variant 額外做 OpenCC 轉換）"""
+    response = r["model_response"].strip().lower()
+    expected = r["expected_answer"].strip().lower()
+
+    candidates = [expected]
+    if r["variant"] == "simplified":
+        try:
+            import opencc
+            candidates.append(opencc.OpenCC("t2s").convert(expected))
+        except ImportError:
+            pass
+
+    exact_match = any(c in response for c in candidates)
+
+    response_numbers = set(re.findall(r"[\d.]+", response))
+    expected_numbers = set(re.findall(r"[\d.]+", expected))
+    number_match = bool(expected_numbers and expected_numbers.issubset(response_numbers))
+
+    return exact_match or number_match
+
+
+def load_results(model: str, eval_file: str = None, reeval: bool = False) -> list[dict]:
+    """載入指定模型的結果，可選擇用 LLM 評估檔覆蓋原始判斷"""
     path = os.path.join(RESULTS_DIR, f"{model}_results.jsonl")
     if not os.path.exists(path):
         print(f"找不到結果檔案: {path}")
@@ -35,6 +58,31 @@ def load_results(model: str) -> list[dict]:
         for line in f:
             if line.strip():
                 results.append(json.loads(line))
+
+    if reeval:
+        for r in results:
+            r["evaluation"]["is_correct"] = reevaluate(r)
+        print(f"已重新評估（修正版文字比對）：{len(results)} 筆")
+
+    if eval_file:
+        if not os.path.exists(eval_file):
+            print(f"找不到評估檔案: {eval_file}")
+            return results
+        # 建立 (experiment_id, variant) → is_correct 的覆蓋表
+        overrides = {}
+        with open(eval_file, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip():
+                    e = json.loads(line)
+                    overrides[(e["experiment_id"], e["variant"])] = e["is_correct"]
+        applied = 0
+        for r in results:
+            key = (r["experiment_id"], r["variant"])
+            if key in overrides:
+                r["evaluation"]["is_correct"] = overrides[key]
+                applied += 1
+        print(f"已套用 LLM 評估：{applied}/{len(results)} 筆")
+
     return results
 
 
@@ -253,6 +301,10 @@ def main():
     parser = argparse.ArgumentParser(description="分析 Context Rot 實驗結果")
     parser.add_argument("--model", help="指定分析某個模型")
     parser.add_argument("--all", action="store_true", help="分析所有模型")
+    parser.add_argument("--eval-file", default=None,
+                        help="LLM 評估檔路徑（由 05_llm_judge.py 產生），覆蓋原始判斷")
+    parser.add_argument("--reeval", action="store_true",
+                        help="用修正版文字比對重算 is_correct（修正繁簡偏差，不需 LLM）")
     args = parser.parse_args()
 
     if args.all:
@@ -269,7 +321,7 @@ def main():
 
     all_analyses = {}
     for model in models:
-        results = load_results(model)
+        results = load_results(model, eval_file=args.eval_file, reeval=args.reeval)
         if results:
             analysis = generate_report(model, results)
             all_analyses[model] = analysis

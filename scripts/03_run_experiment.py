@@ -96,18 +96,31 @@ def build_prompt(context: str, question: str) -> str:
 回答："""
 
 
-def evaluate_answer(response: str, expected: str) -> dict:
+def evaluate_answer(response: str, expected: str, variant: str = "traditional") -> dict:
     """
     評估模型回答是否正確
 
     策略：檢查 expected answer 是否出現在回答中
     （寬鬆匹配，因為模型可能用不同方式表達同一事實）
+
+    simplified variant 會額外把 expected 轉成簡體後比對，
+    避免繁體 expected 對上簡體回答時誤判為錯。
+    注意：這是粗估用的快速判斷，最終評估請用 05_llm_judge.py。
     """
     response_clean = response.strip().lower()
     expected_clean = expected.strip().lower()
 
-    # 完全包含
-    exact_match = expected_clean in response_clean
+    # 簡體 variant：把 expected 也轉成簡體再比對
+    expected_simp_clean = expected_clean
+    if variant == "simplified":
+        try:
+            import opencc
+            expected_simp_clean = opencc.OpenCC("t2s").convert(expected_clean)
+        except ImportError:
+            pass  # opencc 未安裝時退回原始比對
+
+    # 完全包含（繁體或簡體版本任一中即可）
+    exact_match = expected_clean in response_clean or expected_simp_clean in response_clean
 
     # 數字匹配（提取數字比較）
     import re
@@ -148,7 +161,7 @@ def run_single_experiment(model: str, experiment: dict, variant: str) -> dict:
     result = ollama_generate(model, prompt)
 
     # 評估答案
-    evaluation = evaluate_answer(result["response"], expected)
+    evaluation = evaluate_answer(result["response"], expected, variant)
 
     return {
         "experiment_id": experiment["experiment_id"],
