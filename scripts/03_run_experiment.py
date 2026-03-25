@@ -30,6 +30,34 @@ RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 OLLAMA_BASE = "http://localhost:11434"
 
 
+def get_model_context_length(model: str) -> int:
+    """從 Ollama /api/show 取得模型的最大 context length"""
+    url = f"{OLLAMA_BASE}/api/show"
+    payload = json.dumps({"name": model}).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=payload, headers={"Content-Type": "application/json"}
+    )
+    try:
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read().decode("utf-8"))
+        info = data.get("model_info", {})
+        # 各模型架構的 key 名稱不同，例如 llama.context_length、qwen3.context_length
+        for key, val in info.items():
+            if "context_length" in key:
+                return int(val)
+    except Exception:
+        pass
+    return 131072  # 查不到時保守預設
+
+
+def estimate_tokens(text: str) -> int:
+    """粗估 token 數：中文字約 0.6 tokens/char，其餘約 0.25 tokens/char"""
+    import unicodedata
+    chinese = sum(1 for c in text if unicodedata.category(c) == "Lo")
+    others = len(text) - chinese
+    return int(chinese * 0.6 + others * 0.25)
+
+
 def ollama_tokenize(model: str, text: str) -> int:
     """用 Ollama API 取得精確的 token 數"""
     url = f"{OLLAMA_BASE}/api/tokenize"
@@ -45,7 +73,7 @@ def ollama_tokenize(model: str, text: str) -> int:
         return -1  # tokenize API 可能不支援，回傳 -1
 
 
-def ollama_generate(model: str, prompt: str, temperature: float = 0.0) -> dict:
+def ollama_generate(model: str, prompt: str, num_ctx: int, temperature: float = 0.0) -> dict:
     """呼叫 Ollama API 生成回應"""
     url = f"{OLLAMA_BASE}/api/generate"
     payload = json.dumps({
@@ -54,8 +82,8 @@ def ollama_generate(model: str, prompt: str, temperature: float = 0.0) -> dict:
         "stream": False,
         "options": {
             "temperature": temperature,
-            "num_predict": 256,         # 限制輸出長度
-            "num_ctx": 100000,           # 確保 context window 夠大
+            "num_predict": 256,   # 限制輸出長度
+            "num_ctx": num_ctx,   # 使用模型實際上限
         },
     }).encode("utf-8")
 
@@ -142,23 +170,62 @@ def evaluate_answer(response: str, expected: str, variant: str = "traditional") 
     }
 
 
-def run_single_experiment(model: str, experiment: dict, variant: str) -> dict:
+def run_single_experiment(
+    model: str, experiment: dict, variant: str, model_max_ctx: int
+) -> dict:
     """
     對單一實驗組合執行測試
 
     variant: "traditional" 或 "simplified"
+    model_max_ctx: 模型最大 context length（由 get_model_context_length 取得）
+
+    若預估 prompt token 數超過 model_max_ctx，直接回傳 skipped 記錄，
+    不送給模型，避免截斷導致實驗結果失真。
     """
     data = experiment[variant]
     context = data["text"]
     question = experiment["question"]
     expected = experiment["expected_answer"]
 
-    # 取得精確 token 數
-    token_count = ollama_tokenize(model, context)
-
-    # 建構 prompt 並送出
+    # 建構 prompt
     prompt = build_prompt(context, question)
-    result = ollama_generate(model, prompt)
+
+    # 預估 token 數，預留 256 tokens 給模型輸出
+    estimated = estimate_tokens(prompt)
+    if estimated > model_max_ctx - 256:
+        return {
+            "experiment_id": experiment["experiment_id"],
+            "model": model,
+            "variant": variant,
+            "context_length_chars": experiment["context_length_chars"],
+            "needle_position": experiment["needle_position"],
+            "trial": experiment["trial"],
+            "needle_id": experiment["needle_id"],
+            "question": question,
+            "expected_answer": expected,
+            "model_response": None,
+            "token_count_actual": estimated,
+            "token_count_prompt": None,
+            "token_count_output": None,
+            "elapsed_seconds": 0.0,
+            "skipped": True,
+            "skip_reason": "context_length_exceeded",
+            "model_max_ctx": model_max_ctx,
+            "evaluation": {
+                "exact_match": False,
+                "number_match": False,
+                "char_overlap": 0.0,
+                "is_correct": False,
+            },
+        }
+
+    # 送出給模型
+    result = ollama_generate(model, prompt, num_ctx=model_max_ctx)
+
+    # 取得精確 token 數：優先用 /api/tokenize，不支援時 fallback 到 prompt_eval_count
+    token_count = ollama_tokenize(model, context)
+    if token_count == -1:
+        token_count = result["prompt_eval_count"]
 
     # 評估答案
     evaluation = evaluate_answer(result["response"], expected, variant)
@@ -178,6 +245,9 @@ def run_single_experiment(model: str, experiment: dict, variant: str) -> dict:
         "token_count_prompt": result["prompt_eval_count"],
         "token_count_output": result["eval_count"],
         "elapsed_seconds": result["elapsed_seconds"],
+        "skipped": False,
+        "skip_reason": None,
+        "model_max_ctx": model_max_ctx,
         "evaluation": evaluation,
     }
 
@@ -200,7 +270,11 @@ def main():
         for line in f:
             experiments.append(json.loads(line))
 
+    # 取得模型 context length
+    model_max_ctx = get_model_context_length(args.model)
+
     print(f"模型: {args.model}")
+    print(f"模型最大 context length: {model_max_ctx:,} tokens")
     print(f"實驗總數: {len(experiments)} × 2 (繁/簡) = {len(experiments) * 2}")
 
     # 如果 resume，找出已完成的實驗
@@ -252,7 +326,7 @@ def main():
 
                 try:
                     result = run_single_experiment(
-                        args.model, experiment, variant
+                        args.model, experiment, variant, model_max_ctx
                     )
 
                     # 記錄結果
@@ -262,10 +336,13 @@ def main():
                     out_file.flush()
 
                     # 統計
-                    is_correct = result["evaluation"]["is_correct"]
-                    token_info = f"tokens={result['token_count_actual']}"
-                    status = "✓" if is_correct else "✗"
-                    print(f" {token_info} {status}")
+                    if result.get("skipped"):
+                        print(f" tokens≈{result['token_count_actual']} SKIP(context_length_exceeded)")
+                    else:
+                        is_correct = result["evaluation"]["is_correct"]
+                        token_info = f"tokens={result['token_count_actual']}"
+                        status = "✓" if is_correct else "✗"
+                        print(f" {token_info} {status}")
 
                     if variant == "traditional":
                         total_trad += 1

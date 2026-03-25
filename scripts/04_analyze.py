@@ -148,6 +148,8 @@ def compute_token_stats(results: list[dict]) -> dict:
         exp_id = r["experiment_id"]
         variant = r["variant"]
         token_count = r.get("token_count_actual", -1)
+        if token_count <= 0:
+            token_count = r.get("token_count_prompt", -1)
         if token_count > 0:
             pairs[exp_id][variant] = token_count
 
