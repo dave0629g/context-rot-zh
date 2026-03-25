@@ -213,11 +213,11 @@ Day 14  釋出 GitHub repo + 最終提交
 
 ## DAY 4（週四）：正式實驗 - 中型模型
 
-### 白天：qwen3:32b + gemma3:27b
+### 白天：qwen3.5:35b + gemma3:27b
 
 ```
-□ qwen3:32b（約 8-12 小時）
-  $ python scripts/03_run_experiment.py --model qwen3:32b
+□ qwen3.5:35b（約 8-12 小時，替代原計劃的 qwen3:32b，context 262k）
+  $ python scripts/03_run_experiment.py --model qwen3.5:35b
   早上開跑 → 傍晚結束
 
 □ gemma3:27b（晚上開跑，過夜）
@@ -246,12 +246,12 @@ Day 14  釋出 GitHub repo + 最終提交
   $ python scripts/04_analyze.py --model gemma3:27b
   完整嗎？ □ 是
 
-□ llama3.3:70b-q4_K_M（16-24 小時）
-  $ python scripts/03_run_experiment.py --model llama3.3:70b-q4_K_M
+□ llama3.3:70b（16-24 小時）
+  $ python scripts/03_run_experiment.py --model llama3.3:70b
   早上開跑 → 跑過整個週末
 
   中途確認沒掛掉：
-  $ tail -1 results/llama3.3:70b-q4_K_M_results.jsonl
+  $ tail -1 results/llama3.3:70b_results.jsonl
 
 □ 等待期間：完成無詞界 haystack 建構腳本
   把 02_build_haystacks.py 複製為 02b_build_haystacks_spaced.py

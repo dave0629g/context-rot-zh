@@ -29,11 +29,14 @@ ollama pull gemma3:4b
 ```
 預計下載時間：每個模型約 5-15 分鐘
 
+> ⚠️ 注意：qwen3:8b 的 context window 僅 40,960 tokens，65k 字元實驗會被截斷。
+> 實驗腳本會自動偵測並標記，65k 結果不可信，分析報告會顯示警告。
+
 ### 0.4 下載模型（第二組：正式實驗用）
 ```bash
-ollama pull qwen3:32b
-ollama pull llama3.3:70b-q4_K_M
+ollama pull qwen3.5:35b      # 替代原計劃的 qwen3:32b（context 262k，更大）
 ollama pull gemma3:27b
+ollama pull llama3.3:70b
 ```
 預計下載時間：70B 模型約 30-60 分鐘
 
@@ -198,30 +201,52 @@ python scripts/04_analyze.py --all
 ```
 確認三個模型的結果趨勢一致。
 
-### 4.3 用 32B~70B 模型跑正式實驗
+### 4.3 用中大型模型跑正式實驗
+
+**正式實驗陣容（6 個模型）：**
+
+| Tier | 模型 | Context Window | 狀態 |
+|---|---|---|---|
+| 8B | llama3.1:8b | 131,072 | ✓ 已完成 |
+| 8B | gemma3:4b | 131,072 | ✓ 已完成 |
+| 8B | qwen3:8b | 40,960 ⚠️ | ✓ 已完成（65k 不可信） |
+| 中型 | qwen3.5:35b | 262,144 | 待跑 |
+| 中型 | gemma3:27b | 131,072 | 待跑 |
+| 大型 | llama3.3:70b | 131,072 | 待跑 |
+
 ```bash
-python scripts/03_run_experiment.py --model qwen3:32b
+python scripts/03_run_experiment.py --model qwen3.5:35b
 # 預計 8-12 小時
 
 python scripts/03_run_experiment.py --model gemma3:27b
 # 預計 6-10 小時
 
-python scripts/03_run_experiment.py --model llama3.3:70b-q4_K_M
+python scripts/03_run_experiment.py --model llama3.3:70b
 # 預計 16-24 小時，建議跑過夜
 # 如果中斷可用 --resume 繼續
 ```
 
+**額外選項（視資源和時間補跑）：**
+
+| 模型 | Context Window | 用途 |
+|---|---|---|
+| deepseek-r1:32b | 131,072 | 推理模型對照，中文能力強 |
+| qwen3-next:80b | 262,144 | Qwen 系列大型版本 |
+| nemotron-120b-100k | 262,144 | 超大型對照 |
+| gpt-oss:120b | 131,072 | 超大型對照 |
+
 ### 4.4 記錄每次實驗的 token 數
-03_run_experiment.py 會自動用 Ollama 的 tokenize API 記錄每筆實驗的實際 token 數。
-這是關鍵數據——繁簡體在同一模型上的 token 數差異。
+03_run_experiment.py 會自動從 Ollama `/api/show` 取得模型的 context 上限，
+並在送出前估算 prompt token 數。超過上限的實驗會自動跳過並記錄
+`skip_reason: "context_length_exceeded"`，分析時也會自動排除。
 
 ### 4.5 完整分析
 ```bash
-python scripts/04_analyze.py --all
+python scripts/04_analyze.py --all --reeval
 ```
 
 ### 完成標準
-- [ ] 6 個模型（3 個 8B + 3 個 32B~70B）全部跑完
+- [ ] 6 個模型（3 個 8B + 3 個中大型）全部跑完
 - [ ] 繁簡差異在不同模型間一致
 - [ ] Token 數差異有完整記錄
 - [ ] 8B 和大模型的結論方向一致
