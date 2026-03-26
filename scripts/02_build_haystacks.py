@@ -121,8 +121,16 @@ def insert_needle(haystack: str, needle: str, position: float) -> str:
     在 haystack 的指定相對位置插入 needle
 
     position: 0.0~1.0 的浮點數，表示插入位置的百分比
-    插入點選在最近的段落邊界（\n\n），避免破壞句子
+      - 0.0：插在文章最前端（before all content）
+      - 1.0：插在文章最末端（after all content）
+      - 其他：找最近的段落邊界（\n\n），避免破壞句子
     """
+    # 邊界特例：直接插在頭或尾
+    if position == 0.0:
+        return needle + "\n\n" + haystack
+    if position == 1.0:
+        return haystack + "\n\n" + needle
+
     target_pos = int(len(haystack) * position)
 
     # 找最近的段落邊界
