@@ -73,17 +73,44 @@ def ollama_tokenize(model: str, text: str) -> int:
         return -1  # tokenize API 可能不支援，回傳 -1
 
 
+def is_thinking_model(model: str) -> bool:
+    """
+    判斷是否為 thinking 模型（會輸出 <think>...</think> 推理過程）
+
+    目前已知的 thinking 模型：
+      - qwen3.*（所有 qwen3 系列，包括 qwen3:8b, qwen3.5:35b 等）
+      - deepseek-r1.*
+
+    對這些模型需要在 prompt 前加上 /no_think 來關閉 thinking 模式，
+    並將 num_predict 提高到 2048，確保 response 欄位有足夠空間輸出答案。
+
+    參考：Qwen3 文件 https://qwen.readthedocs.io/en/latest/
+          /no_think 指令會讓模型跳過推理步驟，直接輸出答案
+    """
+    model_lower = model.lower()
+    return model_lower.startswith("qwen3") or model_lower.startswith("deepseek-r1")
+
+
 def ollama_generate(model: str, prompt: str, num_ctx: int, temperature: float = 0.0) -> dict:
     """呼叫 Ollama API 生成回應"""
+    # Thinking 模型：加上 /no_think 前綴，避免推理佔用所有 token 導致 response 為空
+    # 並提高 num_predict，確保答案有足夠輸出空間
+    if is_thinking_model(model):
+        actual_prompt = "/no_think\n\n" + prompt
+        num_predict = 2048
+    else:
+        actual_prompt = prompt
+        num_predict = 256
+
     url = f"{OLLAMA_BASE}/api/generate"
     payload = json.dumps({
         "model": model,
-        "prompt": prompt,
+        "prompt": actual_prompt,
         "stream": False,
         "options": {
             "temperature": temperature,
-            "num_predict": 256,   # 限制輸出長度
-            "num_ctx": num_ctx,   # 使用模型實際上限
+            "num_predict": num_predict,  # thinking 模型用 2048，其他用 256
+            "num_ctx": num_ctx,          # 使用模型實際上限
         },
     }).encode("utf-8")
 
@@ -344,12 +371,12 @@ def main():
                         status = "✓" if is_correct else "✗"
                         print(f" {token_info} {status}")
 
-                    if variant == "traditional":
-                        total_trad += 1
-                        correct_trad += int(is_correct)
-                    else:
-                        total_simp += 1
-                        correct_simp += int(is_correct)
+                        if variant == "traditional":
+                            total_trad += 1
+                            correct_trad += int(is_correct)
+                        else:
+                            total_simp += 1
+                            correct_simp += int(is_correct)
 
                 except Exception as e:
                     print(f" 錯誤: {e}")
