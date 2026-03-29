@@ -25,24 +25,141 @@ RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 ANALYSIS_DIR = os.path.join(RESULTS_DIR, "analysis")
 
 
+def chinese_num_to_float(text: str) -> list[float]:
+    """
+    從文字中提取中文數字並轉為阿拉伯數字。
+
+    支援：三點七 → 3.7、四百七十三億 → 47300000000、
+         八百五十 → 850、百分之九十二點六 → 92.6
+    """
+    DIGITS = {"零": 0, "一": 1, "二": 2, "兩": 2, "三": 3, "四": 4,
+              "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+    # 簡體對應
+    DIGITS.update({"两": 2})
+
+    UNITS = {"十": 10, "百": 100, "千": 1000, "萬": 10000, "億": 100000000}
+    UNITS.update({"万": 10000, "亿": 100000000})
+
+    results = []
+
+    # 移除「百分之」前綴，但標記為百分比
+    clean = text.replace("百分之", "")
+
+    # 尋找連續的中文數字片段
+    pattern = re.compile(
+        r"[零一二兩两三四五六七八九十百千萬億万亿點点]+")
+    for m in pattern.finditer(clean):
+        s = m.group().replace("点", "點")
+        # 解析整數部分和小數部分
+        if "點" in s:
+            int_part_s, dec_part_s = s.split("點", 1)
+        else:
+            int_part_s, dec_part_s = s, ""
+
+        # 解析整數
+        val = 0
+        cur = 0
+        has_digit = False
+        for c in int_part_s:
+            if c in DIGITS:
+                cur = DIGITS[c]
+                has_digit = True
+            elif c in UNITS:
+                u = UNITS[c]
+                if u >= 10000:
+                    # 萬/億 是大單位，把已累積的值乘上去
+                    val = (val + max(cur, 1)) * u
+                    cur = 0
+                else:
+                    val += max(cur, 1) * u
+                    cur = 0
+
+        val += cur
+
+        if not has_digit and val == 0:
+            continue
+
+        # 小數部分：逐位讀取
+        if dec_part_s:
+            dec = 0.0
+            for i, c in enumerate(dec_part_s):
+                if c in DIGITS:
+                    dec += DIGITS[c] * (10 ** -(i + 1))
+            val += dec
+
+        if val > 0:
+            results.append(val)
+
+    return results
+
+
+# 同義詞組：每組用一個 canonical token 取代所有變體
+# 替換順序：長的先換，避免子串衝突（「新台幣」要比「台幣」先換）
+SYNONYMS = [
+    (["新臺幣", "新台幣", "臺幣", "台幣", "元"], "＄"),
+    (["隻", "只", "頭"], "＃"),
+]
+
+
+def normalize_for_match(text: str) -> str:
+    """正規化文字以提升比對命中率：同義詞替換為統一 token"""
+    result = text
+    for words, token in SYNONYMS:
+        for word in words:  # 已按長度遞減排列
+            result = result.replace(word, token)
+    return result
+
+
 def reevaluate(r: dict) -> bool:
-    """用修正後的文字比對重算 is_correct（簡體 variant 額外做 OpenCC 轉換）"""
-    response = r["model_response"].strip().lower()
+    """
+    用修正後的邏輯重算 is_correct。
+
+    改進：
+      1. 簡體 variant 額外做 OpenCC 轉換後比對
+      2. 中文數字 → 阿拉伯數字正規化（三點七 ↔ 3.7）
+      3. 同義詞比對（台幣 ↔ 元、隻 ↔ 只）
+    """
+    response = (r.get("model_response") or "").strip().lower()
     expected = r["expected_answer"].strip().lower()
 
-    candidates = [expected]
-    if r["variant"] == "simplified":
-        try:
-            import opencc
-            candidates.append(opencc.OpenCC("t2s").convert(expected))
-        except ImportError:
-            pass
+    if not response:
+        return False
 
-    exact_match = any(c in response for c in candidates)
+    # 候選期望答案（原始 + 簡體轉換 + 同義詞正規化）
+    candidates = [expected, normalize_for_match(expected)]
+    try:
+        import opencc
+        exp_simp = opencc.OpenCC("t2s").convert(expected)
+        candidates.append(exp_simp)
+        candidates.append(normalize_for_match(exp_simp))
+    except ImportError:
+        pass
 
+    resp_normalized = normalize_for_match(response)
+
+    # 1. 字串包含比對（含同義詞正規化）
+    exact_match = any(c in response or c in resp_normalized
+                      for c in candidates)
+
+    # 2. 阿拉伯數字比對（原有邏輯）
     response_numbers = set(re.findall(r"[\d.]+", response))
     expected_numbers = set(re.findall(r"[\d.]+", expected))
     number_match = bool(expected_numbers and expected_numbers.issubset(response_numbers))
+
+    # 3. 中文數字正規化比對（新增）
+    if not exact_match and not number_match:
+        exp_nums = set(chinese_num_to_float(expected))
+        resp_nums_arabic = set()
+        for n in re.findall(r"\d+\.?\d*", response):
+            try:
+                resp_nums_arabic.add(float(n))
+            except ValueError:
+                pass
+        resp_nums_chinese = set(chinese_num_to_float(response))
+        resp_nums_all = resp_nums_arabic | resp_nums_chinese
+
+        if exp_nums and exp_nums.issubset(resp_nums_all):
+            number_match = True
 
     return exact_match or number_match
 
