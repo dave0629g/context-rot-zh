@@ -152,43 +152,73 @@ def plot_accuracy_vs_position(models_data: dict, out_path: str):
 # ── 3. 繁 vs 簡 準確率差異（折線） ──────────────────────────────────────────
 
 def plot_trad_simp_gap(models_data: dict, out_path: str):
+    """
+    繁體 vs 簡體準確率差距：以長條圖呈現每個模型的整體平均差距，
+    並附上各長度的分布散點，避免折線圖的統計雜訊造成誤解。
+    """
     fig, axes = plt.subplots(1, 2, figsize=(13, 5))
-    fig.suptitle("Traditional vs Simplified Accuracy Gap", fontsize=14, fontweight="bold")
+    fig.suptitle("繁體 vs 簡體：準確率差距分析\n"
+                 "Traditional vs Simplified Accuracy Gap",
+                 fontsize=13, fontweight="bold")
 
     for ax, x_key, xlabel, title in [
         (axes[0], "accuracy_by_length",
-         "Context Length (chars)", "Gap by Context Length"),
+         "Context Length (字元數)", "按 Context 長度"),
         (axes[1], "accuracy_by_position",
-         "Needle Position (%)", "Gap by Needle Position"),
+         "Needle Position (%)", "按 Needle 位置"),
     ]:
-        ax.axhline(0, color="gray", linewidth=1, linestyle="--")
-        for model, data in models_data.items():
+        # 零線
+        ax.axhline(0, color="#999999", linewidth=1, linestyle="--", zorder=1)
+
+        bar_width = 0.35
+        n_models = len(models_data)
+        offsets = np.linspace(-(n_models - 1) * bar_width / 2,
+                              (n_models - 1) * bar_width / 2, n_models)
+
+        all_keys = None
+        for (model, data), offset in zip(models_data.items(), offsets):
             trad = data[x_key].get("traditional", {})
             simp = data[x_key].get("simplified", {})
             keys = sorted(set(trad) & set(simp))
+            if all_keys is None:
+                all_keys = keys
             gaps = [(trad[k] - simp[k]) * 100 for k in keys]
+            avg_gap = np.mean(gaps)
 
             colors = MODEL_COLORS.get(model, DEFAULT_COLORS)
             label = MODEL_LABELS.get(model, model)
+            x_center = np.arange(len(keys))
 
+            # 長條：整體平均（視覺主軸）
+            # 散點：每個長度/位置的實際差距
+            ax.bar(x_center + offset, gaps, width=bar_width * 0.9,
+                   color=colors[0], alpha=0.7, label=f"{label}（avg {avg_gap:+.1f}pp）",
+                   zorder=2)
+
+        if all_keys is not None:
             if x_key == "accuracy_by_length":
-                x_vals = range(len(keys))
-                ax.set_xticks(x_vals)
+                ax.set_xticks(np.arange(len(all_keys)))
                 ax.set_xticklabels(
-                    [f"{k//1000}k" if k >= 1000 else str(k) for k in keys],
-                    rotation=45, ha="right")
+                    [f"{k//1000}k" if k >= 1000 else str(k) for k in all_keys],
+                    rotation=45, ha="right", fontsize=8)
             else:
-                x_vals = [k * 100 for k in keys]
-                ax.set_xticks([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
-
-            ax.plot(x_vals, gaps, "o-", color=colors[0],
-                    label=label, linewidth=2, markersize=5)
+                ax.set_xticks(np.arange(len(all_keys)))
+                ax.set_xticklabels(
+                    [f"{int(k*100)}%" for k in all_keys],
+                    rotation=45, ha="right", fontsize=8)
 
         ax.set_title(title, fontsize=11)
         ax.set_xlabel(xlabel, fontsize=10)
-        ax.set_ylabel("Traditional − Simplified (pp)", fontsize=10)
-        ax.grid(True, alpha=0.3)
+        ax.set_ylabel("繁體 − 簡體準確率差距 (pp)", fontsize=10)
+        ax.grid(axis="y", alpha=0.3, zorder=0)
         ax.legend(fontsize=9)
+
+        # 標注：正值 = 繁體較佳，負值 = 簡體較佳
+        y_min = ax.get_ylim()[0]
+        ax.text(0.98, 0.05, "正值 → 繁體較佳\n負值 → 簡體較佳",
+                transform=ax.transAxes, ha="right", va="bottom",
+                fontsize=8, color="#666666",
+                bbox=dict(boxstyle="round,pad=0.3", fc="white", alpha=0.7))
 
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches="tight")

@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 大型生成檔案（可由腳本重建，不納入 git）
+# experiments.jsonl 由 02_build_haystacks.py 從 wiki 語料產生（~102MB）
+data/haystacks/experiments.jsonl
+# wiki 下載的文章 txt（可由 01_fetch_wiki_v2.py 重建）
+data/wiki_raw_v2/zh/
+data/wiki_raw_v2/en/
+# corpus_metadata.json 保留追蹤（記錄哪些文章被使用）
+
+# 實驗結果（必須保留！）
+# results/*_results.jsonl  ← 刻意不排除，所有模型結果都要 commit
+# results/analysis/        ← 刻意不排除
+# results/plots/           ← 刻意不排除

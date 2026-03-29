@@ -1,5 +1,5 @@
 {
-  "download_date": "2026-03-19",
+  "download_date": "2026-03-26",
   "min_chars_threshold": 3000,
   "zh_articles": 43,
   "en_articles": 18,
@@ -14,9 +14,9 @@
       "en_title": null,
       "zh_file": "00_半導體.txt",
       "zh_properties": {
-        "total_chars": 8990,
+        "total_chars": 7457,
         "chinese_chars": 4984,
-        "chinese_ratio": 0.5544,
+        "chinese_ratio": 0.6684,
         "trad_diff_char_count": 1123,
         "trad_diff_char_density": 0.2253,
         "radical_distribution": {
@@ -29,7 +29,7 @@
           "火": 4
         },
         "sentence_count": 110,
-        "avg_sentence_length": 80.7
+        "avg_sentence_length": 66.8
       }
     },
     {
@@ -42,9 +42,9 @@
       "en_title": null,
       "zh_file": "01_量子計算.txt",
       "zh_properties": {
-        "total_chars": 6236,
+        "total_chars": 5641,
         "chinese_chars": 4391,
-        "chinese_ratio": 0.7041,
+        "chinese_ratio": 0.7784,
         "trad_diff_char_count": 648,
         "trad_diff_char_density": 0.1476,
         "radical_distribution": {
@@ -57,7 +57,7 @@
           "木": 4
         },
         "sentence_count": 101,
-        "avg_sentence_length": 60.7
+        "avg_sentence_length": 54.9
       }
     },
     {
@@ -70,9 +70,9 @@
       "en_title": null,
       "zh_file": "02_臺灣教育.txt",
       "zh_properties": {
-        "total_chars": 7548,
+        "total_chars": 7521,
         "chinese_chars": 6123,
-        "chinese_ratio": 0.8112,
+        "chinese_ratio": 0.8141,
         "trad_diff_char_count": 1159,
         "trad_diff_char_density": 0.1893,
         "radical_distribution": {
@@ -84,7 +84,7 @@
           "肉": 1
         },
         "sentence_count": 121,
-        "avg_sentence_length": 61.4
+        "avg_sentence_length": 61.2
       }
     },
     {
@@ -97,9 +97,9 @@
       "en_title": null,
       "zh_file": "03_國際貨幣基金組織.txt",
       "zh_properties": {
-        "total_chars": 3916,
+        "total_chars": 3902,
         "chinese_chars": 3100,
-        "chinese_ratio": 0.7916,
+        "chinese_ratio": 0.7945,
         "trad_diff_char_count": 495,
         "trad_diff_char_density": 0.1597,
         "radical_distribution": {
@@ -112,7 +112,7 @@
           "肉": 2
         },
         "sentence_count": 76,
-        "avg_sentence_length": 50.5
+        "avg_sentence_length": 50.4
       }
     },
     {
@@ -124,9 +124,9 @@
       "en_title": null,
       "zh_file": "04_中華民國政治.txt",
       "zh_properties": {
-        "total_chars": 7878,
+        "total_chars": 7863,
         "chinese_chars": 6493,
-        "chinese_ratio": 0.8242,
+        "chinese_ratio": 0.8258,
         "trad_diff_char_count": 1245,
         "trad_diff_char_density": 0.1917,
         "radical_distribution": {
@@ -138,7 +138,7 @@
           "火": 2
         },
         "sentence_count": 135,
-        "avg_sentence_length": 57.4
+        "avg_sentence_length": 57.3
       }
     },
     {
@@ -151,9 +151,9 @@
       "en_title": null,
       "zh_file": "05_全民健康保險.txt",
       "zh_properties": {
-        "total_chars": 8840,
+        "total_chars": 8812,
         "chinese_chars": 7497,
-        "chinese_ratio": 0.8481,
+        "chinese_ratio": 0.8508,
         "trad_diff_char_count": 811,
         "trad_diff_char_density": 0.1082,
         "radical_distribution": {
@@ -166,7 +166,7 @@
           "肉": 4
         },
         "sentence_count": 146,
-        "avg_sentence_length": 59.5
+        "avg_sentence_length": 59.4
       }
     },
     {
@@ -179,9 +179,9 @@
       "en_title": null,
       "zh_file": "06_人工智慧.txt",
       "zh_properties": {
-        "total_chars": 15445,
+        "total_chars": 15395,
         "chinese_chars": 11817,
-        "chinese_ratio": 0.7651,
+        "chinese_ratio": 0.7676,
         "trad_diff_char_count": 1741,
         "trad_diff_char_density": 0.1473,
         "radical_distribution": {
@@ -194,7 +194,7 @@
           "木": 14
         },
         "sentence_count": 273,
-        "avg_sentence_length": 55.6
+        "avg_sentence_length": 55.4
       }
     },
     {
@@ -206,9 +206,9 @@
       "en_title": null,
       "zh_file": "07_雲端運算.txt",
       "zh_properties": {
-        "total_chars": 6633,
+        "total_chars": 6615,
         "chinese_chars": 5037,
-        "chinese_ratio": 0.7594,
+        "chinese_ratio": 0.7615,
         "trad_diff_char_count": 837,
         "trad_diff_char_density": 0.1662,
         "radical_distribution": {
@@ -221,7 +221,7 @@
           "火": 1
         },
         "sentence_count": 111,
-        "avg_sentence_length": 58.8
+        "avg_sentence_length": 58.6
       }
     },
     {
@@ -234,9 +234,9 @@
       "en_title": null,
       "zh_file": "08_中華民國法律.txt",
       "zh_properties": {
-        "total_chars": 8092,
+        "total_chars": 8065,
         "chinese_chars": 6747,
-        "chinese_ratio": 0.8338,
+        "chinese_ratio": 0.8366,
         "trad_diff_char_count": 814,
         "trad_diff_char_density": 0.1206,
         "radical_distribution": {
@@ -249,7 +249,7 @@
           "火": 4
         },
         "sentence_count": 124,
-        "avg_sentence_length": 64.3
+        "avg_sentence_length": 64.0
       }
     },
     {
@@ -262,9 +262,9 @@
       "en_title": null,
       "zh_file": "09_儒家.txt",
       "zh_properties": {
-        "total_chars": 23921,
+        "total_chars": 23871,
         "chinese_chars": 20321,
-        "chinese_ratio": 0.8495,
+        "chinese_ratio": 0.8513,
         "trad_diff_char_count": 2526,
         "trad_diff_char_density": 0.1243,
         "radical_distribution": {
@@ -277,7 +277,7 @@
           "金": 8
         },
         "sentence_count": 466,
-        "avg_sentence_length": 50.3
+        "avg_sentence_length": 50.2
       }
     },
     {
@@ -290,9 +290,9 @@
       "en_title": null,
       "zh_file": "10_中醫學.txt",
       "zh_properties": {
-        "total_chars": 17683,
+        "total_chars": 17629,
         "chinese_chars": 14225,
-        "chinese_ratio": 0.8044,
+        "chinese_ratio": 0.8069,
         "trad_diff_char_count": 2042,
         "trad_diff_char_density": 0.1436,
         "radical_distribution": {
@@ -305,7 +305,7 @@
           "木": 31
         },
         "sentence_count": 341,
-        "avg_sentence_length": 50.9
+        "avg_sentence_length": 50.7
       }
     },
     {
@@ -317,9 +317,9 @@
       "en_title": null,
       "zh_file": "11_臺灣原住民族.txt",
       "zh_properties": {
-        "total_chars": 12148,
+        "total_chars": 12115,
         "chinese_chars": 10141,
-        "chinese_ratio": 0.8348,
+        "chinese_ratio": 0.8371,
         "trad_diff_char_count": 1077,
         "trad_diff_char_density": 0.1062,
         "radical_distribution": {
@@ -332,7 +332,7 @@
           "金": 5
         },
         "sentence_count": 201,
-        "avg_sentence_length": 59.4
+        "avg_sentence_length": 59.3
       }
     },
     {
@@ -345,9 +345,9 @@
       "en_title": null,
       "zh_file": "12_佛教.txt",
       "zh_properties": {
-        "total_chars": 34691,
+        "total_chars": 34595,
         "chinese_chars": 24953,
-        "chinese_ratio": 0.7193,
+        "chinese_ratio": 0.7213,
         "trad_diff_char_count": 2398,
         "trad_diff_char_density": 0.0961,
         "radical_distribution": {
@@ -360,7 +360,7 @@
           "木": 59
         },
         "sentence_count": 583,
-        "avg_sentence_length": 58.5
+        "avg_sentence_length": 58.3
       }
     },
     {
@@ -372,9 +372,9 @@
       "en_title": null,
       "zh_file": "13_刑法.txt",
       "zh_properties": {
-        "total_chars": 3177,
+        "total_chars": 3166,
         "chinese_chars": 2552,
-        "chinese_ratio": 0.8033,
+        "chinese_ratio": 0.8061,
         "trad_diff_char_count": 334,
         "trad_diff_char_density": 0.1309,
         "radical_distribution": {
@@ -385,7 +385,7 @@
           "木": 4
         },
         "sentence_count": 63,
-        "avg_sentence_length": 49.4
+        "avg_sentence_length": 49.3
       }
     },
     {
@@ -398,9 +398,9 @@
       "en_title": null,
       "zh_file": "14_細胞生物學.txt",
       "zh_properties": {
-        "total_chars": 3323,
+        "total_chars": 3311,
         "chinese_chars": 2700,
-        "chinese_ratio": 0.8125,
+        "chinese_ratio": 0.8155,
         "trad_diff_char_count": 353,
         "trad_diff_char_density": 0.1307,
         "radical_distribution": {
@@ -412,7 +412,7 @@
           "金": 7
         },
         "sentence_count": 70,
-        "avg_sentence_length": 46.5
+        "avg_sentence_length": 46.3
       }
     },
     {
@@ -425,9 +425,9 @@
       "en_title": "Solar System",
       "zh_file": "15_太陽系.txt",
       "zh_properties": {
-        "total_chars": 21001,
+        "total_chars": 20946,
         "chinese_chars": 16743,
-        "chinese_ratio": 0.7972,
+        "chinese_ratio": 0.7993,
         "trad_diff_char_count": 1815,
         "trad_diff_char_density": 0.1084,
         "radical_distribution": {
@@ -440,7 +440,7 @@
           "肉": 15
         },
         "sentence_count": 475,
-        "avg_sentence_length": 43.2
+        "avg_sentence_length": 43.1
       },
       "en_file": "15_Solar System.txt"
     },
@@ -454,9 +454,9 @@
       "en_title": "World War II",
       "zh_file": "16_第二次世界大戰.txt",
       "zh_properties": {
-        "total_chars": 28632,
+        "total_chars": 28594,
         "chinese_chars": 24968,
-        "chinese_ratio": 0.872,
+        "chinese_ratio": 0.8732,
         "trad_diff_char_count": 3938,
         "trad_diff_char_density": 0.1577,
         "radical_distribution": {
@@ -469,7 +469,7 @@
           "金": 28
         },
         "sentence_count": 454,
-        "avg_sentence_length": 62.1
+        "avg_sentence_length": 62.0
       },
       "en_file": "16_World War II.txt"
     },
@@ -482,9 +482,9 @@
       "en_title": "Photosynthesis",
       "zh_file": "17_光合作用.txt",
       "zh_properties": {
-        "total_chars": 10315,
+        "total_chars": 6497,
         "chinese_chars": 5037,
-        "chinese_ratio": 0.4883,
+        "chinese_ratio": 0.7753,
         "trad_diff_char_count": 566,
         "trad_diff_char_density": 0.1124,
         "radical_distribution": {
@@ -497,7 +497,7 @@
           "金": 19
         },
         "sentence_count": 131,
-        "avg_sentence_length": 77.7
+        "avg_sentence_length": 48.6
       },
       "en_file": "17_Photosynthesis.txt"
     },
@@ -510,9 +510,9 @@
       "en_title": "Theory of relativity",
       "zh_file": "18_相對論.txt",
       "zh_properties": {
-        "total_chars": 6426,
+        "total_chars": 4622,
         "chinese_chars": 4071,
-        "chinese_ratio": 0.6335,
+        "chinese_ratio": 0.8808,
         "trad_diff_char_count": 628,
         "trad_diff_char_density": 0.1543,
         "radical_distribution": {
@@ -524,7 +524,7 @@
           "金": 6
         },
         "sentence_count": 84,
-        "avg_sentence_length": 75.5
+        "avg_sentence_length": 54.0
       },
       "en_file": "18_Theory of relativity.txt"
     },
@@ -538,9 +538,9 @@
       "en_title": "Periodic table",
       "zh_file": "19_元素週期表.txt",
       "zh_properties": {
-        "total_chars": 15994,
+        "total_chars": 15947,
         "chinese_chars": 12796,
-        "chinese_ratio": 0.8001,
+        "chinese_ratio": 0.8024,
         "trad_diff_char_count": 1598,
         "trad_diff_char_density": 0.1249,
         "radical_distribution": {
@@ -553,7 +553,7 @@
           "肉": 1
         },
         "sentence_count": 327,
-        "avg_sentence_length": 47.9
+        "avg_sentence_length": 47.8
       },
       "en_file": "19_Periodic table.txt"
     },
@@ -567,9 +567,9 @@
       "en_title": "Earth",
       "zh_file": "20_地球.txt",
       "zh_properties": {
-        "total_chars": 17952,
+        "total_chars": 17919,
         "chinese_chars": 14562,
-        "chinese_ratio": 0.8112,
+        "chinese_ratio": 0.8127,
         "trad_diff_char_count": 1629,
         "trad_diff_char_density": 0.1119,
         "radical_distribution": {
@@ -582,7 +582,7 @@
           "肉": 24
         },
         "sentence_count": 368,
-        "avg_sentence_length": 47.8
+        "avg_sentence_length": 47.7
       },
       "en_file": "20_Earth.txt"
     },
@@ -595,9 +595,9 @@
       "en_title": "Evolution",
       "zh_file": "21_演化論.txt",
       "zh_properties": {
-        "total_chars": 16350,
+        "total_chars": 16316,
         "chinese_chars": 13703,
-        "chinese_ratio": 0.8381,
+        "chinese_ratio": 0.8399,
         "trad_diff_char_count": 2087,
         "trad_diff_char_density": 0.1523,
         "radical_distribution": {
@@ -610,7 +610,7 @@
           "火": 8
         },
         "sentence_count": 334,
-        "avg_sentence_length": 48.0
+        "avg_sentence_length": 47.9
       },
       "en_file": "21_Evolution.txt"
     },
@@ -624,9 +624,9 @@
       "en_title": "Mathematics",
       "zh_file": "22_數學.txt",
       "zh_properties": {
-        "total_chars": 7638,
+        "total_chars": 7618,
         "chinese_chars": 6317,
-        "chinese_ratio": 0.827,
+        "chinese_ratio": 0.8292,
         "trad_diff_char_count": 1258,
         "trad_diff_char_density": 0.1991,
         "radical_distribution": {
@@ -639,7 +639,7 @@
           "肉": 11
         },
         "sentence_count": 180,
-        "avg_sentence_length": 41.4
+        "avg_sentence_length": 41.3
       },
       "en_file": "22_Mathematics.txt"
     },
@@ -652,9 +652,9 @@
       "en_title": null,
       "zh_file": "23_臺灣歷史.txt",
       "zh_properties": {
-        "total_chars": 24297,
+        "total_chars": 24266,
         "chinese_chars": 20116,
-        "chinese_ratio": 0.8279,
+        "chinese_ratio": 0.829,
         "trad_diff_char_count": 2629,
         "trad_diff_char_density": 0.1307,
         "radical_distribution": {
@@ -667,7 +667,7 @@
           "肉": 16
         },
         "sentence_count": 482,
-        "avg_sentence_length": 49.4
+        "avg_sentence_length": 49.3
       }
     },
     {
@@ -680,9 +680,9 @@
       "en_title": null,
       "zh_file": "24_台灣地理.txt",
       "zh_properties": {
-        "total_chars": 6595,
+        "total_chars": 6577,
         "chinese_chars": 5267,
-        "chinese_ratio": 0.7986,
+        "chinese_ratio": 0.8008,
         "trad_diff_char_count": 607,
         "trad_diff_char_density": 0.1152,
         "radical_distribution": {
@@ -695,7 +695,7 @@
           "木": 50
         },
         "sentence_count": 144,
-        "avg_sentence_length": 44.8
+        "avg_sentence_length": 44.7
       }
     },
     {
@@ -708,9 +708,9 @@
       "en_title": "Climate change",
       "zh_file": "25_氣候變遷.txt",
       "zh_properties": {
-        "total_chars": 19379,
+        "total_chars": 19331,
         "chinese_chars": 15737,
-        "chinese_ratio": 0.8121,
+        "chinese_ratio": 0.8141,
         "trad_diff_char_count": 2087,
         "trad_diff_char_density": 0.1326,
         "radical_distribution": {
@@ -723,7 +723,7 @@
           "肉": 3
         },
         "sentence_count": 489,
-        "avg_sentence_length": 38.6
+        "avg_sentence_length": 38.5
       },
       "en_file": "25_Climate change.txt"
     },
@@ -737,9 +737,9 @@
       "en_title": "TSMC",
       "zh_file": "26_台灣積體電路製造.txt",
       "zh_properties": {
-        "total_chars": 5949,
+        "total_chars": 5931,
         "chinese_chars": 4010,
-        "chinese_ratio": 0.6741,
+        "chinese_ratio": 0.6761,
         "trad_diff_char_count": 838,
         "trad_diff_char_density": 0.209,
         "radical_distribution": {
@@ -751,7 +751,7 @@
           "肉": 2
         },
         "sentence_count": 71,
-        "avg_sentence_length": 82.8
+        "avg_sentence_length": 82.5
       },
       "en_file": "26_TSMC.txt"
     },
@@ -764,9 +764,9 @@
       "en_title": null,
       "zh_file": "27_二二八事件.txt",
       "zh_properties": {
-        "total_chars": 33504,
+        "total_chars": 33457,
         "chinese_chars": 29079,
-        "chinese_ratio": 0.8679,
+        "chinese_ratio": 0.8691,
         "trad_diff_char_count": 4080,
         "trad_diff_char_density": 0.1403,
         "radical_distribution": {
@@ -792,9 +792,9 @@
       "en_title": null,
       "zh_file": "28_核能發電.txt",
       "zh_properties": {
-        "total_chars": 18930,
+        "total_chars": 18895,
         "chinese_chars": 16107,
-        "chinese_ratio": 0.8509,
+        "chinese_ratio": 0.8524,
         "trad_diff_char_count": 2319,
         "trad_diff_char_density": 0.144,
         "radical_distribution": {
@@ -820,9 +820,9 @@
       "en_title": "Democracy",
       "zh_file": "29_民主.txt",
       "zh_properties": {
-        "total_chars": 24415,
+        "total_chars": 24379,
         "chinese_chars": 20334,
-        "chinese_ratio": 0.8328,
+        "chinese_ratio": 0.8341,
         "trad_diff_char_count": 2752,
         "trad_diff_char_density": 0.1353,
         "radical_distribution": {
@@ -835,7 +835,7 @@
           "火": 8
         },
         "sentence_count": 387,
-        "avg_sentence_length": 62.1
+        "avg_sentence_length": 62.0
       },
       "en_file": "29_Democracy.txt"
     },
@@ -848,9 +848,9 @@
       "en_title": "Ocean",
       "zh_file": "30_海洋.txt",
       "zh_properties": {
-        "total_chars": 27424,
+        "total_chars": 27389,
         "chinese_chars": 23323,
-        "chinese_ratio": 0.8505,
+        "chinese_ratio": 0.8515,
         "trad_diff_char_count": 2489,
         "trad_diff_char_density": 0.1067,
         "radical_distribution": {
@@ -863,7 +863,7 @@
           "肉": 15
         },
         "sentence_count": 553,
-        "avg_sentence_length": 48.6
+        "avg_sentence_length": 48.5
       },
       "en_file": "30_Ocean.txt"
     },
@@ -876,9 +876,9 @@
       "en_title": null,
       "zh_file": "31_河流.txt",
       "zh_properties": {
-        "total_chars": 7024,
+        "total_chars": 5972,
         "chinese_chars": 5100,
-        "chinese_ratio": 0.7261,
+        "chinese_ratio": 0.854,
         "trad_diff_char_count": 575,
         "trad_diff_char_density": 0.1127,
         "radical_distribution": {
@@ -891,7 +891,7 @@
           "金": 1
         },
         "sentence_count": 142,
-        "avg_sentence_length": 48.5
+        "avg_sentence_length": 41.1
       }
     },
     {
@@ -903,9 +903,9 @@
       "en_title": null,
       "zh_file": "32_臺灣河流列表.txt",
       "zh_properties": {
-        "total_chars": 5671,
+        "total_chars": 5648,
         "chinese_chars": 4296,
-        "chinese_ratio": 0.7575,
+        "chinese_ratio": 0.7606,
         "trad_diff_char_count": 336,
         "trad_diff_char_density": 0.0782,
         "radical_distribution": {
@@ -918,7 +918,7 @@
           "火": 4
         },
         "sentence_count": 16,
-        "avg_sentence_length": 353.5
+        "avg_sentence_length": 352.1
       }
     },
     {
@@ -931,9 +931,9 @@
       "en_title": "Metallurgy",
       "zh_file": "33_冶金學.txt",
       "zh_properties": {
-        "total_chars": 3786,
+        "total_chars": 3772,
         "chinese_chars": 3095,
-        "chinese_ratio": 0.8175,
+        "chinese_ratio": 0.8205,
         "trad_diff_char_count": 355,
         "trad_diff_char_density": 0.1147,
         "radical_distribution": {
@@ -945,7 +945,7 @@
           "土": 30
         },
         "sentence_count": 80,
-        "avg_sentence_length": 46.3
+        "avg_sentence_length": 46.1
       },
       "en_file": "33_Metallurgy.txt"
     },
@@ -959,9 +959,9 @@
       "en_title": "Chemical element",
       "zh_file": "34_化學元素.txt",
       "zh_properties": {
-        "total_chars": 12826,
+        "total_chars": 11684,
         "chinese_chars": 8903,
-        "chinese_ratio": 0.6941,
+        "chinese_ratio": 0.762,
         "trad_diff_char_count": 1067,
         "trad_diff_char_density": 0.1198,
         "radical_distribution": {
@@ -974,7 +974,7 @@
           "肉": 1
         },
         "sentence_count": 207,
-        "avg_sentence_length": 61.0
+        "avg_sentence_length": 55.4
       },
       "en_file": "34_Chemical element.txt"
     },
@@ -987,9 +987,9 @@
       "en_title": null,
       "zh_file": "35_森林.txt",
       "zh_properties": {
-        "total_chars": 3138,
+        "total_chars": 3127,
         "chinese_chars": 2255,
-        "chinese_ratio": 0.7186,
+        "chinese_ratio": 0.7211,
         "trad_diff_char_count": 275,
         "trad_diff_char_density": 0.122,
         "radical_distribution": {
@@ -1001,7 +1001,7 @@
           "金": 7
         },
         "sentence_count": 48,
-        "avg_sentence_length": 64.4
+        "avg_sentence_length": 64.2
       }
     },
     {
@@ -1013,9 +1013,9 @@
       "en_title": null,
       "zh_file": "36_台灣農業.txt",
       "zh_properties": {
-        "total_chars": 7955,
+        "total_chars": 7906,
         "chinese_chars": 6478,
-        "chinese_ratio": 0.8143,
+        "chinese_ratio": 0.8194,
         "trad_diff_char_count": 977,
         "trad_diff_char_density": 0.1508,
         "radical_distribution": {
@@ -1028,7 +1028,7 @@
           "肉": 4
         },
         "sentence_count": 221,
-        "avg_sentence_length": 35.0
+        "avg_sentence_length": 34.8
       }
     },
     {
@@ -1050,9 +1050,9 @@
       "en_title": null,
       "zh_file": "38_火山.txt",
       "zh_properties": {
-        "total_chars": 11901,
+        "total_chars": 11861,
         "chinese_chars": 9420,
-        "chinese_ratio": 0.7915,
+        "chinese_ratio": 0.7942,
         "trad_diff_char_count": 1043,
         "trad_diff_char_density": 0.1107,
         "radical_distribution": {
@@ -1065,7 +1065,7 @@
           "金": 15
         },
         "sentence_count": 265,
-        "avg_sentence_length": 43.9
+        "avg_sentence_length": 43.8
       }
     },
     {
@@ -1086,9 +1086,9 @@
       "en_title": "Olympic Games",
       "zh_file": "40_奧林匹克運動會.txt",
       "zh_properties": {
-        "total_chars": 10441,
+        "total_chars": 10415,
         "chinese_chars": 8372,
-        "chinese_ratio": 0.8018,
+        "chinese_ratio": 0.8038,
         "trad_diff_char_count": 1363,
         "trad_diff_char_density": 0.1628,
         "radical_distribution": {
@@ -1101,7 +1101,7 @@
           "火": 16
         },
         "sentence_count": 166,
-        "avg_sentence_length": 61.9
+        "avg_sentence_length": 61.7
       },
       "en_file": "40_Olympic Games.txt"
     },
@@ -1114,9 +1114,9 @@
       "en_title": "Music",
       "zh_file": "41_音樂.txt",
       "zh_properties": {
-        "total_chars": 6990,
+        "total_chars": 6974,
         "chinese_chars": 4002,
-        "chinese_ratio": 0.5725,
+        "chinese_ratio": 0.5738,
         "trad_diff_char_count": 489,
         "trad_diff_char_density": 0.1222,
         "radical_distribution": {
@@ -1129,7 +1129,7 @@
           "火": 4
         },
         "sentence_count": 88,
-        "avg_sentence_length": 78.4
+        "avg_sentence_length": 78.3
       },
       "en_file": "41_Music.txt"
     },
@@ -1142,9 +1142,9 @@
       "en_title": null,
       "zh_file": "42_臺灣料理.txt",
       "zh_properties": {
-        "total_chars": 3228,
+        "total_chars": 3212,
         "chinese_chars": 2684,
-        "chinese_ratio": 0.8315,
+        "chinese_ratio": 0.8356,
         "trad_diff_char_count": 213,
         "trad_diff_char_density": 0.0794,
         "radical_distribution": {
@@ -1157,7 +1157,7 @@
           "肉": 13
         },
         "sentence_count": 55,
-        "avg_sentence_length": 57.7
+        "avg_sentence_length": 57.4
       }
     },
     {
@@ -1169,9 +1169,9 @@
       "en_title": null,
       "zh_file": "43_攝影.txt",
       "zh_properties": {
-        "total_chars": 7138,
+        "total_chars": 7110,
         "chinese_chars": 5531,
-        "chinese_ratio": 0.7749,
+        "chinese_ratio": 0.7779,
         "trad_diff_char_count": 655,
         "trad_diff_char_density": 0.1184,
         "radical_distribution": {
@@ -1184,7 +1184,7 @@
           "火": 17
         },
         "sentence_count": 155,
-        "avg_sentence_length": 45.1
+        "avg_sentence_length": 44.9
       }
     },
     {
@@ -1196,9 +1196,9 @@
       "en_title": "Association football",
       "zh_file": "44_足球.txt",
       "zh_properties": {
-        "total_chars": 13908,
+        "total_chars": 13859,
         "chinese_chars": 10778,
-        "chinese_ratio": 0.7749,
+        "chinese_ratio": 0.7777,
         "trad_diff_char_count": 1262,
         "trad_diff_char_density": 0.1171,
         "radical_distribution": {
@@ -1211,7 +1211,7 @@
           "金": 9
         },
         "sentence_count": 237,
-        "avg_sentence_length": 57.7
+        "avg_sentence_length": 57.5
       },
       "en_file": "44_Association football.txt"
     }
