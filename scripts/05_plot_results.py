@@ -1,10 +1,16 @@
 """
-Step 5: 產生實驗結果視覺化圖表
+Step 5: 產生實驗結果視覺化圖表（三 variant 版）
 
-產生：
-  1. accuracy_vs_length.png  - 準確率 vs Context 長度（雙模型比較）
-  2. accuracy_vs_position.png - 準確率 vs Needle 位置（雙模型比較）
-  3. heatmap_{model}.png      - 每個模型的 (長度 × 位置) 熱力圖（繁/簡對比）
+每個模型產出：
+  1. {model}_accuracy_vs_length.png  - 準確率 vs Context 長度（3 條線）
+  2. {model}_accuracy_vs_position.png - 準確率 vs Needle 位置（3 條線）
+  3. {model}_heatmap.png              - 熱力圖 3 面板（繁問繁答/簡問簡答/繁問簡答）
+  4. {model}_needle_accuracy.png      - 各 Needle 準確率分組長條圖
+
+跨模型比較：
+  5. compare_accuracy_vs_length.png   - 多模型對比（每 variant 一面板）
+  6. compare_token_ratio.png          - 繁/簡 Tokenizer overhead
+  7. compare_65k_accuracy.png         - 65k 長度各模型 × 各 variant
 
 用法:
   python scripts/05_plot_results.py
@@ -14,292 +20,358 @@ Step 5: 產生實驗結果視覺化圖表
 import argparse
 import json
 import os
+import re
+import sys
+import unicodedata
+from collections import defaultdict
 
 import matplotlib
-matplotlib.use("Agg")  # 無 display 環境
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib.ticker as mtick
 import numpy as np
 
-ANALYSIS_DIR = os.path.join(os.path.dirname(__file__), "..", "results", "analysis")
+# 載入 reevaluate
+sys.path.insert(0, os.path.dirname(__file__))
+from importlib import import_module
+_analyze = import_module("04_analyze")
+reevaluate = _analyze.reevaluate
+
+RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 PLOT_DIR = os.path.join(os.path.dirname(__file__), "..", "results", "plots")
 
-# 中文字型：優先使用楷書（標楷體風格），fallback 為 Noto Sans CJK
-# AR PL UKai TW 為系統內最接近標楷體的楷書字型
-_CJK_LOADED = False
-for _fp in ["/usr/share/fonts/truetype/arphic/ukai.ttc",          # AR PL UKai (楷書)
-            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-            "/usr/share/fonts/truetype/arphic/uming.ttc"]:
+# 中文字型
+for _fp in ["/usr/share/fonts/truetype/arphic/ukai.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"]:
     if os.path.exists(_fp):
         fm.fontManager.addfont(_fp)
-        _font_name = fm.FontProperties(fname=_fp).get_name()
-        matplotlib.rcParams["font.family"] = _font_name
-        _CJK_LOADED = True
+        matplotlib.rcParams["font.family"] = fm.FontProperties(fname=_fp).get_name()
         break
 
 plt.rcParams["axes.unicode_minus"] = False
 plt.rcParams["figure.dpi"] = 150
 
+VARIANT_LABELS = {"繁問繁答": "#2E86AB", "簡問簡答": "#A23B72", "繁問簡答": "#F18F01"}
 MODEL_COLORS = {
-    "gemma3:4b":   ("#4C72B0", "#88BBDD"),   # 藍
-    "llama3.1:8b": ("#C44E52", "#EE9999"),   # 紅
-    "qwen3:8b":    ("#55A868", "#AADDBB"),   # 綠
-    "qwen3.5:35b": ("#8172B2", "#BBAADD"),   # 紫
+    "gemma3:4b":   "#4C72B0",
+    "llama3.1:8b": "#C44E52",
+    "qwen3:8b":    "#55A868",
+    "qwen3.5:35b": "#8172B2",
+    "gemma3:27b":  "#CCB974",
+    "llama3.3:70b":"#64B5CD",
 }
-DEFAULT_COLORS = ("#666666", "#AAAAAA")
-
 MODEL_LABELS = {
-    "gemma3:4b":   "Gemma 3 4B",
-    "llama3.1:8b": "Llama 3.1 8B",
-    "qwen3:8b":    "Qwen3 8B",
-    "qwen3.5:35b": "Qwen3.5 35B",
+    "gemma3:4b": "Gemma 3 4B", "llama3.1:8b": "Llama 3.1 8B",
+    "qwen3:8b": "Qwen3 8B", "qwen3.5:35b": "Qwen3.5 35B",
+    "gemma3:27b": "Gemma 3 27B", "llama3.3:70b": "Llama 3.3 70B",
 }
 
 
-def load_analysis(model: str) -> dict | None:
-    path = os.path.join(ANALYSIS_DIR, f"{model}_analysis.json")
-    if not os.path.exists(path):
-        print(f"找不到分析檔: {path}")
-        return None
-    with open(path) as f:
-        data = json.load(f)
-    # JSON keys 一律是字串，把長度轉回 int、位置轉回 float
-    for section in ["accuracy_by_length", "heatmap"]:
-        for variant in data.get(section, {}):
-            data[section][variant] = {
-                int(k): v for k, v in data[section][variant].items()
-            }
-            if section == "heatmap":
-                data[section][variant] = {
-                    length: {float(p): acc for p, acc in pos_dict.items()}
-                    for length, pos_dict in data[section][variant].items()
-                }
-    for variant in data.get("accuracy_by_position", {}):
-        data["accuracy_by_position"][variant] = {
-            float(k): v for k, v in data["accuracy_by_position"][variant].items()
-        }
+# ── 資料載入 ──────────────────────────────────────────────────────────────────
+
+def load_model_data(model: str) -> dict:
+    """載入模型的三種 variant 資料，回傳 {variant_label: [records]}"""
+    sources = [
+        ("繁問繁答", f"results/{model}_results.jsonl", "traditional"),
+        ("簡問簡答", f"results/h2_{model}_results.jsonl", "simplified_q"),
+        ("繁問簡答", f"results/{model}_results.jsonl", "simplified"),
+    ]
+    data = {}
+    for label, path, vk in sources:
+        full_path = os.path.join(os.path.dirname(__file__), "..", path)
+        if not os.path.exists(full_path):
+            continue
+        records = []
+        with open(full_path) as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                try:
+                    r = json.loads(line)
+                    if r.get("skipped") or r.get("variant") != vk:
+                        continue
+                    r["_correct"] = reevaluate(r)
+                    records.append(r)
+                except:
+                    pass
+        if records:
+            data[label] = records
     return data
+
+
+def acc_by_key(records, key_fn):
+    d = defaultdict(lambda: [0, 0])
+    for r in records:
+        k = key_fn(r)
+        d[k][1] += 1
+        d[k][0] += int(r["_correct"])
+    return {k: c / t * 100 for k, (c, t) in d.items() if t > 0}
 
 
 # ── 1. 準確率 vs Context 長度 ────────────────────────────────────────────────
 
-def plot_accuracy_vs_length(models_data: dict, out_path: str):
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5), sharey=True)
-    fig.suptitle("Context Rot: Accuracy vs Context Length", fontsize=14, fontweight="bold")
+def plot_accuracy_vs_length(model, data, out_path):
+    fig, ax = plt.subplots(figsize=(9, 5))
+    mlabel = MODEL_LABELS.get(model, model)
+    ax.set_title(f"{mlabel}：準確率 vs Context 長度", fontsize=13, fontweight="bold")
 
-    for ax, variant, title in zip(axes, ["traditional", "simplified"],
-                                  ["Traditional Chinese (繁體)", "Simplified Chinese (簡體)"]):
-        for model, data in models_data.items():
-            acc = data["accuracy_by_length"].get(variant, {})
-            lengths = sorted(acc.keys())
-            values = [acc[l] * 100 for l in lengths]
-            colors = MODEL_COLORS.get(model, DEFAULT_COLORS)
-            label = MODEL_LABELS.get(model, model)
-            ax.plot(range(len(lengths)), values, "o-", color=colors[0],
-                    label=label, linewidth=2, markersize=5)
+    for variant, color in VARIANT_LABELS.items():
+        if variant not in data:
+            continue
+        acc = acc_by_key(data[variant], lambda r: r["context_length_chars"])
+        lengths = sorted(acc)
+        ax.plot(range(len(lengths)), [acc[l] for l in lengths],
+                "o-", color=color, label=variant, linewidth=2, markersize=5)
 
-        ax.set_title(title, fontsize=11)
-        ax.set_xticks(range(len(lengths)))
-        ax.set_xticklabels([f"{l//1000}k" if l >= 1000 else str(l) for l in lengths],
-                           rotation=45, ha="right")
-        ax.set_xlabel("Context Length (chars)", fontsize=10)
-        ax.set_ylabel("Accuracy (%)", fontsize=10)
-        ax.set_ylim(50, 105)
-        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter("%.0f%%"))
-        ax.grid(True, alpha=0.3)
-        ax.legend(fontsize=9)
-
+    ax.set_xticks(range(len(lengths)))
+    ax.set_xticklabels([f"{l//1000}k" if l >= 1000 else str(l) for l in lengths],
+                       rotation=45, ha="right")
+    ax.set_xlabel("Context 長度（字元）")
+    ax.set_ylabel("準確率（%）")
+    ax.set_ylim(70, 102)
+    ax.grid(True, alpha=0.3)
+    ax.legend()
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches="tight")
     plt.close()
-    print(f"已儲存: {out_path}")
+    print(f"  已儲存: {out_path}")
 
 
 # ── 2. 準確率 vs Needle 位置 ─────────────────────────────────────────────────
 
-def plot_accuracy_vs_position(models_data: dict, out_path: str):
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5), sharey=True)
-    fig.suptitle("Context Rot: Accuracy vs Needle Position", fontsize=14, fontweight="bold")
+def plot_accuracy_vs_position(model, data, out_path):
+    fig, ax = plt.subplots(figsize=(9, 5))
+    mlabel = MODEL_LABELS.get(model, model)
+    ax.set_title(f"{mlabel}：準確率 vs Needle 位置", fontsize=13, fontweight="bold")
 
-    for ax, variant, title in zip(axes, ["traditional", "simplified"],
-                                  ["Traditional Chinese (繁體)", "Simplified Chinese (簡體)"]):
-        for model, data in models_data.items():
-            acc = data["accuracy_by_position"].get(variant, {})
-            positions = sorted(acc.keys())
-            values = [acc[p] * 100 for p in positions]
-            colors = MODEL_COLORS.get(model, DEFAULT_COLORS)
-            label = MODEL_LABELS.get(model, model)
-            ax.plot([p * 100 for p in positions], values, "o-", color=colors[0],
-                    label=label, linewidth=2, markersize=5)
+    for variant, color in VARIANT_LABELS.items():
+        if variant not in data:
+            continue
+        acc = acc_by_key(data[variant], lambda r: r["needle_position"])
+        positions = sorted(acc)
+        ax.plot([p * 100 for p in positions], [acc[p] for p in positions],
+                "o-", color=color, label=variant, linewidth=2, markersize=5)
 
-        ax.set_title(title, fontsize=11)
-        ax.set_xlabel("Needle Position (%)", fontsize=10)
-        ax.set_ylabel("Accuracy (%)", fontsize=10)
-        ax.set_xlim(-5, 105)
-        ax.set_ylim(50, 105)
-        ax.set_xticks([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
-        ax.yaxis.set_major_formatter(mtick.FormatStrFormatter("%.0f%%"))
-        ax.grid(True, alpha=0.3)
-        ax.legend(fontsize=9)
-
+    ax.set_xlabel("Needle 位置（%）")
+    ax.set_ylabel("準確率（%）")
+    ax.set_xlim(-5, 105)
+    ax.set_ylim(80, 102)
+    ax.set_xticks([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    ax.grid(True, alpha=0.3)
+    ax.legend()
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches="tight")
     plt.close()
-    print(f"已儲存: {out_path}")
+    print(f"  已儲存: {out_path}")
 
 
-# ── 3. 繁 vs 簡 準確率差異（折線） ──────────────────────────────────────────
+# ── 3. 熱力圖（3 面板） ──────────────────────────────────────────────────────
 
-def plot_trad_simp_gap(models_data: dict, out_path: str):
-    """
-    繁體 vs 簡體準確率差距：以長條圖呈現每個模型的整體平均差距，
-    並附上各長度的分布散點，避免折線圖的統計雜訊造成誤解。
-    """
-    fig, axes = plt.subplots(1, 2, figsize=(13, 5))
-    fig.suptitle("繁體 vs 簡體：準確率差距分析\n"
-                 "Traditional vs Simplified Accuracy Gap",
-                 fontsize=13, fontweight="bold")
+def plot_heatmap(model, data, out_path):
+    available = [v for v in VARIANT_LABELS if v in data]
+    n = len(available)
+    if n == 0:
+        return
+    fig, axes = plt.subplots(1, n, figsize=(5.5 * n, 6))
+    if n == 1:
+        axes = [axes]
+    mlabel = MODEL_LABELS.get(model, model)
+    fig.suptitle(f"NIAH Heatmap：{mlabel}", fontsize=14, fontweight="bold")
 
-    for ax, x_key, xlabel, title in [
-        (axes[0], "accuracy_by_length",
-         "Context Length (字元數)", "按 Context 長度"),
-        (axes[1], "accuracy_by_position",
-         "Needle Position (%)", "按 Needle 位置"),
-    ]:
-        # 零線
-        ax.axhline(0, color="#999999", linewidth=1, linestyle="--", zorder=1)
+    for ax, variant in zip(axes, available):
+        acc_2d = defaultdict(dict)
+        for r in data[variant]:
+            l, p = r["context_length_chars"], r["needle_position"]
+            key = (l, p)
+            if key not in acc_2d:
+                acc_2d[key] = [0, 0]
+            acc_2d[key][1] += 1
+            acc_2d[key][0] += int(r["_correct"])
 
-        bar_width = 0.35
-        n_models = len(models_data)
-        offsets = np.linspace(-(n_models - 1) * bar_width / 2,
-                              (n_models - 1) * bar_width / 2, n_models)
-
-        all_keys = None
-        for (model, data), offset in zip(models_data.items(), offsets):
-            trad = data[x_key].get("traditional", {})
-            simp = data[x_key].get("simplified", {})
-            keys = sorted(set(trad) & set(simp))
-            if all_keys is None:
-                all_keys = keys
-            gaps = [(trad[k] - simp[k]) * 100 for k in keys]
-            avg_gap = np.mean(gaps)
-
-            colors = MODEL_COLORS.get(model, DEFAULT_COLORS)
-            label = MODEL_LABELS.get(model, model)
-            x_center = np.arange(len(keys))
-
-            # 長條：整體平均（視覺主軸）
-            # 散點：每個長度/位置的實際差距
-            ax.bar(x_center + offset, gaps, width=bar_width * 0.9,
-                   color=colors[0], alpha=0.7, label=f"{label}（avg {avg_gap:+.1f}pp）",
-                   zorder=2)
-
-        if all_keys is not None:
-            if x_key == "accuracy_by_length":
-                ax.set_xticks(np.arange(len(all_keys)))
-                ax.set_xticklabels(
-                    [f"{k//1000}k" if k >= 1000 else str(k) for k in all_keys],
-                    rotation=45, ha="right", fontsize=8)
-            else:
-                ax.set_xticks(np.arange(len(all_keys)))
-                ax.set_xticklabels(
-                    [f"{int(k*100)}%" for k in all_keys],
-                    rotation=45, ha="right", fontsize=8)
-
-        ax.set_title(title, fontsize=11)
-        ax.set_xlabel(xlabel, fontsize=10)
-        ax.set_ylabel("繁體 − 簡體準確率差距 (pp)", fontsize=10)
-        ax.grid(axis="y", alpha=0.3, zorder=0)
-        ax.legend(fontsize=9)
-
-        # 標注：正值 = 繁體較佳，負值 = 簡體較佳
-        y_min = ax.get_ylim()[0]
-        ax.text(0.98, 0.05, "正值 → 繁體較佳\n負值 → 簡體較佳",
-                transform=ax.transAxes, ha="right", va="bottom",
-                fontsize=8, color="#666666",
-                bbox=dict(boxstyle="round,pad=0.3", fc="white", alpha=0.7))
-
-    plt.tight_layout()
-    plt.savefig(out_path, bbox_inches="tight")
-    plt.close()
-    print(f"已儲存: {out_path}")
-
-
-# ── 4. 熱力圖（長度 × 位置） ─────────────────────────────────────────────────
-
-def plot_heatmap(model: str, data: dict, out_path: str):
-    heatmap = data["heatmap"]
-    label = MODEL_LABELS.get(model, model)
-
-    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
-    fig.suptitle(f"NIAH Heatmap: {label}", fontsize=14, fontweight="bold")
-
-    for ax, variant, title in zip(axes, ["traditional", "simplified"],
-                                  ["Traditional Chinese (繁體)", "Simplified Chinese (簡體)"]):
-        hm = heatmap.get(variant, {})
-        lengths = sorted(hm.keys())
-        all_positions = sorted({p for d in hm.values() for p in d})
-
-        matrix = np.full((len(lengths), len(all_positions)), np.nan)
-        for i, length in enumerate(lengths):
-            for j, pos in enumerate(all_positions):
-                val = hm.get(length, {}).get(pos, None)
-                if val is not None:
-                    matrix[i, j] = val * 100
+        lengths = sorted(set(k[0] for k in acc_2d))
+        positions = sorted(set(k[1] for k in acc_2d))
+        matrix = np.full((len(lengths), len(positions)), np.nan)
+        for i, l in enumerate(lengths):
+            for j, p in enumerate(positions):
+                if (l, p) in acc_2d:
+                    c, t = acc_2d[(l, p)]
+                    matrix[i, j] = c / t * 100
 
         im = ax.imshow(matrix, aspect="auto", origin="lower",
                        cmap="RdYlGn", vmin=0, vmax=100)
-
-        ax.set_xticks(range(len(all_positions)))
-        ax.set_xticklabels([f"{int(p*100)}%" for p in all_positions], fontsize=8)
+        ax.set_xticks(range(len(positions)))
+        ax.set_xticklabels([f"{int(p*100)}%" for p in positions], fontsize=7)
         ax.set_yticks(range(len(lengths)))
         ax.set_yticklabels([f"{l//1000}k" if l >= 1000 else str(l) for l in lengths], fontsize=8)
-        ax.set_xlabel("Needle Position", fontsize=10)
-        ax.set_ylabel("Context Length (chars)", fontsize=10)
-        ax.set_title(title, fontsize=11)
+        ax.set_xlabel("Needle 位置")
+        ax.set_ylabel("Context 長度")
+        ax.set_title(variant, fontsize=11)
 
-        # 數值標注
         for i in range(len(lengths)):
-            for j in range(len(all_positions)):
+            for j in range(len(positions)):
                 val = matrix[i, j]
                 if not np.isnan(val):
-                    text_color = "white" if val < 40 or val > 85 else "black"
+                    tc = "white" if val < 40 or val > 85 else "black"
                     ax.text(j, i, f"{val:.0f}", ha="center", va="center",
-                            fontsize=6.5, color=text_color)
-
-        plt.colorbar(im, ax=ax, label="Accuracy (%)", fraction=0.03)
+                            fontsize=6.5, color=tc)
+        plt.colorbar(im, ax=ax, label="準確率（%）", fraction=0.03)
 
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches="tight")
     plt.close()
-    print(f"已儲存: {out_path}")
+    print(f"  已儲存: {out_path}")
 
 
-# ── 5. Token 比 bar chart ────────────────────────────────────────────────────
+# ── 4. 各 Needle 準確率 ──────────────────────────────────────────────────────
 
-def plot_token_ratio(models_data: dict, out_path: str):
-    labels = [MODEL_LABELS.get(m, m) for m in models_data]
-    ratios = [d["token_stats"]["avg_ratio_trad_over_simp"] for d in models_data.values()]
-    colors = [MODEL_COLORS.get(m, DEFAULT_COLORS)[0] for m in models_data]
+NEEDLE_LABELS = {"N01": "N01 金額", "N02": "N02 人名", "N03": "N03 面積",
+                 "N04": "N04 數量", "N05": "N05 百分比"}
 
-    fig, ax = plt.subplots(figsize=(6, 4))
+def plot_needle_accuracy(model, data, out_path):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    mlabel = MODEL_LABELS.get(model, model)
+    ax.set_title(f"{mlabel}：各 Needle 準確率", fontsize=13, fontweight="bold")
+
+    available = [v for v in VARIANT_LABELS if v in data]
+    needles = sorted(NEEDLE_LABELS.keys())
+    x = np.arange(len(needles))
+    width = 0.25
+
+    for i, variant in enumerate(available):
+        acc = acc_by_key(data[variant], lambda r: r["needle_id"])
+        vals = [acc.get(n, 0) for n in needles]
+        color = VARIANT_LABELS[variant]
+        bars = ax.bar(x + (i - len(available) / 2 + 0.5) * width, vals,
+                      width * 0.9, label=variant, color=color, alpha=0.85)
+        for bar, val in zip(bars, vals):
+            ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
+                    f"{val:.1f}", ha="center", va="bottom", fontsize=7)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([NEEDLE_LABELS[n] for n in needles])
+    ax.set_ylabel("準確率（%）")
+    ax.set_ylim(85, 103)
+    ax.grid(axis="y", alpha=0.3)
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
+    print(f"  已儲存: {out_path}")
+
+
+# ── 5. 跨模型：準確率 vs Context 長度 ────────────────────────────────────────
+
+def plot_compare_length(all_data, out_path):
+    variants = ["繁問繁答", "簡問簡答", "繁問簡答"]
+    available = [v for v in variants if any(v in d for d in all_data.values())]
+    n = len(available)
+    fig, axes = plt.subplots(1, n, figsize=(5.5 * n, 5), sharey=True)
+    if n == 1:
+        axes = [axes]
+    fig.suptitle("跨模型比較：準確率 vs Context 長度", fontsize=14, fontweight="bold")
+
+    for ax, variant in zip(axes, available):
+        for model, data in all_data.items():
+            if variant not in data:
+                continue
+            acc = acc_by_key(data[variant], lambda r: r["context_length_chars"])
+            lengths = sorted(acc)
+            color = MODEL_COLORS.get(model, "#666666")
+            label = MODEL_LABELS.get(model, model)
+            ax.plot(range(len(lengths)), [acc[l] for l in lengths],
+                    "o-", color=color, label=label, linewidth=2, markersize=4)
+
+        ax.set_title(variant, fontsize=11)
+        ax.set_xticks(range(len(lengths)))
+        ax.set_xticklabels([f"{l//1000}k" if l >= 1000 else str(l) for l in lengths],
+                           rotation=45, ha="right", fontsize=8)
+        ax.set_xlabel("Context 長度")
+        ax.set_ylabel("準確率（%）")
+        ax.set_ylim(70, 102)
+        ax.grid(True, alpha=0.3)
+        ax.legend(fontsize=8)
+
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
+    print(f"  已儲存: {out_path}")
+
+
+# ── 6. Token 比率 ────────────────────────────────────────────────────────────
+
+def plot_token_ratio(all_data, out_path):
+    models = []
+    ratios = []
+    for model, data in all_data.items():
+        trad = {r["experiment_id"]: r.get("token_count_prompt", 0)
+                for r in data.get("繁問繁答", [])}
+        simp = {r["experiment_id"]: r.get("token_count_prompt", 0)
+                for r in data.get("繁問簡答", [])}
+        r_list = []
+        for eid in set(trad) & set(simp):
+            if trad[eid] > 0 and simp[eid] > 0:
+                r_list.append(trad[eid] / simp[eid])
+        if r_list:
+            models.append(model)
+            ratios.append(sum(r_list) / len(r_list))
+
+    fig, ax = plt.subplots(figsize=(max(5, len(models) * 2), 4))
+    colors = [MODEL_COLORS.get(m, "#666") for m in models]
+    labels = [MODEL_LABELS.get(m, m) for m in models]
     bars = ax.bar(labels, [(r - 1) * 100 for r in ratios], color=colors, width=0.4)
-
     for bar, r in zip(bars, ratios):
-        ax.text(bar.get_x() + bar.get_width() / 2,
-                bar.get_height() + 0.1,
+        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.1,
                 f"+{(r-1)*100:.1f}%", ha="center", va="bottom", fontsize=10)
 
-    ax.set_ylabel("Extra tokens in Traditional vs Simplified (%)", fontsize=10)
-    ax.set_title("Tokenizer Overhead: Traditional vs Simplified Chinese", fontsize=12)
-    ax.axhline(0, color="gray", linewidth=0.8)
-    ax.set_ylim(0, max((r - 1) * 100 for r in ratios) * 1.4 + 1)
+    ax.set_ylabel("繁體比簡體多用的 Token（%）")
+    ax.set_title("Tokenizer Overhead：繁體 vs 簡體", fontsize=13, fontweight="bold")
+    ax.set_ylim(0, max((r - 1) * 100 for r in ratios) * 1.5 + 1)
     ax.grid(axis="y", alpha=0.3)
     plt.tight_layout()
     plt.savefig(out_path, bbox_inches="tight")
     plt.close()
-    print(f"已儲存: {out_path}")
+    print(f"  已儲存: {out_path}")
+
+
+# ── 7. 65k 準確率比較 ────────────────────────────────────────────────────────
+
+def plot_65k_comparison(all_data, out_path):
+    variants = ["繁問繁答", "簡問簡答", "繁問簡答"]
+    models = list(all_data.keys())
+    x = np.arange(len(models))
+    width = 0.25
+
+    fig, ax = plt.subplots(figsize=(max(7, len(models) * 2.5), 5))
+    ax.set_title("65,000 字元下各模型 × 各 Variant 準確率", fontsize=13, fontweight="bold")
+
+    for i, variant in enumerate(variants):
+        vals = []
+        for model in models:
+            data = all_data[model]
+            if variant in data:
+                acc = acc_by_key(data[variant], lambda r: r["context_length_chars"])
+                vals.append(acc.get(65000, 0))
+            else:
+                vals.append(0)
+        color = VARIANT_LABELS[variant]
+        bars = ax.bar(x + (i - 1) * width, vals, width * 0.9,
+                      label=variant, color=color, alpha=0.85)
+        for bar, val in zip(bars, vals):
+            if val > 0:
+                ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.3,
+                        f"{val:.1f}", ha="center", va="bottom", fontsize=8)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([MODEL_LABELS.get(m, m) for m in models])
+    ax.set_ylabel("準確率（%）")
+    ax.set_ylim(60, 105)
+    ax.grid(axis="y", alpha=0.3)
+    ax.legend()
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
+    print(f"  已儲存: {out_path}")
 
 
 # ── Main ─────────────────────────────────────────────────────────────────────
@@ -312,34 +384,44 @@ def main():
 
     os.makedirs(PLOT_DIR, exist_ok=True)
 
-    models_data = {}
+    all_data = {}
     for model in args.models:
-        data = load_analysis(model)
+        print(f"載入 {model}...")
+        data = load_model_data(model)
         if data:
-            models_data[model] = data
+            all_data[model] = data
+            for label, records in data.items():
+                print(f"  {label}: {len(records)} 筆")
 
-    if not models_data:
-        print("沒有可用的分析資料")
+    if not all_data:
+        print("沒有可用的資料")
         return
 
-    print(f"載入模型: {list(models_data.keys())}")
-
-    # 生成所有圖表
-    plot_accuracy_vs_length(models_data,
-        os.path.join(PLOT_DIR, "accuracy_vs_length.png"))
-
-    plot_accuracy_vs_position(models_data,
-        os.path.join(PLOT_DIR, "accuracy_vs_position.png"))
-
-    plot_trad_simp_gap(models_data,
-        os.path.join(PLOT_DIR, "trad_simp_gap.png"))
-
-    for model, data in models_data.items():
+    # 每個模型的圖表
+    for model, data in all_data.items():
+        safe = model.replace(":", "_")
+        print(f"\n產生 {model} 圖表...")
+        plot_accuracy_vs_length(model, data,
+            os.path.join(PLOT_DIR, f"{safe}_accuracy_vs_length.png"))
+        plot_accuracy_vs_position(model, data,
+            os.path.join(PLOT_DIR, f"{safe}_accuracy_vs_position.png"))
         plot_heatmap(model, data,
-            os.path.join(PLOT_DIR, f"heatmap_{model.replace(':', '_')}.png"))
+            os.path.join(PLOT_DIR, f"{safe}_heatmap.png"))
+        plot_needle_accuracy(model, data,
+            os.path.join(PLOT_DIR, f"{safe}_needle_accuracy.png"))
 
-    plot_token_ratio(models_data,
-        os.path.join(PLOT_DIR, "token_ratio.png"))
+    # 跨模型比較
+    if len(all_data) >= 2:
+        print(f"\n產生跨模型比較圖表...")
+        plot_compare_length(all_data,
+            os.path.join(PLOT_DIR, "compare_accuracy_vs_length.png"))
+
+    plot_token_ratio(all_data,
+        os.path.join(PLOT_DIR, "compare_token_ratio.png"))
+
+    if len(all_data) >= 2:
+        plot_65k_comparison(all_data,
+            os.path.join(PLOT_DIR, "compare_65k_accuracy.png"))
 
     print(f"\n所有圖表已儲存至 results/plots/")
 
