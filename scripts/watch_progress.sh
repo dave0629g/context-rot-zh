@@ -6,73 +6,134 @@ python3 - <<'PYEOF'
 import json, os
 from datetime import datetime
 
-def elapsed_str(start_str):
+def elapsed_str(start_str, done, total, jsonl_path):
     if not start_str or start_str == "—":
         return "—"
     start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S")
-    s = int((datetime.now() - start).total_seconds())
+    if done >= total:
+        try:
+            end_ts = os.path.getmtime(jsonl_path)
+            end = datetime.fromtimestamp(end_ts)
+        except:
+            end = datetime.now()
+    else:
+        end = datetime.now()
+    s = int((end - start).total_seconds())
     return f"{s//3600:02d}:{(s%3600)//60:02d}:{s%60:02d}"
 
-def last_experiment(jsonl_path):
+def count_variant(jsonl_path, variant):
     try:
+        n = 0
         with open(jsonl_path) as f:
-            lines = [l for l in f if l.strip()]
-        if not lines:
-            return "—", "—", "—"
-        r = json.loads(lines[-1])
-        exp_id  = str(r["experiment_id"])
-        length  = f"{r['context_length_chars']:,}"
-        elapsed = f"{r['elapsed_seconds']:.1f}s"
-        return exp_id, length, elapsed
-    except:
-        return "—", "—", "—"
-
-def count_done(jsonl_path):
-    try:
-        with open(jsonl_path) as f:
-            return sum(1 for l in f if l.strip())
+            for line in f:
+                if not line.strip(): continue
+                try:
+                    r = json.loads(line)
+                    if r.get("variant") == variant and not r.get("skipped"):
+                        n += 1
+                except: pass
+        return n
     except:
         return 0
 
-# ── 實驗清單（依序更新狀態和開始時間）──────────────────────────
-EXPERIMENTS = [
-    {"no": 1, "model": "gemma3:4b",    "size": "4B",  "start": "2026-03-26 08:40:10"},
-    {"no": 2, "model": "llama3.1:8b",  "size": "8B",  "start": "2026-03-26 12:16:07"},
-    {"no": 3, "model": "qwen3:8b",     "size": "8B",  "start": "2026-03-26 22:08:18"},
-    {"no": 4, "model": "qwen3.5:35b",  "size": "35B", "start": "2026-03-28 09:37:24"},
-    {"no": 5, "model": "gemma3:27b",   "size": "27B", "start": ""},
-    {"no": 6, "model": "llama3.3:70b", "size": "70B", "start": ""},
+def last_experiment(jsonl_path, variant=None):
+    try:
+        with open(jsonl_path) as f:
+            lines = [l for l in f if l.strip()]
+        candidates = []
+        for l in reversed(lines):
+            try:
+                r = json.loads(l)
+                if variant is None or r.get("variant") == variant:
+                    candidates.append(r)
+                    break
+            except: pass
+        if not candidates:
+            return "—", "—", "—"
+        r = candidates[0]
+        return str(r["experiment_id"]), f"{r['context_length_chars']:,}", f"{r['elapsed_seconds']:.1f}s"
+    except:
+        return "—", "—", "—"
+
+TOTAL = 1100  # 每個 variant 各 1100 筆
+
+# ── 模型清單 ─────────────────────────────────────────────────────
+MODELS = [
+    {"model": "gemma3:4b",    "size": "4B",
+     "trad_start": "2026-03-26 08:40:10",
+     "sq_start":   "2026-03-29 11:05:00",
+     "simp_start":  "2026-03-26 08:40:10"},
+    {"model": "llama3.1:8b",  "size": "8B",
+     "trad_start": "2026-03-26 12:16:07",
+     "sq_start":   "",
+     "simp_start":  "2026-03-26 12:16:07"},
+    {"model": "qwen3:8b",     "size": "8B",
+     "trad_start": "2026-03-29 09:43:00",
+     "sq_start":   "",
+     "simp_start":  "2026-03-29 09:43:00"},
+    {"model": "qwen3.5:35b",  "size": "35B",
+     "trad_start": "", "sq_start": "", "simp_start": ""},
+    {"model": "gemma3:27b",   "size": "27B",
+     "trad_start": "", "sq_start": "", "simp_start": ""},
+    {"model": "llama3.3:70b", "size": "70B",
+     "trad_start": "", "sq_start": "", "simp_start": ""},
 ]
-TOTAL = 2200
 
-# ── 判斷各模型狀態 ──────────────────────────────────────────────
-for exp in EXPERIMENTS:
-    path = f"results/{exp['model']}_results.jsonl"
-    done = count_done(path)
-    exp["done"] = done
-    if done >= TOTAL:
-        exp["status"] = "✅ 完成"
-    elif done > 0 or (exp["start"] and exp["start"] != ""):
-        exp["status"] = "🔄 進行中"
-    else:
-        exp["status"] = "⏳ 待跑"
-    exp_id, length, exp_elapsed = last_experiment(path)
-    exp["last_id"] = exp_id
-    exp["last_len"] = length
-    exp["last_t"] = exp_elapsed
+# ── 計算進度 ─────────────────────────────────────────────────────
+for m in MODELS:
+    path      = f"results/{m['model']}_results.jsonl"
+    path_sq   = f"results/h2_{m['model']}_results.jsonl"
+    m["path"]      = path
+    m["path_sq"]   = path_sq
+    m["trad_done"] = count_variant(path, "traditional")
+    m["sq_done"]   = count_variant(path_sq, "simplified_q")
+    m["simp_done"] = count_variant(path, "simplified")
 
-# ── 輸出表格 ────────────────────────────────────────────────────
+def status(done, total, start):
+    if done >= total: return "✅ 完成"
+    if done > 0 or start: return "🔄 進行中"
+    return "⏳ 待跑"
+
+def fmt(n): return f"{n}/{TOTAL}" if n > 0 else "—"
+
+# ── 輸出 ─────────────────────────────────────────────────────────
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"  更新時間：{now}")
 print()
-print(f"  {'#':<3}  {'模型':<14}  {'大小':<5}  {'狀態':<10}  {'開始時間':<19}  {'已執行':>8}  {'進度':>12}  最後完成實驗")
-print(f"  {'─'*3}  {'─'*14}  {'─'*5}  {'─'*10}  {'─'*19}  {'─'*8}  {'─'*12}  {'─'*28}")
-for exp in EXPERIMENTS:
-    start  = exp["start"] or "—"
-    dur    = elapsed_str(exp["start"]) if exp["start"] else "—"
-    done   = exp["done"]
-    prog   = f"{done}/{TOTAL}" if done > 0 else "—"
-    last   = f"id={exp['last_id']} len={exp['last_len']} ({exp['last_t']})" if exp["last_id"] != "—" else "—"
-    print(f"  {exp['no']:<3}  {exp['model']:<14}  {exp['size']:<5}  {exp['status']:<10}  {start:<19}  {dur:>8}  {prog:>12}  {last}")
+
+HDR = (f"  {'模型':<14}  {'大小':<5}  "
+       f"{'繁問繁答':>10}  {'時長':>8}  "
+       f"{'簡問簡答':>10}  {'時長':>8}  "
+       f"{'繁問簡答':>10}  {'時長':>8}")
+SEP = (f"  {'─'*14}  {'─'*5}  "
+       f"{'─'*10}  {'─'*8}  "
+       f"{'─'*10}  {'─'*8}  "
+       f"{'─'*10}  {'─'*8}")
+print(HDR)
+print(SEP)
+
+for m in MODELS:
+    trad_dur = elapsed_str(m["trad_start"], m["trad_done"], TOTAL, m["path"]) if m["trad_start"] else "—"
+    sq_dur   = elapsed_str(m["sq_start"],   m["sq_done"],   TOTAL, m["path_sq"]) if m["sq_start"] else "—"
+    simp_dur = elapsed_str(m["simp_start"], m["simp_done"], TOTAL, m["path"]) if m["simp_start"] else "—"
+
+    print(f"  {m['model']:<14}  {m['size']:<5}  "
+          f"{fmt(m['trad_done']):>10}  {trad_dur:>8}  "
+          f"{fmt(m['sq_done']):>10}  {sq_dur:>8}  "
+          f"{fmt(m['simp_done']):>10}  {simp_dur:>8}")
+
+# ── 正在執行摘要 ─────────────────────────────────────────────────
+print()
+print("  ▌ 最後完成")
+for m in MODELS:
+    for variant, path, label in [
+        ("traditional", m["path"],    "繁問繁答"),
+        ("simplified_q", m["path_sq"], "簡問簡答"),
+        ("simplified",  m["path"],    "繁問簡答"),
+    ]:
+        done = m["trad_done"] if variant == "traditional" else (m["sq_done"] if variant == "simplified_q" else m["simp_done"])
+        if 0 < done < TOTAL:
+            eid, elen, et = last_experiment(path, variant)
+            print(f"    {m['model']} {label}: {done}/{TOTAL}  last id={eid} len={elen} ({et})")
 print()
 PYEOF

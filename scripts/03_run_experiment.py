@@ -282,6 +282,9 @@ def run_single_experiment(
 def main():
     parser = argparse.ArgumentParser(description="執行 Context Rot 實驗")
     parser.add_argument("--model", required=True, help="Ollama 模型名稱")
+    parser.add_argument("--variant", choices=["traditional", "simplified", "both"],
+                        default="both",
+                        help="只跑指定 variant（預設 both）")
     parser.add_argument("--max-experiments", type=int, default=None,
                         help="最多執行幾組（用於測試）")
     parser.add_argument("--resume", action="store_true",
@@ -300,25 +303,38 @@ def main():
     # 取得模型 context length
     model_max_ctx = get_model_context_length(args.model)
 
+    # 決定要跑哪些 variant
+    if args.variant == "both":
+        variants_to_run = ["traditional", "simplified"]
+    else:
+        variants_to_run = [args.variant]
+
     print(f"模型: {args.model}")
+    print(f"Variant: {args.variant}")
     print(f"模型最大 context length: {model_max_ctx:,} tokens")
-    print(f"實驗總數: {len(experiments)} × 2 (繁/簡) = {len(experiments) * 2}")
+    print(f"實驗總數: {len(experiments)} × {len(variants_to_run)} = {len(experiments) * len(variants_to_run)}")
 
     # 如果 resume，找出已完成的實驗
     completed = set()
-    if args.resume and os.path.exists(output_path):
+    if (args.resume or args.variant != "both") and os.path.exists(output_path):
         with open(output_path, "r", encoding="utf-8") as f:
             for line in f:
-                r = json.loads(line)
-                key = (r["experiment_id"], r["variant"])
-                completed.add(key)
-        print(f"已完成: {len(completed)} 筆，從中斷處繼續")
+                if not line.strip():
+                    continue
+                try:
+                    r = json.loads(line)
+                    key = (r["experiment_id"], r["variant"])
+                    completed.add(key)
+                except json.JSONDecodeError:
+                    pass  # 跳過損壞行
+        if completed:
+            print(f"已完成: {len(completed)} 筆，跳過繼續")
 
-    # 開啟輸出檔（append 模式）
-    mode = "a" if args.resume else "w"
+    # 開啟輸出檔（variant 指定時強制用 append，避免覆蓋另一個 variant 的資料）
+    mode = "a" if (args.resume or args.variant != "both") else "w"
     out_file = open(output_path, mode, encoding="utf-8")
 
-    total = len(experiments) * 2
+    total = len(experiments) * len(variants_to_run)
     if args.max_experiments:
         total = min(total, args.max_experiments)
 
@@ -330,7 +346,7 @@ def main():
 
     try:
         for experiment in experiments:
-            for variant in ["traditional", "simplified"]:
+            for variant in variants_to_run:
                 if done >= total:
                     break
 
