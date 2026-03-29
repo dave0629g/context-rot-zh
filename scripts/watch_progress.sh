@@ -3,21 +3,38 @@
 # 用法: watch -n 5 bash scripts/watch_progress.sh
 
 python3 - <<'PYEOF'
-import json, os
+import json, os, unicodedata
 from datetime import datetime
+
+def wlen(s):
+    """計算字串的終端顯示寬度（中文字算 2）"""
+    w = 0
+    for c in s:
+        ea = unicodedata.east_asian_width(c)
+        w += 2 if ea in ('W', 'F') else 1
+    return w
+
+def wljust(s, width):
+    """左對齊，依顯示寬度補空格"""
+    return s + ' ' * max(0, width - wlen(s))
+
+def wrjust(s, width):
+    """右對齊，依顯示寬度補空格"""
+    return ' ' * max(0, width - wlen(s)) + s
 
 def elapsed_str(start_str, done, total, jsonl_path):
     if not start_str or start_str == "—":
         return "—"
     start = datetime.strptime(start_str, "%Y-%m-%d %H:%M:%S")
-    if done >= total:
+    if done == 0:
+        # 尚未有任何結果：用 now（真正剛開始跑）
+        end = datetime.now()
+    else:
+        # 有結果（不論完成或暫停）：用檔案最後修改時間，不再隨 now 累計
         try:
-            end_ts = os.path.getmtime(jsonl_path)
-            end = datetime.fromtimestamp(end_ts)
+            end = datetime.fromtimestamp(os.path.getmtime(jsonl_path))
         except:
             end = datetime.now()
-    else:
-        end = datetime.now()
     s = int((end - start).total_seconds())
     return f"{s//3600:02d}:{(s%3600)//60:02d}:{s%60:02d}"
 
@@ -65,7 +82,7 @@ MODELS = [
      "simp_start":  "2026-03-26 08:40:10"},
     {"model": "llama3.1:8b",  "size": "8B",
      "trad_start": "2026-03-26 12:16:07",
-     "sq_start":   "",
+     "sq_start":   "2026-03-29 14:28:30",
      "simp_start":  "2026-03-26 12:16:07"},
     {"model": "qwen3:8b",     "size": "8B",
      "trad_start": "2026-03-29 09:43:00",
@@ -101,14 +118,10 @@ now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 print(f"  更新時間：{now}")
 print()
 
-HDR = (f"  {'模型':<14}  {'大小':<5}  "
-       f"{'繁問繁答':>10}  {'時長':>8}  "
-       f"{'簡問簡答':>10}  {'時長':>8}  "
-       f"{'繁問簡答':>10}  {'時長':>8}")
-SEP = (f"  {'─'*14}  {'─'*5}  "
-       f"{'─'*10}  {'─'*8}  "
-       f"{'─'*10}  {'─'*8}  "
-       f"{'─'*10}  {'─'*8}")
+C = [16, 5, 10, 8, 10, 8, 10, 8]  # 各欄顯示寬度
+headers = ["模型", "大小", "繁問繁答", "時長", "簡問簡答", "時長", "繁問簡答", "時長"]
+HDR = "  " + "  ".join(wljust(h, c) for h, c in zip(headers, C))
+SEP = "  " + "  ".join("─" * c for c in C)
 print(HDR)
 print(SEP)
 
@@ -117,10 +130,12 @@ for m in MODELS:
     sq_dur   = elapsed_str(m["sq_start"],   m["sq_done"],   TOTAL, m["path_sq"]) if m["sq_start"] else "—"
     simp_dur = elapsed_str(m["simp_start"], m["simp_done"], TOTAL, m["path"]) if m["simp_start"] else "—"
 
-    print(f"  {m['model']:<14}  {m['size']:<5}  "
-          f"{fmt(m['trad_done']):>10}  {trad_dur:>8}  "
-          f"{fmt(m['sq_done']):>10}  {sq_dur:>8}  "
-          f"{fmt(m['simp_done']):>10}  {simp_dur:>8}")
+    cols = [m["model"], m["size"],
+            fmt(m["trad_done"]), trad_dur,
+            fmt(m["sq_done"]),   sq_dur,
+            fmt(m["simp_done"]), simp_dur]
+    print("  " + "  ".join(wrjust(v, c) if i >= 2 else wljust(v, c)
+                            for i, (v, c) in enumerate(zip(cols, C))))
 
 # ── 正在執行摘要 ─────────────────────────────────────────────────
 print()
