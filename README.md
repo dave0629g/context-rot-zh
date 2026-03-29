@@ -162,8 +162,8 @@ context-rot-zh/
 ## Thinking 模型處理
 
 qwen3 系列和 deepseek-r1 系列為 thinking 模型，實驗腳本會自動：
-- 在 prompt 前加入 `/no_think` 關閉推理模式
-- 將 `num_predict` 提高到 2048（確保回答有足夠輸出空間）
+- 透過 Ollama API 參數 `"think": false` 關閉推理模式
+- 確保 response 只包含答案，不含推理過程，不污染 prompt
 
 ## 可復現性
 

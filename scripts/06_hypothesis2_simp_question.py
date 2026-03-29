@@ -82,24 +82,22 @@ def estimate_tokens(text: str) -> int:
 
 
 def ollama_generate(model: str, prompt: str, num_ctx: int) -> dict:
-    if is_thinking_model(model):
-        actual_prompt = "/no_think\n\n" + prompt
-        num_predict = 2048
-    else:
-        actual_prompt = prompt
-        num_predict = 256
-
     url = f"{OLLAMA_BASE}/api/generate"
-    payload = json.dumps({
+    payload_dict = {
         "model": model,
-        "prompt": actual_prompt,
+        "prompt": prompt,
         "stream": False,
         "options": {
             "temperature": 0.0,
-            "num_predict": num_predict,
+            "num_predict": 256,
             "num_ctx": num_ctx,
         },
-    }).encode("utf-8")
+    }
+
+    if is_thinking_model(model):
+        payload_dict["think"] = False
+
+    payload = json.dumps(payload_dict).encode("utf-8")
     req = urllib.request.Request(
         url, data=payload, headers={"Content-Type": "application/json"}
     )

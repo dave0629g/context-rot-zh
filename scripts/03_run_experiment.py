@@ -81,11 +81,8 @@ def is_thinking_model(model: str) -> bool:
       - qwen3.*（所有 qwen3 系列，包括 qwen3:8b, qwen3.5:35b 等）
       - deepseek-r1.*
 
-    對這些模型需要在 prompt 前加上 /no_think 來關閉 thinking 模式，
-    並將 num_predict 提高到 2048，確保 response 欄位有足夠空間輸出答案。
-
-    參考：Qwen3 文件 https://qwen.readthedocs.io/en/latest/
-          /no_think 指令會讓模型跳過推理步驟，直接輸出答案
+    對這些模型透過 Ollama API 的 "think": false 參數關閉推理模式，
+    確保 response 只包含答案，不含推理過程。
     """
     model_lower = model.lower()
     return model_lower.startswith("qwen3") or model_lower.startswith("deepseek-r1")
@@ -93,26 +90,23 @@ def is_thinking_model(model: str) -> bool:
 
 def ollama_generate(model: str, prompt: str, num_ctx: int, temperature: float = 0.0) -> dict:
     """呼叫 Ollama API 生成回應"""
-    # Thinking 模型：加上 /no_think 前綴，避免推理佔用所有 token 導致 response 為空
-    # 並提高 num_predict，確保答案有足夠輸出空間
-    if is_thinking_model(model):
-        actual_prompt = "/no_think\n\n" + prompt
-        num_predict = 2048
-    else:
-        actual_prompt = prompt
-        num_predict = 256
-
     url = f"{OLLAMA_BASE}/api/generate"
-    payload = json.dumps({
+    payload_dict = {
         "model": model,
-        "prompt": actual_prompt,
+        "prompt": prompt,
         "stream": False,
         "options": {
             "temperature": temperature,
-            "num_predict": num_predict,  # thinking 模型用 2048，其他用 256
-            "num_ctx": num_ctx,          # 使用模型實際上限
+            "num_predict": 256,
+            "num_ctx": num_ctx,
         },
-    }).encode("utf-8")
+    }
+
+    # Thinking 模型：透過 API 參數關閉推理，不污染 prompt
+    if is_thinking_model(model):
+        payload_dict["think"] = False
+
+    payload = json.dumps(payload_dict).encode("utf-8")
 
     req = urllib.request.Request(
         url, data=payload, headers={"Content-Type": "application/json"}
