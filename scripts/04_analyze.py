@@ -93,6 +93,41 @@ def chinese_num_to_float(text: str) -> list[float]:
     return results
 
 
+def extract_all_numbers(text: str) -> set[float]:
+    """
+    從文字中提取所有數值，支援：
+      - 純阿拉伯數字：473、3.7、92.6
+      - 純中文數字：四百七十三億、三點七
+      - 混合格式：473億、3.7萬
+    回傳統一的 float 集合
+    """
+    UNIT_MAP = {"十": 10, "百": 100, "千": 1000,
+                "萬": 10000, "億": 100000000,
+                "万": 10000, "亿": 100000000}
+    nums = set()
+
+    # 1. 混合格式：阿拉伯數字 + 中文單位（473億 → 47300000000）
+    for m in re.finditer(r"(\d+\.?\d*)\s*([十百千萬億万亿])", text):
+        try:
+            base = float(m.group(1))
+            unit = UNIT_MAP.get(m.group(2), 1)
+            nums.add(base * unit)
+        except ValueError:
+            pass
+
+    # 2. 純阿拉伯數字
+    for m in re.finditer(r"\d+\.?\d*", text):
+        try:
+            nums.add(float(m.group()))
+        except ValueError:
+            pass
+
+    # 3. 純中文數字
+    nums.update(chinese_num_to_float(text))
+
+    return nums
+
+
 # 同義詞組：每組用一個 canonical token 取代所有變體
 # 替換順序：長的先換，避免子串衝突（「新台幣」要比「台幣」先換）
 SYNONYMS = [
@@ -141,25 +176,10 @@ def reevaluate(r: dict) -> bool:
     exact_match = any(c in response or c in resp_normalized
                       for c in candidates)
 
-    # 2. 阿拉伯數字比對（原有邏輯）
-    response_numbers = set(re.findall(r"[\d.]+", response))
-    expected_numbers = set(re.findall(r"[\d.]+", expected))
-    number_match = bool(expected_numbers and expected_numbers.issubset(response_numbers))
-
-    # 3. 中文數字正規化比對（新增）
-    if not exact_match and not number_match:
-        exp_nums = set(chinese_num_to_float(expected))
-        resp_nums_arabic = set()
-        for n in re.findall(r"\d+\.?\d*", response):
-            try:
-                resp_nums_arabic.add(float(n))
-            except ValueError:
-                pass
-        resp_nums_chinese = set(chinese_num_to_float(response))
-        resp_nums_all = resp_nums_arabic | resp_nums_chinese
-
-        if exp_nums and exp_nums.issubset(resp_nums_all):
-            number_match = True
+    # 2. 數字比對：統一提取所有數值（阿拉伯、中文、混合格式）
+    exp_nums = extract_all_numbers(expected)
+    resp_nums = extract_all_numbers(response)
+    number_match = bool(exp_nums and exp_nums.issubset(resp_nums))
 
     return exact_match or number_match
 
