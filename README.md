@@ -189,7 +189,7 @@ watch -n 5 bash scripts/watch_progress.sh
    - llama3.1:8b：即使 130K 字元（~115K tokens, 87%）仍維持 91.8%，衰退幅度遠小於 gemma3:4b
 
 2. **模型大小的影響顯著**
-   - 同為 100K 字元：gemma3:4b 68.2% vs llama3.1:8b 90.9%（差距 22.7pp）
+   - 同為 100K 字元：gemma3:4b 68.2% vs llama3.1:8b 90.9%（差距 22.7 個百分點）
    - 8B 模型的長 context 穩健性明顯優於 4B
 
 3. **各 Needle 題型難度不同**
