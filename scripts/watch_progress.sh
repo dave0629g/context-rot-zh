@@ -1,10 +1,17 @@
 #!/bin/bash
 # 實驗進度監控腳本
-# 用法: watch -n 5 bash scripts/watch_progress.sh
+# 用法: watch --color -n 5 bash scripts/watch_progress.sh
 
 python3 - <<'PYEOF'
-import json, os, unicodedata
+import json, os, subprocess, unicodedata
 from datetime import datetime
+
+# ANSI 顏色（dark theme）
+GREEN  = "\033[32m"
+RED    = "\033[31m"
+YELLOW = "\033[33m"
+DIM    = "\033[90m"
+RESET  = "\033[0m"
 
 def wlen(s):
     w = 0
@@ -20,8 +27,6 @@ def wrjust(s, width):
     return ' ' * max(0, width - wlen(s)) + s
 
 def scan_variant(jsonl_path, variant):
-    """回傳 (done, skipped, total_seconds, last_id, last_len, last_elapsed)
-    結果檔案僅 1-2MB，全檔掃描只需毫秒"""
     done = 0
     skipped = 0
     total_sec = 0.0
@@ -51,7 +56,23 @@ def fmt_time(sec):
     s = int(sec)
     return f"{s//3600:02d}:{(s%3600)//60:02d}:{s%60:02d}"
 
-TOTAL = 1320  # 12 長度 × 11 位置 × 10 trials
+def is_running(model, variant_key):
+    try:
+        lines = subprocess.check_output(["ps", "aux"], text=True).splitlines()
+        for line in lines:
+            if model not in line: continue
+            if variant_key == "simplified_q":
+                if "06_hypothesis2" in line: return True
+            elif variant_key == "traditional":
+                if "03_run_experiment" in line and "--variant traditional" in line: return True
+                if "03_run_experiment" in line and "--variant" not in line: return True
+            elif variant_key == "simplified":
+                if "03_run_experiment" in line and "--variant simplified" in line: return True
+        return False
+    except:
+        return False
+
+TOTAL = 1320
 
 MODELS = [
     {"model": "gemma3:4b",    "size": "4B"},
@@ -62,28 +83,39 @@ MODELS = [
     {"model": "llama3.3:70b", "size": "70B"},
 ]
 
+VARIANT_KEYS = [
+    ("繁問繁答", "traditional"),
+    ("簡問簡答", "simplified_q"),
+    ("繁問簡答", "simplified"),
+]
+
 # ── 掃描結果 ─────────────────────────────────────────────────────
 for m in MODELS:
     path    = f"results/{m['model']}_results.jsonl"
     path_sq = f"results/h2_{m['model']}_results.jsonl"
-
-    td, ts, tt, tl_id, tl_len, tl_t = scan_variant(path, "traditional")
-    sd, ss, st, sl_id, sl_len, sl_t = scan_variant(path_sq, "simplified_q")
-    xd, xs, xt, xl_id, xl_len, xl_t = scan_variant(path, "simplified")
-
-    m["trad_done"], m["trad_skip"], m["trad_sec"] = td, ts, tt
-    m["sq_done"],   m["sq_skip"],   m["sq_sec"]   = sd, ss, st
-    m["simp_done"], m["simp_skip"], m["simp_sec"] = xd, xs, xt
-    m["trad_last"] = (tl_id, tl_len, tl_t)
-    m["sq_last"]   = (sl_id, sl_len, sl_t)
-    m["simp_last"] = (xl_id, xl_len, xl_t)
+    m["paths"] = {"traditional": path, "simplified_q": path_sq, "simplified": path}
+    m["data"] = {}
+    for label, vk in VARIANT_KEYS:
+        p = path_sq if vk == "simplified_q" else path
+        d, s, t, lid, llen, lt = scan_variant(p, vk)
+        m["data"][vk] = {
+            "done": d, "skip": s, "sec": t,
+            "last": (lid, llen, lt),
+            "running": is_running(m["model"], vk),
+        }
 
 def fmt(done, skip):
     total = done + skip
     if total == 0: return "—"
-    if skip > 0:
-        return f"{done}+{skip}s/{TOTAL}"
+    if skip > 0: return f"{done}+{skip}s/{TOTAL}"
     return f"{done}/{TOTAL}"
+
+def color_for(d):
+    processed = d["done"] + d["skip"]
+    if processed >= TOTAL: return GREEN
+    if d["done"] == 0 and d["skip"] == 0: return DIM
+    if d["running"]: return RED
+    return YELLOW
 
 # ── 輸出 ─────────────────────────────────────────────────────────
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -98,26 +130,27 @@ print(HDR)
 print(SEP)
 
 for m in MODELS:
-    cols = [m["model"], m["size"],
-            fmt(m["trad_done"], m["trad_skip"]), fmt_time(m["trad_sec"]),
-            fmt(m["sq_done"],   m["sq_skip"]),   fmt_time(m["sq_sec"]),
-            fmt(m["simp_done"], m["simp_skip"]), fmt_time(m["simp_sec"])]
-    print("  " + "  ".join(wrjust(v, c) if i >= 2 else wljust(v, c)
-                            for i, (v, c) in enumerate(zip(cols, C))))
+    parts = [wljust(m["model"], C[0]), wljust(m["size"], C[1])]
+    for i, (label, vk) in enumerate(VARIANT_KEYS):
+        d = m["data"][vk]
+        col = color_for(d)
+        val = fmt(d["done"], d["skip"])
+        sec = fmt_time(d["sec"])
+        parts.append(f"{col}{wrjust(val, C[2+i*2])}{RESET}")
+        parts.append(f"{col}{wrjust(sec, C[3+i*2])}{RESET}")
+    print("  " + "  ".join(parts))
 
 # ── 進行中 / 暫停 ───────────────────────────────────────────────
 active = []
 for m in MODELS:
-    for label, done, skip, last in [
-        ("繁問繁答", m["trad_done"], m["trad_skip"], m["trad_last"]),
-        ("簡問簡答", m["sq_done"],   m["sq_skip"],   m["sq_last"]),
-        ("繁問簡答", m["simp_done"], m["simp_skip"], m["simp_last"]),
-    ]:
-        processed = done + skip
+    for label, vk in VARIANT_KEYS:
+        d = m["data"][vk]
+        processed = d["done"] + d["skip"]
         if 0 < processed < TOTAL:
-            lid, llen, lt = last
-            skip_info = f"+{skip}s" if skip > 0 else ""
-            active.append(f"    {m['model']} {label}: {done}{skip_info}/{TOTAL}  last id={lid} len={llen} ({lt})")
+            lid, llen, lt = d["last"]
+            skip_info = f"+{d['skip']}s" if d["skip"] > 0 else ""
+            tag = f"{RED}▶{RESET}" if d["running"] else f"{YELLOW}⏸{RESET}"
+            active.append(f"    {tag} {m['model']} {label}: {d['done']}{skip_info}/{TOTAL}  last id={lid} len={llen} ({lt})")
 
 if active:
     print()
