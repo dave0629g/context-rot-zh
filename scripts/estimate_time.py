@@ -83,22 +83,28 @@ PER_LENGTH = 110  # 11 × 10
 
 
 def scan_results(path, variant_key):
-    """掃描結果檔，回傳 {context_length: [elapsed_seconds, ...]}"""
+    """掃描結果檔，回傳 (by_len, skipped_lengths)
+    by_len: {context_length: [elapsed_seconds, ...]}
+    skipped_lengths: set of lengths that were skipped"""
     by_len = defaultdict(list)
+    skipped_lengths = set()
     if not os.path.exists(path):
-        return by_len
+        return by_len, skipped_lengths
     with open(path) as f:
         for line in f:
             if not line.strip():
                 continue
             try:
                 r = json.loads(line)
-                if r.get("variant") != variant_key or r.get("skipped"):
+                if r.get("variant") != variant_key:
+                    continue
+                if r.get("skipped"):
+                    skipped_lengths.add(r["context_length_chars"])
                     continue
                 by_len[r["context_length_chars"]].append(r["elapsed_seconds"])
             except:
                 pass
-    return by_len
+    return by_len, skipped_lengths
 
 
 def fmt_time(sec):
@@ -142,7 +148,8 @@ def main():
         model_data[model] = {}
         for label, vk, path_fn in VARIANTS:
             path = os.path.join(os.path.dirname(__file__), "..", path_fn(model))
-            model_data[model][label] = scan_results(path, vk)
+            by_len, skipped = scan_results(path, vk)
+            model_data[model][label] = {"by_len": by_len, "skipped": skipped}
 
     # 找同系列模型的參考資料（用於估算未開始的模型）
     # gemma3:4b → gemma3:27b (按參數量比例)
@@ -155,7 +162,7 @@ def main():
     }
 
     # 欄位寬度
-    C = [10, 12, 8, 8, 8]
+    C = [10, 16, 8, 8, 8]
     headers = ["variant", "完成", "已花費", "剩餘估計", "總估計"]
 
     print("═" * 62)
@@ -176,21 +183,27 @@ def main():
         print_header()
 
         for label, vk, path_fn in VARIANTS:
-            by_len = model_data[model][label]
+            by_len = model_data[model][label]["by_len"]
+            skipped_lengths = model_data[model][label]["skipped"]
             done = sum(len(v) for v in by_len.values())
+            skipped = sum(PER_LENGTH for l in skipped_lengths if l not in by_len)
             done_sec = sum(sum(v) for v in by_len.values())
             grand_done_sec += done_sec
 
             # 計算每個長度的平均耗時
             known_avgs = {l: sum(v) / len(v) for l, v in by_len.items() if v}
 
-            # 估算剩餘
+            # 估算剩餘（排除已知 SKIP 的長度）
             remain_sec = 0
+            remain_count = 0
             for length in LENGTHS:
+                if length in skipped_lengths:
+                    continue  # 此長度已知會 SKIP，不計入剩餘時間
                 done_at_len = len(by_len.get(length, []))
                 remain_at_len = PER_LENGTH - done_at_len
                 if remain_at_len <= 0:
                     continue
+                remain_count += remain_at_len
 
                 avg = None
                 if length in known_avgs:
@@ -204,7 +217,7 @@ def main():
                 if avg is None and model in SIZE_RATIO:
                     ref_model, ratio = SIZE_RATIO[model]
                     ref_data = model_data[ref_model]
-                    ref_by_len = ref_data.get(label, {})
+                    ref_by_len = ref_data.get(label, {}).get("by_len", {})
                     ref_avgs = {l: sum(v) / len(v) for l, v in ref_by_len.items() if v}
                     if length in ref_avgs:
                         avg = ref_avgs[length] * ratio
@@ -220,19 +233,25 @@ def main():
 
             grand_remain_sec += remain_sec
             total_sec = done_sec + remain_sec
-            remain = TOTAL - done
+            processed = done + skipped
 
             # 狀態顏色
-            if done >= TOTAL:
+            if processed >= TOTAL:
                 color = GREEN   # 完成
-            elif done == 0:
+            elif done == 0 and skipped == 0:
                 color = DIM     # 未開始（灰色）
             elif is_running(model, vk):
                 color = RED     # 進行中
             else:
                 color = YELLOW  # 暫停
 
-            cols = [label, f"{done}/{TOTAL}", fmt_time(done_sec),
+            # 完成欄：顯示 skip 數量
+            if skipped > 0:
+                done_str = f"{done}+{skipped}s/{TOTAL}"
+            else:
+                done_str = f"{done}/{TOTAL}"
+
+            cols = [label, done_str, fmt_time(done_sec),
                     fmt_time(remain_sec), fmt_time(total_sec)]
             line = "    " + "  ".join(
                 wljust(v, c) if i == 0 else wrjust(v, c)
