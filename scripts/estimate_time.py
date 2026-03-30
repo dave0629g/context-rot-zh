@@ -43,14 +43,26 @@ RESET  = "\033[0m"
 
 
 def is_running(model: str, variant_key: str) -> bool:
-    """檢查是否有對應的實驗程序正在跑"""
+    """檢查是否有對應的實驗程序正在跑（精確比對 model + variant）"""
     import subprocess
     try:
-        ps = subprocess.check_output(["ps", "aux"], text=True)
-        if variant_key == "simplified_q":
-            return f"06_hypothesis2" in ps and model in ps
-        else:
-            return f"03_run_experiment" in ps and model in ps and f"--variant" in ps
+        lines = subprocess.check_output(["ps", "aux"], text=True).splitlines()
+        for line in lines:
+            if model not in line:
+                continue
+            if variant_key == "simplified_q":
+                if "06_hypothesis2" in line:
+                    return True
+            elif variant_key == "traditional":
+                if "03_run_experiment" in line and "--variant traditional" in line:
+                    return True
+                # --variant both 或無 --variant 時也算 traditional
+                if "03_run_experiment" in line and "--variant" not in line:
+                    return True
+            elif variant_key == "simplified":
+                if "03_run_experiment" in line and "--variant simplified" in line:
+                    return True
+        return False
     except:
         return False
 
