@@ -10,18 +10,22 @@
 
 ### 三種實驗 Variant
 
-| Variant | Context 語言 | Question 語言 | 腳本 |
-|---------|-------------|-------------|------|
-| 繁問繁答 (`traditional`) | 繁體 | 繁體 | `03_run_experiment.py --variant traditional` |
-| 簡問簡答 (`simplified_q`) | 簡體 | 簡體 | `06_hypothesis2_simp_question.py` |
-| 繁問簡答 (`simplified`) | 簡體 | 繁體 | `03_run_experiment.py --variant simplified` |
+| Variant | Haystack | Question | 模型回答語言 | 腳本 |
+|---------|----------|----------|-------------|------|
+| 繁問繁答 (`traditional`) | 繁體 | 繁體 | 繁體 | `03_run_experiment.py --variant traditional` |
+| 簡問簡答 (`simplified_q`) | 簡體 | 簡體 | 簡體 | `06_hypothesis2_simp_question.py` |
+| 繁問簡答 (`simplified`) | 簡體 | 繁體 | 簡體 | `03_run_experiment.py --variant simplified` |
+
+Haystack 的繁/簡版本由 `02_build_haystacks.py` 同時產生（OpenCC t2s 轉換），每個 experiment 包含 `traditional.text` 和 `simplified.text` 兩個版本。
+
+期望答案（`expected_answer`）定義在 `configs/wiki_articles_v2.json`，**永遠是繁體中文**。評估時會自動用 OpenCC 轉換為簡體作為額外比對候選。
 
 ### 實驗矩陣
 
-- Context 長度：500, 2K, 4K, 6K, 8K, 12K, 16K, 24K, 32K, 65K 字元（10 級）
+- Context 長度：500, 2K, 4K, 6K, 8K, 12K, 16K, 24K, 32K, 65K, 100K, 130K 字元（12 級）
 - Needle 位置：0%, 10%, 20%, ..., 100%（11 個位置）
 - 每組合重複：10 次（不同 haystack）
-- 每個 variant 每個模型：10 x 11 x 10 = **1,100 筆**
+- 每個 variant 每個模型：12 x 11 x 10 = **1,320 筆**
 
 ### Needle 清單（5 題）
 
@@ -126,13 +130,29 @@ watch -n 5 bash scripts/watch_progress.sh
 
 ## 評估方法
 
-模型回答以三層規則比對判定正確：
+### 期望答案與正規化
 
-1. **字串包含**：期望答案（含同義詞正規化）是否出現在回答中
-   - 同義詞：台幣/新台幣/元、隻/只/頭
-2. **阿拉伯數字比對**：期望數字集合是否為回答數字集合的子集
-3. **中文數字正規化**：將中文數字/混合格式統一轉換後比對
-   - 三點七 → 3.7、四百七十三億 → 47300000000、473億 → 47300000000
+期望答案定義在 `configs/wiki_articles_v2.json`，**原始格式為繁體中文**（例如「四百七十三億元」）。
+
+評估時根據 variant 自動處理：
+
+| Variant | 期望答案（原始） | 正規化比對候選 |
+|---------|----------------|--------------|
+| 繁問繁答 | 繁體 | 繁體原文 |
+| 簡問簡答 | 繁體 | 繁體原文 + OpenCC 轉簡體 |
+| 繁問簡答 | 繁體 | 繁體原文 + OpenCC 轉簡體 |
+
+### 三層規則比對
+
+模型回答以三層規則比對判定正確（任一層通過即為正確）：
+
+1. **字串包含**：期望答案（含同義詞正規化後）是否出現在模型回答中
+   - 同義詞替換：台幣/新台幣/元 → 統一 token、隻/只/頭 → 統一 token
+2. **阿拉伯數字比對**：期望答案的數字集合是否為回答數字集合的子集
+3. **中文數字正規化**：支援三種格式統一轉換後比對
+   - 純中文：三點七 → 3.7、四百七十三億 → 47300000000
+   - 純阿拉伯：直接提取 473、3.7 等
+   - 混合格式：473億 → 47300000000（阿拉伯數字 + 中文單位）
 
 ## 目錄結構
 
