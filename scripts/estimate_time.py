@@ -34,6 +34,25 @@ def wrjust(s, width):
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 TOTAL = 1320  # 12 長度 × 11 位置 × 10 trials
 
+# ANSI 顏色
+GREEN  = "\033[92m"  # 完成
+RED    = "\033[91m"  # 進行中
+YELLOW = "\033[93m"  # 暫停
+RESET  = "\033[0m"   # 白色（預設）
+
+
+def is_running(model: str, variant_key: str) -> bool:
+    """檢查是否有對應的實驗程序正在跑"""
+    import subprocess
+    try:
+        ps = subprocess.check_output(["ps", "aux"], text=True)
+        if variant_key == "simplified_q":
+            return f"06_hypothesis2" in ps and model in ps
+        else:
+            return f"03_run_experiment" in ps and model in ps and f"--variant" in ps
+    except:
+        return False
+
 MODELS = [
     "gemma3:4b", "llama3.1:8b", "qwen3:8b",
     "qwen3.5:35b", "gemma3:27b", "llama3.3:70b",
@@ -190,11 +209,22 @@ def main():
             total_sec = done_sec + remain_sec
             remain = TOTAL - done
 
+            # 狀態顏色
+            if done >= TOTAL:
+                color = GREEN   # 完成
+            elif done == 0:
+                color = RESET   # 未開始（白色）
+            elif is_running(model, vk):
+                color = RED     # 進行中
+            else:
+                color = YELLOW  # 暫停
+
             cols = [label, f"{done}/{TOTAL}", fmt_time(done_sec),
                     fmt_time(remain_sec), fmt_time(total_sec)]
-            print("    " + "  ".join(
+            line = "    " + "  ".join(
                 wljust(v, c) if i == 0 else wrjust(v, c)
-                for i, (v, c) in enumerate(zip(cols, C))))
+                for i, (v, c) in enumerate(zip(cols, C)))
+            print(f"{color}{line}{RESET}")
 
     print()
     print("─" * 62)
