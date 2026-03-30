@@ -162,6 +162,12 @@ def run_experiment(args, converter):
         for line in f:
             experiments.append(json.loads(line))
 
+    # 篩選指定長度
+    if args.lengths:
+        target_lengths = set(int(x) for x in args.lengths.split(","))
+        experiments = [e for e in experiments if e["context_length_chars"] in target_lengths]
+        print(f"篩選長度: {sorted(target_lengths)} → {len(experiments)} 筆")
+
     total = len(experiments)
 
     # Resume 支援
@@ -394,6 +400,8 @@ def main():
     parser = argparse.ArgumentParser(description="假設二驗證：問題語言對簡體準確率的影響")
     parser.add_argument("--model", required=True, help="Ollama 模型名稱")
     parser.add_argument("--resume", action="store_true", help="從中斷處繼續")
+    parser.add_argument("--lengths", type=str, default=None,
+                        help="只跑指定長度（逗號分隔，例如 100000,130000）")
     parser.add_argument("--compare", action="store_true",
                         help="不執行實驗，只做比較分析（需已有兩份結果）")
     parser.add_argument("--max-experiments", type=int, default=None,

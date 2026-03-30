@@ -279,6 +279,8 @@ def main():
     parser.add_argument("--variant", choices=["traditional", "simplified", "both"],
                         default="both",
                         help="只跑指定 variant（預設 both）")
+    parser.add_argument("--lengths", type=str, default=None,
+                        help="只跑指定長度（逗號分隔，例如 100000,130000）")
     parser.add_argument("--max-experiments", type=int, default=None,
                         help="最多執行幾組（用於測試）")
     parser.add_argument("--resume", action="store_true",
@@ -293,6 +295,12 @@ def main():
     with open(HAYSTACKS_PATH, "r", encoding="utf-8") as f:
         for line in f:
             experiments.append(json.loads(line))
+
+    # 篩選指定長度
+    if args.lengths:
+        target_lengths = set(int(x) for x in args.lengths.split(","))
+        experiments = [e for e in experiments if e["context_length_chars"] in target_lengths]
+        print(f"篩選長度: {sorted(target_lengths)} → {len(experiments)} 筆")
 
     # 取得模型 context length
     model_max_ctx = get_model_context_length(args.model)
@@ -310,7 +318,7 @@ def main():
 
     # 如果 resume，找出已完成的實驗
     completed = set()
-    if (args.resume or args.variant != "both") and os.path.exists(output_path):
+    if (args.resume or args.variant != "both" or args.lengths) and os.path.exists(output_path):
         with open(output_path, "r", encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
@@ -325,7 +333,7 @@ def main():
             print(f"已完成: {len(completed)} 筆，跳過繼續")
 
     # 開啟輸出檔（variant 指定時強制用 append，避免覆蓋另一個 variant 的資料）
-    mode = "a" if (args.resume or args.variant != "both") else "w"
+    mode = "a" if (args.resume or args.variant != "both" or args.lengths) else "w"
     out_file = open(output_path, mode, encoding="utf-8")
 
     total = len(experiments) * len(variants_to_run)
