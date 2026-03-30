@@ -346,6 +346,8 @@ def main():
     total_trad = 0
     total_simp = 0
 
+    skipped_lengths = set()  # 已知超過 context window 的長度，直接跳過
+
     try:
         for experiment in experiments:
             for variant in variants_to_run:
@@ -356,11 +358,17 @@ def main():
                 if key in completed:
                     continue
 
-                # 進度顯示
                 exp_id = experiment["experiment_id"]
                 length = experiment["context_length_chars"]
                 pos = experiment["needle_position"]
                 label = "繁" if variant == "traditional" else "簡"
+
+                # 已知此長度會 SKIP，直接跳過不逐筆處理
+                if length in skipped_lengths:
+                    done += 1
+                    continue
+
+                # 進度顯示
                 print(
                     f"  [{done+1:4d}/{total}] "
                     f"id={exp_id} {label} "
@@ -382,7 +390,8 @@ def main():
 
                     # 統計
                     if result.get("skipped"):
-                        print(f" tokens≈{result['token_count_actual']} SKIP(context_length_exceeded)")
+                        skipped_lengths.add(length)
+                        print(f" tokens≈{result['token_count_actual']} SKIP(context_length_exceeded) 此長度後續全部跳過")
                     else:
                         is_correct = result["evaluation"]["is_correct"]
                         token_info = f"tokens={result['token_count_actual']}"

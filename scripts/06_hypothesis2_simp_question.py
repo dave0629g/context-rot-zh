@@ -187,6 +187,7 @@ def run_experiment(args, converter):
     out_file = open(output_path, mode, encoding="utf-8")
 
     done = correct = 0
+    skipped_lengths = set()
 
     try:
         for experiment in experiments:
@@ -197,6 +198,11 @@ def run_experiment(args, converter):
             length = experiment["context_length_chars"]
             pos = experiment["needle_position"]
             expected = experiment["expected_answer"]
+
+            # 已知此長度會 SKIP，直接跳過
+            if length in skipped_lengths:
+                done += 1
+                continue
 
             # simplified context + simplified question
             context = experiment["simplified"]["text"]
@@ -233,7 +239,8 @@ def run_experiment(args, converter):
                     "evaluation": {"exact_match": False, "number_match": False,
                                    "char_overlap": 0.0, "is_correct": False},
                 }
-                print(f" tokens≈{estimated} SKIP(context_length_exceeded)")
+                skipped_lengths.add(length)
+                print(f" tokens≈{estimated} SKIP(context_length_exceeded) 此長度後續全部跳過")
             else:
                 gen = ollama_generate(model, prompt, model_max_ctx)
                 eval_result = evaluate_answer(gen["response"], expected, converter)

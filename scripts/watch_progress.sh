@@ -20,7 +20,8 @@ def wrjust(s, width):
     return ' ' * max(0, width - wlen(s)) + s
 
 def scan_variant(jsonl_path, variant):
-    """回傳 (done, total_seconds, last_id, last_len, last_elapsed)"""
+    """回傳 (done, total_seconds, last_id, last_len, last_elapsed)
+    結果檔案僅 1-2MB，全檔掃描只需毫秒"""
     done = 0
     total_sec = 0.0
     last = None
