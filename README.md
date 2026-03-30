@@ -156,18 +156,18 @@ watch -n 5 bash scripts/watch_progress.sh
 
 ## 初步結果（繁問繁答）
 
-以下為 Gemma 3 4B 和 Llama 3.1 8B 在繁問繁答 variant 的完整結果（各 1,320 筆，含 100K、130K 壓力測試）。
+以下為 gemma3:4b 和 llama3.1:8b 在繁問繁答 variant 的完整結果（各 1,320 筆，含 100K、130K 壓力測試）。
 
 ### 整體準確率
 
 | 模型 | 參數量 | 整體準確率 | Context Window | 最大測試 tokens |
 |------|--------|-----------|---------------|----------------|
-| Gemma 3 4B | 4B | **91.6%** | 131,072 | ~98K (75%) |
-| Llama 3.1 8B | 8B | **97.1%** | 131,072 | ~115K (87%) |
+| gemma3:4b | 4B | **91.6%** | 131,072 | ~98K (75%) |
+| llama3.1:8b | 8B | **97.1%** | 131,072 | ~115K (87%) |
 
 ### 準確率 vs Context 長度
 
-| 長度 | Gemma 4B tokens | Gemma 4B 準確率 | Llama 8B tokens | Llama 8B 準確率 |
+| 長度 | gemma3:4b tokens | gemma3:4b 準確率 | llama3.1:8b tokens | llama3.1:8b 準確率 |
 |------|----------------|----------------|-----------------|----------------|
 | 500 | 466 | 100.0% | 544 | 94.5% |
 | 2K | 1,595 | 100.0% | 1,866 | 98.2% |
@@ -185,32 +185,32 @@ watch -n 5 bash scripts/watch_progress.sh
 ### 關鍵發現
 
 1. **Context rot 的壓力閾值不同**
-   - Gemma 4B：65K 字元（~49K tokens, 37%）開始明顯下降，130K（~98K tokens, 75%）降至 52.7%
-   - Llama 8B：即使 130K 字元（~115K tokens, 87%）仍維持 91.8%，衰退幅度遠小於 Gemma
+   - gemma3:4b：65K 字元（~49K tokens, 37%）開始明顯下降，130K（~98K tokens, 75%）降至 52.7%
+   - llama3.1:8b：即使 130K 字元（~115K tokens, 87%）仍維持 91.8%，衰退幅度遠小於 gemma3:4b
 
 2. **模型大小的影響顯著**
-   - 同為 100K 字元：Gemma 4B 68.2% vs Llama 8B 90.9%（差距 22.7pp）
+   - 同為 100K 字元：gemma3:4b 68.2% vs llama3.1:8b 90.9%（差距 22.7pp）
    - 8B 模型的長 context 穩健性明顯優於 4B
 
 3. **各 Needle 題型難度不同**
 
-   | Needle | Gemma 4B | Llama 8B | 說明 |
+   | Needle | gemma3:4b | llama3.1:8b | 說明 |
    |--------|---------|---------|------|
    | N01 金額 | 92.4% | 93.6% | 數字干擾（haystack 中有其他金額） |
-   | N02 人名 | **85.2%** | 98.5% | Gemma 最弱，被其他人名誤導 |
+   | N02 人名 | **85.2%** | 98.5% | gemma3:4b 最弱，被其他人名誤導 |
    | N03 面積 | 95.8% | 96.6% | 穩定 |
    | N04 數量 | 90.2% | 97.0% | |
-   | N05 百分比 | 94.3% | **100.0%** | Llama 完美 |
+   | N05 百分比 | 94.3% | **100.0%** | llama3.1:8b 完美 |
 
-4. **Llama 8B 在短 context（500 字元）反而較低（94.5%）**
+4. **llama3.1:8b 在短 context（500 字元）反而較低（94.5%）**
    - 疑似短文本下模型傾向自由發揮而非嚴格檢索
 
 ### 圖表
 
 分析圖表位於 `results/plots/`：
 
-- `gemma3_4b_accuracy_vs_length.png` — Gemma 4B 準確率 vs 長度曲線
-- `llama3.1_8b_accuracy_vs_length.png` — Llama 8B 準確率 vs 長度曲線
+- `gemma3_4b_accuracy_vs_length.png` — gemma3:4b 準確率 vs 長度曲線
+- `llama3.1_8b_accuracy_vs_length.png` — llama3.1:8b 準確率 vs 長度曲線
 - `compare_accuracy_vs_length.png` — 兩模型對比
 - `compare_65k_accuracy.png` — 65K 長度下各 variant 比較
 - `*_heatmap.png` — 熱力圖（長度 × 位置）
