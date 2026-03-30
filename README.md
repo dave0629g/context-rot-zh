@@ -207,14 +207,43 @@ watch -n 5 bash scripts/watch_progress.sh
 
 ### 圖表
 
-分析圖表位於 `results/plots/`：
+#### 跨模型比較：準確率 vs Context 長度
 
-- `gemma3_4b_accuracy_vs_length.png` — gemma3:4b 準確率 vs 長度曲線
-- `llama3.1_8b_accuracy_vs_length.png` — llama3.1:8b 準確率 vs 長度曲線
-- `compare_accuracy_vs_length.png` — 兩模型對比
-- `compare_65k_accuracy.png` — 65K 長度下各 variant 比較
-- `*_heatmap.png` — 熱力圖（長度 × 位置）
-- `*_needle_accuracy.png` — 各 Needle 準確率
+![跨模型準確率 vs 長度](results/plots/compare_accuracy_vs_length.png)
+
+#### gemma3:4b 準確率 vs Context 長度
+
+![gemma3:4b 準確率 vs 長度](results/plots/gemma3_4b_accuracy_vs_length.png)
+
+#### llama3.1:8b 準確率 vs Context 長度
+
+![llama3.1:8b 準確率 vs 長度](results/plots/llama3.1_8b_accuracy_vs_length.png)
+
+#### Tokenizer Overhead（繁體 vs 簡體 token 數比較）
+
+![Token 比率](results/plots/compare_token_ratio.png)
+
+#### 65K 字元下各 Variant 準確率
+
+![65K 準確率](results/plots/compare_65k_accuracy.png)
+
+#### 各 Needle 題型準確率
+
+![gemma3:4b Needle 準確率](results/plots/gemma3_4b_needle_accuracy.png)
+
+![llama3.1:8b Needle 準確率](results/plots/llama3.1_8b_needle_accuracy.png)
+
+#### 熱力圖（Context 長度 × Needle 位置）
+
+![gemma3:4b 熱力圖](results/plots/gemma3_4b_heatmap.png)
+
+![llama3.1:8b 熱力圖](results/plots/llama3.1_8b_heatmap.png)
+
+#### 準確率 vs Needle 位置
+
+![gemma3:4b 準確率 vs 位置](results/plots/gemma3_4b_accuracy_vs_position.png)
+
+![llama3.1:8b 準確率 vs 位置](results/plots/llama3.1_8b_accuracy_vs_position.png)
 
 ## 目錄結構
 
