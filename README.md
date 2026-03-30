@@ -219,6 +219,12 @@ watch -n 5 bash scripts/watch_progress.sh
 
 ![llama3.1:8b 準確率 vs 長度](results/plots/llama3.1_8b_accuracy_vs_length.png)
 
+#### 字元數 → 實際 Token 數對照（各模型 Tokenizer 差異）
+
+![Token 對照圖](results/plots/compare_token_map.png)
+
+同樣 130K 字元的繁體中文，gemma3:4b 約 98K tokens（佔 context window 75%），llama3.1:8b 約 115K tokens（佔 87%）。虛線為 context window 上限（131,072 tokens）。
+
 #### Tokenizer Overhead（繁體 vs 簡體 token 數比較）
 
 ![Token 比率](results/plots/compare_token_ratio.png)

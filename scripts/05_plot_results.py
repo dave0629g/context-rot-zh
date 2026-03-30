@@ -374,6 +374,74 @@ def plot_65k_comparison(all_data, out_path):
     print(f"  已儲存: {out_path}")
 
 
+# ── 8. 字元數 → Token 數對照圖 ───────────────────────────────────────────────
+
+CTX_WINDOWS = {
+    "gemma3:4b": 131072, "llama3.1:8b": 131072,
+    "qwen3:8b": 40960, "qwen3.5:35b": 262144,
+    "gemma3:27b": 131072, "llama3.3:70b": 131072,
+}
+
+def plot_token_map(all_data, out_path):
+    """字元數 vs 實際 token 數：顯示各模型 tokenizer 效率差異與 context window 上限"""
+    from collections import defaultdict
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_title("字元數 → 實際 Token 數（繁體，各模型 Tokenizer 對照）",
+                 fontsize=13, fontweight="bold")
+
+    for model, data in all_data.items():
+        trad = data.get("繁問繁答", [])
+        if not trad:
+            continue
+
+        # 計算每個長度的平均 token 數
+        by_len = defaultdict(list)
+        for r in trad:
+            tp = r.get("token_count_prompt", 0)
+            if tp > 0:
+                by_len[r["context_length_chars"]].append(tp)
+
+        lengths = sorted(by_len)
+        avg_tokens = [sum(by_len[l]) / len(by_len[l]) for l in lengths]
+
+        color = MODEL_COLORS.get(model, "#666666")
+        label = MODEL_LABELS.get(model, model)
+        ax.plot(lengths, avg_tokens, "o-", color=color, label=label,
+                linewidth=2, markersize=5)
+
+        # 在最後一個點標注數值
+        if avg_tokens:
+            ax.annotate(f"{avg_tokens[-1]/1000:.0f}K",
+                        (lengths[-1], avg_tokens[-1]),
+                        textcoords="offset points", xytext=(8, 0),
+                        fontsize=8, color=color)
+
+    # 畫 context window 上限線
+    drawn_limits = set()
+    for model in all_data:
+        ctx = CTX_WINDOWS.get(model, 0)
+        if ctx > 0 and ctx not in drawn_limits:
+            ax.axhline(ctx, linestyle="--", alpha=0.5, color="#999999", linewidth=1)
+            ax.text(ax.get_xlim()[0], ctx + 1500,
+                    f"Context Window {ctx:,}",
+                    fontsize=8, color="#999999")
+            drawn_limits.add(ctx)
+
+    ax.set_xlabel("Context 長度（字元）")
+    ax.set_ylabel("實際 Token 數")
+    ax.set_xticks(lengths)
+    ax.set_xticklabels([f"{l//1000}K" if l >= 1000 else str(l) for l in lengths],
+                       rotation=45, ha="right", fontsize=8)
+    ax.yaxis.set_major_formatter(mtick.FuncFormatter(lambda x, _: f"{x/1000:.0f}K"))
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=9)
+    plt.tight_layout()
+    plt.savefig(out_path, bbox_inches="tight")
+    plt.close()
+    print(f"  已儲存: {out_path}")
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -422,6 +490,9 @@ def main():
     if len(all_data) >= 2:
         plot_65k_comparison(all_data,
             os.path.join(PLOT_DIR, "compare_65k_accuracy.png"))
+
+    plot_token_map(all_data,
+        os.path.join(PLOT_DIR, "compare_token_map.png"))
 
     print(f"\n所有圖表已儲存至 results/plots/")
 
