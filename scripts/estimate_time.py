@@ -12,7 +12,24 @@
 
 import json
 import os
+import unicodedata
 from collections import defaultdict
+
+
+def wlen(s):
+    w = 0
+    for c in s:
+        ea = unicodedata.east_asian_width(c)
+        w += 2 if ea in ('W', 'F') else 1
+    return w
+
+
+def wljust(s, width):
+    return s + ' ' * max(0, width - wlen(s))
+
+
+def wrjust(s, width):
+    return ' ' * max(0, width - wlen(s)) + s
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 TOTAL = 1320  # 12 長度 × 11 位置 × 10 trials
@@ -105,17 +122,26 @@ def main():
         "llama3.3:70b": ("llama3.1:8b", 70 / 8),
     }
 
-    print("═" * 78)
+    # 欄位寬度
+    C = [10, 12, 8, 8, 8]
+    headers = ["variant", "完成", "已花費", "剩餘估計", "總估計"]
+
+    print("═" * 62)
     print("  實驗時間估算")
-    print("═" * 78)
+    print("═" * 62)
 
     grand_done_sec = 0
     grand_remain_sec = 0
 
+    def print_header():
+        hdr = "    " + "  ".join(wljust(h, c) if i == 0 else wrjust(h, c) for i, (h, c) in enumerate(zip(headers, C)))
+        sep = "    " + "  ".join("─" * c for c in C)
+        print(hdr)
+        print(sep)
+
     for model in MODELS:
         print(f"\n  ▌ {model}")
-        print(f"    {'variant':<10}  {'完成':>12}  {'已花費':>8}  {'剩餘估計':>8}  {'總估計':>8}")
-        print(f"    {'─'*10}  {'─'*12}  {'─'*8}  {'─'*8}  {'─'*8}")
+        print_header()
 
         for label, vk, path_fn in VARIANTS:
             by_len = model_data[model][label]
@@ -164,13 +190,16 @@ def main():
             total_sec = done_sec + remain_sec
             remain = TOTAL - done
 
-            print(f"    {label:<10}  {done:>5}/{TOTAL:<5}  {fmt_time(done_sec):>8}  "
-                  f"{fmt_time(remain_sec):>8}  {fmt_time(total_sec):>8}")
+            cols = [label, f"{done}/{TOTAL}", fmt_time(done_sec),
+                    fmt_time(remain_sec), fmt_time(total_sec)]
+            print("    " + "  ".join(
+                wljust(v, c) if i == 0 else wrjust(v, c)
+                for i, (v, c) in enumerate(zip(cols, C))))
 
     print()
-    print("─" * 78)
-    print(f"  合計已花費: {fmt_time(grand_done_sec)}    "
-          f"剩餘估計: {fmt_time(grand_remain_sec)}    "
+    print("─" * 62)
+    print(f"  合計已花費: {fmt_time(grand_done_sec)}  "
+          f"剩餘估計: {fmt_time(grand_remain_sec)}  "
           f"總估計: {fmt_time(grand_done_sec + grand_remain_sec)}")
     print()
 
