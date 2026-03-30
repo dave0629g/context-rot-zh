@@ -34,11 +34,12 @@ def wrjust(s, width):
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 TOTAL = 1320  # 12 長度 × 11 位置 × 10 trials
 
-# ANSI 顏色
-GREEN  = "\033[92m"  # 完成
-RED    = "\033[91m"  # 進行中
-YELLOW = "\033[93m"  # 暫停
-RESET  = "\033[0m"   # 白色（預設）
+# ANSI 顏色（dark theme）
+GREEN  = "\033[32m"   # 完成
+RED    = "\033[31m"   # 進行中
+YELLOW = "\033[33m"   # 暫停
+DIM    = "\033[90m"   # 未開始（灰色）
+RESET  = "\033[0m"
 
 
 def is_running(model: str, variant_key: str) -> bool:
@@ -213,7 +214,7 @@ def main():
             if done >= TOTAL:
                 color = GREEN   # 完成
             elif done == 0:
-                color = RESET   # 未開始（白色）
+                color = DIM     # 未開始（灰色）
             elif is_running(model, vk):
                 color = RED     # 進行中
             else:
