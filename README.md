@@ -137,6 +137,26 @@ tail -f /tmp/run_all.log
 
 `run_all.sh` 會依序執行所有模型的所有 variant，每個實驗完成後自動 `git commit`。單個實驗失敗不影響後續。可隨時 `kill` 暫停，重跑時自動 `--resume` 跳過已完成的部分。
 
+#### 操作技巧
+
+```bash
+# 查看目前正在跑的實驗
+ps aux | grep 03_run_experiment | grep -v grep
+
+# 暫停目前的實驗（找到 PID 後 kill）
+kill <PID>
+
+# 從手動切換到自動排程：
+# 1. 先 kill 目前的實驗（或等它自然跑完）
+# 2. 啟動 run_all.sh，它會自動 --resume 跳過已完成的
+nohup bash scripts/run_all.sh > /tmp/run_all.log 2>&1 &
+
+# 監控進度（三種方式）
+watch --color -n 5 bash scripts/watch_progress.sh   # 即時進度表（含顏色）
+python3 scripts/estimate_time.py                      # 時間估算（含顏色）
+tail -f /tmp/run_all.log                              # 原始 log
+```
+
 ### Step 4: 分析結果
 ```bash
 # 單一模型
