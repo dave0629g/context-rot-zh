@@ -180,9 +180,11 @@ watch -n 5 bash scripts/watch_progress.sh
 
 以下為 gemma3:4b 和 llama3.1:8b 在繁問繁答 variant 的完整結果（各 1,320 筆，含 100K、130K 壓力測試）。
 
-### 整體準確率
+### 整體 Needle 檢索成功率
 
-| 模型 | 整體準確率 | Context Window | 最大測試 tokens |
+準確率 = 模型成功從 haystack 中找到 needle 並正確回答的比例。
+
+| 模型 | 檢索成功率 | Context Window | 最大測試 tokens |
 |------|-----------|---------------|----------------|
 | gemma3:4b | **91.6%** | 131,072 | ~98K (75%) |
 | llama3.1:8b | **97.1%** | 131,072 | ~115K (87%) |
