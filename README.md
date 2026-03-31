@@ -331,14 +331,45 @@ watch -n 5 bash scripts/watch_progress.sh
 
 ![65K 準確率](results/plots/compare_65k_accuracy.png)
 
-#### 各模型個別圖表
+#### gemma3:4b 個別圖表
 
-| 模型 | 準確率 vs 長度 | 準確率 vs 位置 | 熱力圖 | Needle 準確率 |
-|------|--------------|--------------|--------|--------------|
-| gemma3:4b | [圖](results/plots/gemma3_4b_accuracy_vs_length.png) | [圖](results/plots/gemma3_4b_accuracy_vs_position.png) | [圖](results/plots/gemma3_4b_heatmap.png) | [圖](results/plots/gemma3_4b_needle_accuracy.png) |
-| llama3.1:8b | [圖](results/plots/llama3.1_8b_accuracy_vs_length.png) | [圖](results/plots/llama3.1_8b_accuracy_vs_position.png) | [圖](results/plots/llama3.1_8b_heatmap.png) | [圖](results/plots/llama3.1_8b_needle_accuracy.png) |
-| qwen3:8b | [圖](results/plots/qwen3_8b_accuracy_vs_length.png) | [圖](results/plots/qwen3_8b_accuracy_vs_position.png) | [圖](results/plots/qwen3_8b_heatmap.png) | [圖](results/plots/qwen3_8b_needle_accuracy.png) |
-| qwen3.5:35b | [圖](results/plots/qwen3.5_35b_accuracy_vs_length.png) | [圖](results/plots/qwen3.5_35b_accuracy_vs_position.png) | [圖](results/plots/qwen3.5_35b_heatmap.png) | [圖](results/plots/qwen3.5_35b_needle_accuracy.png) |
+![gemma3:4b 準確率 vs 長度](results/plots/gemma3_4b_accuracy_vs_length.png)
+
+![gemma3:4b 準確率 vs 位置](results/plots/gemma3_4b_accuracy_vs_position.png)
+
+![gemma3:4b 熱力圖](results/plots/gemma3_4b_heatmap.png)
+
+![gemma3:4b Needle 準確率](results/plots/gemma3_4b_needle_accuracy.png)
+
+#### llama3.1:8b 個別圖表
+
+![llama3.1:8b 準確率 vs 長度](results/plots/llama3.1_8b_accuracy_vs_length.png)
+
+![llama3.1:8b 準確率 vs 位置](results/plots/llama3.1_8b_accuracy_vs_position.png)
+
+![llama3.1:8b 熱力圖](results/plots/llama3.1_8b_heatmap.png)
+
+![llama3.1:8b Needle 準確率](results/plots/llama3.1_8b_needle_accuracy.png)
+
+#### qwen3:8b 個別圖表
+
+![qwen3:8b 準確率 vs 長度](results/plots/qwen3_8b_accuracy_vs_length.png)
+
+![qwen3:8b 準確率 vs 位置](results/plots/qwen3_8b_accuracy_vs_position.png)
+
+![qwen3:8b 熱力圖](results/plots/qwen3_8b_heatmap.png)
+
+![qwen3:8b Needle 準確率](results/plots/qwen3_8b_needle_accuracy.png)
+
+#### qwen3.5:35b 個別圖表（部分資料：僅 100K+130K）
+
+![qwen3.5:35b 準確率 vs 長度](results/plots/qwen3.5_35b_accuracy_vs_length.png)
+
+![qwen3.5:35b 準確率 vs 位置](results/plots/qwen3.5_35b_accuracy_vs_position.png)
+
+![qwen3.5:35b 熱力圖](results/plots/qwen3.5_35b_heatmap.png)
+
+![qwen3.5:35b Needle 準確率](results/plots/qwen3.5_35b_needle_accuracy.png)
 
 ## 目錄結構
 
