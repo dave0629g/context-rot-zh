@@ -47,9 +47,15 @@ def scan_variant(jsonl_path, variant):
                 except: pass
     except:
         pass
+    # 最後寫入時間（用檔案 mtime）
+    try:
+        mtime = datetime.fromtimestamp(os.path.getmtime(jsonl_path)).strftime("%H:%M:%S")
+    except:
+        mtime = "—"
+
     if last:
-        return done, skipped, total_sec, str(last["experiment_id"]), f"{last['context_length_chars']:,}", f"{last['elapsed_seconds']:.1f}s"
-    return done, skipped, 0, "—", "—", "—"
+        return done, skipped, total_sec, str(last["experiment_id"]), f"{last['context_length_chars']:,}", f"{last['elapsed_seconds']:.1f}s", mtime
+    return done, skipped, 0, "—", "—", "—", "—"
 
 def fmt_time(sec):
     if sec <= 0: return "—"
@@ -97,10 +103,11 @@ for m in MODELS:
     m["data"] = {}
     for label, vk in VARIANT_KEYS:
         p = path_sq if vk == "simplified_q" else path
-        d, s, t, lid, llen, lt = scan_variant(p, vk)
+        d, s, t, lid, llen, lt, mtime = scan_variant(p, vk)
         m["data"][vk] = {
             "done": d, "skip": s, "sec": t,
             "last": (lid, llen, lt),
+            "mtime": mtime,
             "running": is_running(m["model"], vk),
         }
 
@@ -150,7 +157,8 @@ for m in MODELS:
             lid, llen, lt = d["last"]
             skip_info = f"+{d['skip']}s" if d["skip"] > 0 else ""
             tag = f"{RED}▶{RESET}" if d["running"] else f"{YELLOW}⏸{RESET}"
-            active.append(f"    {tag} {m['model']} {label}: {d['done']}{skip_info}/{TOTAL}  last id={lid} len={llen} ({lt})")
+            time_str = f"@ {d['mtime']}" if d["mtime"] != "—" else ""
+            active.append(f"    {tag} {m['model']} {label}: {d['done']}{skip_info}/{TOTAL}  last id={lid} len={llen} ({lt}) {time_str}")
 
 if active:
     print()
