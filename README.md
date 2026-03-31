@@ -118,11 +118,24 @@ python scripts/03_run_experiment.py --model gemma3:4b --variant both
 
 常用選項：
 - `--resume`：從中斷處繼續（實驗隨時可暫停）
+- `--lengths 100000,130000`：只跑指定長度
 - `--max-experiments N`：只跑 N 筆（用於測試）
 
 輸出：
 - `results/{model}_results.jsonl`（traditional + simplified）
 - `results/h2_{model}_results.jsonl`（simplified_q）
+
+#### 自動排程（一次跑完所有實驗）
+
+```bash
+# 背景執行，關掉終端也不會停
+nohup bash scripts/run_all.sh > /tmp/run_all.log 2>&1 &
+
+# 查看 log
+tail -f /tmp/run_all.log
+```
+
+`run_all.sh` 會依序執行所有模型的所有 variant，每個實驗完成後自動 `git commit`。單個實驗失敗不影響後續。可隨時 `kill` 暫停，重跑時自動 `--resume` 跳過已完成的部分。
 
 ### Step 4: 分析結果
 ```bash
