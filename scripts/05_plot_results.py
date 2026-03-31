@@ -52,7 +52,26 @@ for _fp in ["/usr/share/fonts/truetype/arphic/ukai.ttc",
 plt.rcParams["axes.unicode_minus"] = False
 plt.rcParams["figure.dpi"] = 150
 
+# 標記符號：空心/實心交替，確保黑白列印可辨識
+MARKER_STYLES = [
+    dict(marker="o",  fillstyle="full",  linestyle="-"),
+    dict(marker="o",  fillstyle="none",  linestyle="--"),
+    dict(marker="s",  fillstyle="full",  linestyle="-"),
+    dict(marker="s",  fillstyle="none",  linestyle="--"),
+    dict(marker="^",  fillstyle="full",  linestyle="-."),
+    dict(marker="^",  fillstyle="none",  linestyle="-."),
+    dict(marker="D",  fillstyle="full",  linestyle=":"),
+    dict(marker="D",  fillstyle="none",  linestyle=":"),
+    dict(marker="v",  fillstyle="full",  linestyle="-"),
+    dict(marker="P",  fillstyle="full",  linestyle="--"),
+]
+
 VARIANT_LABELS = {"繁問繁答": "#2E86AB", "簡問簡答": "#A23B72", "繁問簡答": "#F18F01"}
+VARIANT_MARKERS = {
+    "繁問繁答": dict(marker="o",  fillstyle="full",  linestyle="-"),
+    "簡問簡答": dict(marker="s",  fillstyle="none",  linestyle="--"),
+    "繁問簡答": dict(marker="^",  fillstyle="full",  linestyle="-."),
+}
 MODEL_COLORS = {
     "gemma3:4b":   "#4C72B0",
     "llama3.1:8b": "#C44E52",
@@ -60,6 +79,14 @@ MODEL_COLORS = {
     "qwen3.5:35b": "#8172B2",
     "gemma3:27b":  "#CCB974",
     "llama3.3:70b":"#64B5CD",
+}
+MODEL_MARKERS = {
+    "gemma3:4b":    dict(marker="o",  fillstyle="full",  linestyle="-"),
+    "llama3.1:8b":  dict(marker="o",  fillstyle="none",  linestyle="--"),
+    "qwen3:8b":     dict(marker="s",  fillstyle="full",  linestyle="-"),
+    "qwen3.5:35b":  dict(marker="s",  fillstyle="none",  linestyle="--"),
+    "gemma3:27b":   dict(marker="^",  fillstyle="full",  linestyle="-."),
+    "llama3.3:70b": dict(marker="^",  fillstyle="none",  linestyle="-."),
 }
 MODEL_LABELS = {
     "gemma3:4b": "Gemma 3 4B", "llama3.1:8b": "Llama 3.1 8B",
@@ -121,8 +148,11 @@ def plot_accuracy_vs_length(model, data, out_path):
             continue
         acc = acc_by_key(data[variant], lambda r: r["context_length_chars"])
         lengths = sorted(acc)
+        st = VARIANT_MARKERS[variant]
         ax.plot(range(len(lengths)), [acc[l] for l in lengths],
-                "o-", color=color, label=variant, linewidth=2, markersize=5)
+                color=color, label=variant, linewidth=2, markersize=7,
+                marker=st["marker"], fillstyle=st["fillstyle"],
+                linestyle=st["linestyle"], markeredgewidth=1.5)
 
     ax.set_xticks(range(len(lengths)))
     ax.set_xticklabels([f"{l//1000}k" if l >= 1000 else str(l) for l in lengths],
@@ -150,8 +180,11 @@ def plot_accuracy_vs_position(model, data, out_path):
             continue
         acc = acc_by_key(data[variant], lambda r: r["needle_position"])
         positions = sorted(acc)
+        st = VARIANT_MARKERS[variant]
         ax.plot([p * 100 for p in positions], [acc[p] for p in positions],
-                "o-", color=color, label=variant, linewidth=2, markersize=5)
+                color=color, label=variant, linewidth=2, markersize=7,
+                marker=st["marker"], fillstyle=st["fillstyle"],
+                linestyle=st["linestyle"], markeredgewidth=1.5)
 
     ax.set_xlabel("Needle 位置（%）")
     ax.set_ylabel("準確率（%）")
@@ -279,8 +312,11 @@ def plot_compare_length(all_data, out_path):
             lengths = sorted(acc)
             color = MODEL_COLORS.get(model, "#666666")
             label = MODEL_LABELS.get(model, model)
+            st = MODEL_MARKERS.get(model, MARKER_STYLES[0])
             ax.plot(range(len(lengths)), [acc[l] for l in lengths],
-                    "o-", color=color, label=label, linewidth=2, markersize=4)
+                    color=color, label=label, linewidth=2, markersize=6,
+                    marker=st["marker"], fillstyle=st["fillstyle"],
+                    linestyle=st["linestyle"], markeredgewidth=1.5)
 
         ax.set_title(variant, fontsize=11)
         ax.set_xticks(range(len(lengths)))
@@ -407,8 +443,11 @@ def plot_token_map(all_data, out_path):
 
         color = MODEL_COLORS.get(model, "#666666")
         label = MODEL_LABELS.get(model, model)
-        ax.plot(lengths, avg_tokens, "o-", color=color, label=label,
-                linewidth=2, markersize=5)
+        st = MODEL_MARKERS.get(model, MARKER_STYLES[0])
+        ax.plot(lengths, avg_tokens, color=color, label=label,
+                linewidth=2, markersize=6,
+                marker=st["marker"], fillstyle=st["fillstyle"],
+                linestyle=st["linestyle"], markeredgewidth=1.5)
 
         # 在最後一個點標注數值
         if avg_tokens:
