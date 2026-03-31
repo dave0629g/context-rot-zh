@@ -41,7 +41,7 @@ Needle 是插入 haystack 中的虛構事實句，模型需從長文中找到該
 
 ### 已知限制：Haystack 中的干擾資訊（Distractor Information）
 
-部分 Wikipedia 語料中包含與 needle 相似的真實資訊（distractors），可能導致模型找到真實段落而非我們插入的 needle：
+部分 Wikipedia 語料中包含與 needle 主題相似的真實內容，這些內容可能成為干擾項（distractors），導致模型找到真實段落而非我們插入的 needle：
 
 | Needle | 干擾源 | 嚴重度 |
 |--------|--------|--------|
