@@ -46,7 +46,7 @@ def is_running(model: str, variant_key: str) -> bool:
     """檢查是否有對應的實驗程序正在跑（精確比對 model + variant）"""
     import subprocess
     try:
-        lines = subprocess.check_output(["ps", "aux"], text=True).splitlines()
+        lines = subprocess.check_output(["ps", "auxww"], text=True).splitlines()
         for line in lines:
             if model not in line:
                 continue

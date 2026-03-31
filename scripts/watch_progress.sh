@@ -64,7 +64,7 @@ def fmt_time(sec):
 
 def is_running(model, variant_key):
     try:
-        lines = subprocess.check_output(["ps", "aux"], text=True).splitlines()
+        lines = subprocess.check_output(["ps", "auxww"], text=True).splitlines()
         for line in lines:
             if model not in line: continue
             if variant_key == "simplified_q":
@@ -149,6 +149,7 @@ for m in MODELS:
 
 # ── 進行中 / 暫停 ───────────────────────────────────────────────
 active = []
+AC = [14, 10, 16, 6, 8, 8, 10]  # model, variant, progress, id, len, elapsed, mtime
 for m in MODELS:
     for label, vk in VARIANT_KEYS:
         d = m["data"][vk]
@@ -156,15 +157,42 @@ for m in MODELS:
         if 0 < processed < TOTAL:
             lid, llen, lt = d["last"]
             skip_info = f"+{d['skip']}s" if d["skip"] > 0 else ""
-            tag = f"{RED}▶{RESET}" if d["running"] else f"{YELLOW}⏸{RESET}"
-            time_str = f"@ {d['mtime']}" if d["mtime"] != "—" else ""
-            active.append(f"    {tag} {m['model']} {label}: {d['done']}{skip_info}/{TOTAL}  last id={lid} len={llen} ({lt}) {time_str}")
+            progress = f"{d['done']}{skip_info}/{TOTAL}"
+            time_str = f"@ {d['mtime']}" if d["running"] and d["mtime"] != "—" else ""
+            active.append({
+                "running": d["running"],
+                "model": m["model"],
+                "label": label,
+                "progress": progress,
+                "lid": lid,
+                "llen": llen,
+                "lt": lt,
+                "time_str": time_str,
+            })
 
 if active:
     print()
     print("  ▌ 進行中 / 暫停")
+    ah    = ["模型", "變體", "進度", "id", "長度", "耗時", "時間戳"]
+    ah_ra = [False,  False,  True,  True, True,  True,  False]  # 靠右對齊
+    print(f"      {'  '.join(wrjust(h,c) if ra else wljust(h,c) for h,c,ra in zip(ah, AC, ah_ra))}")
+    print(f"      {'  '.join('─' * c for c in AC)}")
     for a in active:
-        print(a)
+        tag = "▶" if a["running"] else "⏸"
+        cols = [
+            wljust(a["model"], AC[0]),
+            wljust(a["label"], AC[1]),
+            wrjust(a["progress"], AC[2]),
+            wrjust(a["lid"], AC[3]),
+            wrjust(a["llen"], AC[4]),
+            wrjust(a["lt"], AC[5]),
+            a["time_str"],
+        ]
+        line = f"    {tag} {'  '.join(cols)}"
+        if a["running"]:
+            print(f"{RED}{line}{RESET}")
+        else:
+            print(f"{YELLOW}{line}{RESET}")
 
 print()
 PYEOF
