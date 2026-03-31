@@ -120,8 +120,8 @@ def fmt(done, skip):
 def color_for(d):
     processed = d["done"] + d["skip"]
     if processed >= TOTAL: return GREEN
-    if d["done"] == 0 and d["skip"] == 0: return DIM
     if d["running"]: return RED
+    if d["done"] == 0 and d["skip"] == 0: return DIM
     return YELLOW
 
 # ── 輸出 ─────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ for m in MODELS:
     for label, vk in VARIANT_KEYS:
         d = m["data"][vk]
         processed = d["done"] + d["skip"]
-        if 0 < processed < TOTAL:
+        if d["running"] or 0 < processed < TOTAL:
             lid, llen, lt = d["last"]
             skip_info = f"+{d['skip']}s" if d["skip"] > 0 else ""
             progress = f"{d['done']}{skip_info}/{TOTAL}"

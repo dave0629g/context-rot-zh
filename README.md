@@ -209,58 +209,109 @@ watch -n 5 bash scripts/watch_progress.sh
    - 純阿拉伯：直接提取 473、3.7 等
    - 混合格式：473億 → 47300000000（阿拉伯數字 + 中文單位）
 
-## 初步結果（繁問繁答）
+## 實驗進度
 
-以下為 gemma3:4b 和 llama3.1:8b 在繁問繁答 variant 的完整結果（各 1,320 筆，含 100K、130K 壓力測試）。
+| 模型 | 大小 | 繁問繁答 | 繁問簡答 | 簡問簡答 |
+|------|------|---------|---------|---------|
+| gemma3:4b | 4B | 1,320 筆 ✓ | 1,100 筆 ✓ | 1,100 筆 ✓ |
+| llama3.1:8b | 8B | 1,320 筆 ✓ | 1,100 筆 ✓ | 1,100 筆 ✓ |
+| qwen3:8b | 8B | 1,100 筆（500–65K）✓ | 125 筆（部分）| — |
+| qwen3.5:35b | 35B | 220 筆（100K+130K）| — | — |
+| gemma3:27b | 27B | 進行中 | — | — |
+| llama3.3:70b | 70B | 待執行 | — | — |
 
-### 整體 Needle 檢索成功率
+## 結果（已完成部分）
 
-準確率 = 模型成功從 haystack 中找到 needle 並正確回答的比例。
+準確率以修正版評估邏輯計算（`--reeval`：中文數字正規化 + 同義詞比對）。
 
-| 模型 | 檢索成功率 | Context Window | 最大測試 tokens |
-|------|-----------|---------------|----------------|
-| gemma3:4b | **91.6%** | 131,072 | ~98K (75%) |
-| llama3.1:8b | **97.1%** | 131,072 | ~115K (87%) |
+### 整體檢索成功率
+
+| 模型 | 繁問繁答 | 繁問簡答 | 簡問簡答 | Tokenizer Overhead |
+|------|---------|---------|---------|-------------------|
+| gemma3:4b | 91.6% | **99.1%** | 98.4% | +5.7% |
+| llama3.1:8b | 97.1% | **98.8%** | 99.1% | +7.1% |
+| qwen3:8b | 94.1%（≤32K 全滿，65K 崩潰）| 100.0%（部分） | — | +13.6% |
+| qwen3.5:35b | **100.0%**（100K+130K） | — | — | — |
+
+> 繁問簡答 = 簡體 context + 繁體 question；簡問簡答 = 全簡體。兩者皆比繁問繁答更高，支持 tokenizer overhead 影響長 context 檢索的假說。
 
 ### 準確率 vs Context 長度
 
-| 長度 | gemma3:4b tokens | gemma3:4b 準確率 | llama3.1:8b tokens | llama3.1:8b 準確率 |
-|------|----------------|----------------|-----------------|----------------|
-| 500 | 466 | 100.0% | 544 | 94.5% |
-| 2K | 1,595 | 100.0% | 1,866 | 98.2% |
-| 4K | 3,105 | 100.0% | 3,634 | 99.1% |
-| 6K | 4,648 | 100.0% | 5,425 | 100.0% |
-| 8K | 6,139 | 100.0% | 7,174 | 100.0% |
-| 12K | 9,148 | 99.1% | 10,663 | 100.0% |
-| 16K | 12,169 | 97.3% | 14,205 | 100.0% |
-| 24K | 18,171 | 95.5% | 21,172 | 100.0% |
-| 32K | 24,260 | 98.2% | 28,324 | 98.2% |
-| 65K | 49,062 | 88.2% | 57,248 | 92.7% |
-| **100K** | **75,529** | **68.2%** | **88,040** | **90.9%** |
-| **130K** | **98,288** | **52.7%** | **114,661** | **91.8%** |
+#### gemma3:4b
+
+| 長度 | 繁問繁答 | 繁問簡答 | 簡問簡答 |
+|------|---------|---------|---------|
+| 500 | 100.0% | 100.0% | 100.0% |
+| 2K | 100.0% | 100.0% | 100.0% |
+| 4K | 100.0% | 100.0% | 100.0% |
+| 6K | 100.0% | 100.0% | 100.0% |
+| 8K | 100.0% | 100.0% | 100.0% |
+| 12K | 99.1% | 100.0% | 100.0% |
+| 16K | 97.3% | 97.3% | 98.2% |
+| 24K | 95.5% | 100.0% | 95.5% |
+| 32K | 98.2% | 100.0% | 97.3% |
+| 65K | 88.2% | **93.6%** | **92.7%** |
+| 100K | 68.2% | — | — |
+| 130K | 52.7% | — | — |
+
+#### llama3.1:8b
+
+| 長度 | 繁問繁答 | 繁問簡答 | 簡問簡答 |
+|------|---------|---------|---------|
+| 500 | 94.5% | 97.3% | 97.3% |
+| 2K | 98.2% | 99.1% | 99.1% |
+| 4K | 99.1% | 100.0% | 100.0% |
+| 6K | 100.0% | 100.0% | 100.0% |
+| 8K | 100.0% | 100.0% | 100.0% |
+| 12K | 100.0% | 100.0% | 100.0% |
+| 16K | 100.0% | 100.0% | 100.0% |
+| 24K | 100.0% | 100.0% | 100.0% |
+| 32K | 98.2% | 97.3% | 98.2% |
+| 65K | 92.7% | **94.5%** | **96.4%** |
+| 100K | 90.9% | — | — |
+| 130K | 91.8% | — | — |
+
+#### qwen3:8b（繁問繁答，最大 context window 40,960 tokens）
+
+| 長度 | 繁問繁答 | 備註 |
+|------|---------|------|
+| 500–32K | 100.0% | 穩定 |
+| **65K** | **40.9%** | ~36K tokens ≈ 88% context window，嚴重崩潰 |
+
+> qwen3:8b 的 context window 只有 40,960 tokens，65K 字元繁體（~36K tokens）已逼近上限。同時 tokenizer overhead 最高（+13.6%），導致比其他模型更快撞到限制。
+
+#### qwen3.5:35b（繁問繁答，部分資料：僅 100K+130K）
+
+| 長度 | 繁問繁答 | 備註 |
+|------|---------|------|
+| 100K | **100.0%** | ~70K tokens，26% context window |
+| 130K | **100.0%** | ~91K tokens，35% context window |
+
+> 35B 模型（context window 262,144）在這兩個長度下完美命中，但短長度資料尚待補齊。
 
 ### 關鍵發現
 
-1. **Context rot 的壓力閾值不同**
-   - gemma3:4b：65K 字元（~49K tokens, 37%）開始明顯下降，130K（~98K tokens, 75%）降至 52.7%
-   - llama3.1:8b：即使 130K 字元（~115K tokens, 87%）仍維持 91.8%，衰退幅度遠小於 gemma3:4b
+1. **繁體 context rot 假說得到支持（gemma3:4b 最明顯）**
+   - 65K 字元下：繁問繁答 88.2% vs 繁問簡答 93.6%（差距 **+5.4pp**）
+   - 繁問簡答和簡問簡答一致優於繁問繁答，排除 question 語言干擾
+   - llama3.1:8b 差距較小（+1.8pp），整體更穩健
 
-2. **模型大小的影響顯著**
-   - 同為 100K 字元：gemma3:4b 68.2% vs llama3.1:8b 90.9%（差距 22.7 個百分點）
-   - 8B 模型的長 context 穩健性明顯優於 4B
+2. **模型大小是長 context 穩健性的關鍵因素**
+   - 同為 100K 字元：gemma3:4b 68.2% vs llama3.1:8b 90.9%（差距 **22.7pp**）
+   - gemma3:4b 在 130K 崩潰至 52.7%；llama3.1:8b 仍維持 91.8%
+   - qwen3.5:35b 在 100K–130K 維持 100%（但 context window 更大，token 佔用率僅 35%）
 
-3. **各 Needle 題型難度不同**
+3. **qwen3:8b 的 context window 限制導致 65K 嚴重崩潰**
+   - 0–32K 全部 100%，65K 驟降至 40.9%（非漸進式衰退）
+   - 原因：tokenizer overhead 最高（+13.6%），65K 字元已佔 88% context window
+   - 這是 context window 截斷效應，而非一般性的 context rot
 
-   | Needle | gemma3:4b | llama3.1:8b | 說明 |
-   |--------|---------|---------|------|
-   | N01 金額 | 92.4% | 93.6% | 數字干擾（haystack 中有其他金額） |
-   | N02 人名 | **85.2%** | 98.5% | gemma3:4b 最弱，被其他人名誤導 |
-   | N03 面積 | 95.8% | 96.6% | 穩定 |
-   | N04 數量 | 90.2% | 97.0% | |
-   | N05 百分比 | 94.3% | **100.0%** | llama3.1:8b 完美 |
+4. **Tokenizer overhead 與 context rot 敏感度正相關**
+   - qwen3:8b: +13.6% overhead → 最早撞上 context 限制
+   - llama3.1:8b: +7.1% overhead → 比 gemma3:4b (+5.7%) 更差但表現更好（模型品質補償）
 
-4. **llama3.1:8b 在短 context（500 字元）反而較低（94.5%）**
-   - 疑似短文本下模型傾向自由發揮而非嚴格檢索
+5. **llama3.1:8b 在短 context（500 字元）準確率略低（94.5%）**
+   - 疑似短文本下模型傾向自由生成而非嚴格檢索 needle
 
 ### 圖表
 
@@ -268,19 +319,9 @@ watch -n 5 bash scripts/watch_progress.sh
 
 ![跨模型準確率 vs 長度](results/plots/compare_accuracy_vs_length.png)
 
-#### gemma3:4b 準確率 vs Context 長度
-
-![gemma3:4b 準確率 vs 長度](results/plots/gemma3_4b_accuracy_vs_length.png)
-
-#### llama3.1:8b 準確率 vs Context 長度
-
-![llama3.1:8b 準確率 vs 長度](results/plots/llama3.1_8b_accuracy_vs_length.png)
-
 #### 字元數 → 實際 Token 數對照（各模型 Tokenizer 差異）
 
 ![Token 對照圖](results/plots/compare_token_map.png)
-
-同樣 130K 字元的繁體中文，gemma3:4b 約 98K tokens（佔 context window 75%），llama3.1:8b 約 115K tokens（佔 87%）。虛線為 context window 上限（131,072 tokens）。
 
 #### Tokenizer Overhead（繁體 vs 簡體 token 數比較）
 
@@ -290,23 +331,14 @@ watch -n 5 bash scripts/watch_progress.sh
 
 ![65K 準確率](results/plots/compare_65k_accuracy.png)
 
-#### 各 Needle 題型準確率
+#### 各模型個別圖表
 
-![gemma3:4b Needle 準確率](results/plots/gemma3_4b_needle_accuracy.png)
-
-![llama3.1:8b Needle 準確率](results/plots/llama3.1_8b_needle_accuracy.png)
-
-#### 熱力圖（Context 長度 × Needle 位置）
-
-![gemma3:4b 熱力圖](results/plots/gemma3_4b_heatmap.png)
-
-![llama3.1:8b 熱力圖](results/plots/llama3.1_8b_heatmap.png)
-
-#### 準確率 vs Needle 位置
-
-![gemma3:4b 準確率 vs 位置](results/plots/gemma3_4b_accuracy_vs_position.png)
-
-![llama3.1:8b 準確率 vs 位置](results/plots/llama3.1_8b_accuracy_vs_position.png)
+| 模型 | 準確率 vs 長度 | 準確率 vs 位置 | 熱力圖 | Needle 準確率 |
+|------|--------------|--------------|--------|--------------|
+| gemma3:4b | [圖](results/plots/gemma3_4b_accuracy_vs_length.png) | [圖](results/plots/gemma3_4b_accuracy_vs_position.png) | [圖](results/plots/gemma3_4b_heatmap.png) | [圖](results/plots/gemma3_4b_needle_accuracy.png) |
+| llama3.1:8b | [圖](results/plots/llama3.1_8b_accuracy_vs_length.png) | [圖](results/plots/llama3.1_8b_accuracy_vs_position.png) | [圖](results/plots/llama3.1_8b_heatmap.png) | [圖](results/plots/llama3.1_8b_needle_accuracy.png) |
+| qwen3:8b | [圖](results/plots/qwen3_8b_accuracy_vs_length.png) | [圖](results/plots/qwen3_8b_accuracy_vs_position.png) | [圖](results/plots/qwen3_8b_heatmap.png) | [圖](results/plots/qwen3_8b_needle_accuracy.png) |
+| qwen3.5:35b | [圖](results/plots/qwen3.5_35b_accuracy_vs_length.png) | [圖](results/plots/qwen3.5_35b_accuracy_vs_position.png) | [圖](results/plots/qwen3.5_35b_heatmap.png) | [圖](results/plots/qwen3.5_35b_needle_accuracy.png) |
 
 ## 目錄結構
 
