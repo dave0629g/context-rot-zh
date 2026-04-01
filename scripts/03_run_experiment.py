@@ -113,7 +113,7 @@ def ollama_generate(model: str, prompt: str, num_ctx: int, temperature: float = 
     )
 
     start_time = time.time()
-    with urllib.request.urlopen(req, timeout=300) as response:
+    with urllib.request.urlopen(req, timeout=600) as response:
         data = json.loads(response.read().decode("utf-8"))
     elapsed = time.time() - start_time
 
