@@ -256,7 +256,8 @@ def main():
         print_table_header()
 
         for model, size in fam_models:
-            row_parts = [wljust(model, CM), wljust(size, CS)]
+            row1 = [wljust(model, CM), wljust(size, CS)]
+            row2 = [" " * CM, " " * CS]
             for label, vk, path_fn in VARIANTS:
                 done, skipped, done_sec, remain_sec, color = compute_variant(
                     model, label, vk, path_fn, model_data)
@@ -271,11 +272,15 @@ def main():
                 else:
                     prog_str = f"{done}/{TOTAL}"
 
-                rem_str = "✓" if processed >= TOTAL else fmt_time(remain_sec)
-                cell = f"{color}{wljust(prog_str, CP)}  {wrjust(rem_str, CR)}{RESET}"
-                row_parts.append(cell)
+                rem_str  = "✓"              if processed >= TOTAL else fmt_time(remain_sec)
+                done_str = fmt_time(done_sec) if done_sec > 0       else "—"
+                tot_str  = "✓"              if processed >= TOTAL else fmt_time(done_sec + remain_sec)
 
-            print("  " + "  ".join(row_parts))
+                row1.append(f"{color}{wljust(prog_str, CP)}  {wrjust(rem_str, CR)}{RESET}")
+                row2.append(f"{DIM}{'已'+done_str:>{CP}}  {'總'+tot_str:>{CR}}{RESET}")
+
+            print("  " + "  ".join(row1))
+            print("  " + "  ".join(row2))
 
         print()
 
