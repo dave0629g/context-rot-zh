@@ -277,7 +277,7 @@ def main():
                 tot_str  = "✓"              if processed >= TOTAL else fmt_time(done_sec + remain_sec)
 
                 row1.append(f"{color}{wljust(prog_str, CP)}  {wrjust(rem_str, CR)}{RESET}")
-                row2.append(f"{DIM}{'已'+done_str:>{CP}}  {'總'+tot_str:>{CR}}{RESET}")
+                row2.append(f"{DIM}{wrjust('已'+done_str, CP)}  {wrjust('總'+tot_str, CR)}{RESET}")
 
             print("  " + "  ".join(row1))
             print("  " + "  ".join(row2))
