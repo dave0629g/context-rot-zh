@@ -81,7 +81,9 @@ def is_running(model, variant_key):
 TOTAL = 1320
 
 MODELS = [
+    {"model": "gemma3:1b",    "size": "1B"},
     {"model": "gemma3:4b",    "size": "4B"},
+    {"model": "gemma3:12b",   "size": "12B"},
     {"model": "llama3.1:8b",  "size": "8B"},
     {"model": "qwen3:8b",     "size": "8B"},
     {"model": "qwen3.5:35b",  "size": "35B"},

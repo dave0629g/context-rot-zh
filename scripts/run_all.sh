@@ -55,85 +55,148 @@ unload_model() {
 echo "開始全部實驗排程: $(date '+%Y-%m-%d %H:%M:%S')" | tee "$LOG"
 echo "PID: $$" | tee -a "$LOG"
 
+# 模型順序：gemma4（小→大）→ qwen3.5（小→大）→ 其他
+# 長度順序：Phase A 先跑所有模型 100K，最後跑所有模型 130K
+
 # ═══════════════════════════════════════════════════════════
-# Phase A: 補跑繁問繁答 100K+130K
+# Phase A-1: 繁問繁答 100K（由小到大）
 # ═══════════════════════════════════════════════════════════
 
-run_exp "qwen3.5:35b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:35b --variant traditional --lengths 100000,130000 --resume
-unload_model "qwen3.5:35b"
-
-run_exp "gemma3:27b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model gemma3:27b --variant traditional --lengths 100000,130000
-unload_model "gemma3:27b"
-
-run_exp "llama3.3:70b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant traditional --lengths 100000,130000
-unload_model "llama3.3:70b"
-
-run_exp "qwen3.5:2b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:2b --variant traditional --lengths 100000,130000 --resume
-unload_model "qwen3.5:2b"
-
-run_exp "qwen3.5:4b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:4b --variant traditional --lengths 100000,130000 --resume
-unload_model "qwen3.5:4b"
-
-run_exp "qwen3.5:9b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:9b --variant traditional --lengths 100000,130000 --resume
-unload_model "qwen3.5:9b"
-
-run_exp "qwen3.5:27b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:27b --variant traditional --lengths 100000,130000 --resume
-unload_model "qwen3.5:27b"
-
-run_exp "gemma4:e2b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model gemma4:e2b --variant traditional --lengths 100000,130000 --resume
+run_exp "gemma4:e2b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma4:e2b --variant traditional --lengths 100000 --resume
 unload_model "gemma4:e2b"
 
-run_exp "gemma4:e4b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model gemma4:e4b --variant traditional --lengths 100000,130000 --resume
+run_exp "gemma4:e4b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma4:e4b --variant traditional --lengths 100000 --resume
 unload_model "gemma4:e4b"
 
-run_exp "gemma4:26b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model gemma4:26b --variant traditional --lengths 100000,130000 --resume
+run_exp "gemma4:26b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma4:26b --variant traditional --lengths 100000 --resume
 unload_model "gemma4:26b"
 
-run_exp "gemma4:31b 繁問繁答 100K+130K" \
-    python3 scripts/03_run_experiment.py --model gemma4:31b --variant traditional --lengths 100000,130000 --resume
+run_exp "gemma4:31b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma4:31b --variant traditional --lengths 100000 --resume
 unload_model "gemma4:31b"
 
-# ═══════════════════════════════════════════════════════════
-# Phase B: 繁問繁答補 0001-1100
-# ═══════════════════════════════════════════════════════════
-
-run_exp "qwen3.5:35b 繁問繁答（全部）" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:35b --variant traditional --resume
-unload_model "qwen3.5:35b"
-
-run_exp "qwen3.5:2b 繁問繁答（全部）" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:2b --variant traditional --resume
+run_exp "qwen3.5:2b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:2b --variant traditional --lengths 100000 --resume
 unload_model "qwen3.5:2b"
 
-run_exp "qwen3.5:4b 繁問繁答（全部）" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:4b --variant traditional --resume
+run_exp "qwen3.5:4b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:4b --variant traditional --lengths 100000 --resume
 unload_model "qwen3.5:4b"
 
-run_exp "qwen3.5:9b 繁問繁答（全部）" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:9b --variant traditional --resume
+run_exp "qwen3.5:9b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:9b --variant traditional --lengths 100000 --resume
 unload_model "qwen3.5:9b"
 
-run_exp "qwen3.5:27b 繁問繁答（全部）" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:27b --variant traditional --resume
+run_exp "qwen3.5:27b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:27b --variant traditional --lengths 100000 --resume
 unload_model "qwen3.5:27b"
 
-run_exp "gemma3:27b 繁問繁答（全部）" \
-    python3 scripts/03_run_experiment.py --model gemma3:27b --variant traditional --resume
+run_exp "qwen3.5:35b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:35b --variant traditional --lengths 100000 --resume
+unload_model "qwen3.5:35b"
+
+run_exp "gemma3:1b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma3:1b --variant traditional --lengths 100000 --resume
+unload_model "gemma3:1b"
+
+run_exp "gemma3:4b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma3:4b --variant traditional --lengths 100000 --resume
+unload_model "gemma3:4b"
+
+run_exp "gemma3:12b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma3:12b --variant traditional --lengths 100000 --resume
+unload_model "gemma3:12b"
+
+run_exp "gemma3:27b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model gemma3:27b --variant traditional --lengths 100000 --resume
 unload_model "gemma3:27b"
 
-run_exp "llama3.3:70b 繁問繁答（全部）" \
-    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant traditional --resume
+run_exp "llama3.1:8b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model llama3.1:8b --variant traditional --lengths 100000 --resume
+unload_model "llama3.1:8b"
+
+run_exp "llama3.3:70b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant traditional --lengths 100000 --resume
 unload_model "llama3.3:70b"
+
+run_exp "qwen3:8b 繁問繁答 100K" \
+    python3 scripts/03_run_experiment.py --model qwen3:8b --variant traditional --lengths 100000 --resume
+unload_model "qwen3:8b"
+
+# ═══════════════════════════════════════════════════════════
+# Phase A-2: 繁問繁答 130K（置於最後，由小到大）
+# ═══════════════════════════════════════════════════════════
+
+run_exp "gemma4:e2b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma4:e2b --variant traditional --lengths 130000 --resume
+unload_model "gemma4:e2b"
+
+run_exp "gemma4:e4b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma4:e4b --variant traditional --lengths 130000 --resume
+unload_model "gemma4:e4b"
+
+run_exp "gemma4:26b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma4:26b --variant traditional --lengths 130000 --resume
+unload_model "gemma4:26b"
+
+run_exp "gemma4:31b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma4:31b --variant traditional --lengths 130000 --resume
+unload_model "gemma4:31b"
+
+run_exp "qwen3.5:2b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:2b --variant traditional --lengths 130000 --resume
+unload_model "qwen3.5:2b"
+
+run_exp "qwen3.5:4b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:4b --variant traditional --lengths 130000 --resume
+unload_model "qwen3.5:4b"
+
+run_exp "qwen3.5:9b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:9b --variant traditional --lengths 130000 --resume
+unload_model "qwen3.5:9b"
+
+run_exp "qwen3.5:27b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:27b --variant traditional --lengths 130000 --resume
+unload_model "qwen3.5:27b"
+
+run_exp "qwen3.5:35b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:35b --variant traditional --lengths 130000 --resume
+unload_model "qwen3.5:35b"
+
+run_exp "gemma3:1b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma3:1b --variant traditional --lengths 130000 --resume
+unload_model "gemma3:1b"
+
+run_exp "gemma3:4b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma3:4b --variant traditional --lengths 130000 --resume
+unload_model "gemma3:4b"
+
+run_exp "gemma3:12b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma3:12b --variant traditional --lengths 130000 --resume
+unload_model "gemma3:12b"
+
+run_exp "gemma3:27b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model gemma3:27b --variant traditional --lengths 130000 --resume
+unload_model "gemma3:27b"
+
+run_exp "llama3.1:8b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model llama3.1:8b --variant traditional --lengths 130000 --resume
+unload_model "llama3.1:8b"
+
+run_exp "llama3.3:70b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant traditional --lengths 130000 --resume
+unload_model "llama3.3:70b"
+
+run_exp "qwen3:8b 繁問繁答 130K" \
+    python3 scripts/03_run_experiment.py --model qwen3:8b --variant traditional --lengths 130000 --resume
+unload_model "qwen3:8b"
+
+# ═══════════════════════════════════════════════════════════
+# Phase B: 繁問繁答（全部長度 500-65K，由小到大）
+# ═══════════════════════════════════════════════════════════
 
 run_exp "gemma4:e2b 繁問繁答（全部）" \
     python3 scripts/03_run_experiment.py --model gemma4:e2b --variant traditional --resume
@@ -151,125 +214,177 @@ run_exp "gemma4:31b 繁問繁答（全部）" \
     python3 scripts/03_run_experiment.py --model gemma4:31b --variant traditional --resume
 unload_model "gemma4:31b"
 
+run_exp "qwen3.5:2b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:2b --variant traditional --resume
+unload_model "qwen3.5:2b"
+
+run_exp "qwen3.5:4b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:4b --variant traditional --resume
+unload_model "qwen3.5:4b"
+
+run_exp "qwen3.5:9b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:9b --variant traditional --resume
+unload_model "qwen3.5:9b"
+
+run_exp "qwen3.5:27b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:27b --variant traditional --resume
+unload_model "qwen3.5:27b"
+
+run_exp "qwen3.5:35b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:35b --variant traditional --resume
+unload_model "qwen3.5:35b"
+
+run_exp "gemma3:1b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model gemma3:1b --variant traditional --resume
+unload_model "gemma3:1b"
+
+run_exp "gemma3:12b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model gemma3:12b --variant traditional --resume
+unload_model "gemma3:12b"
+
+run_exp "gemma3:27b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model gemma3:27b --variant traditional --resume
+unload_model "gemma3:27b"
+
+run_exp "llama3.3:70b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant traditional --resume
+unload_model "llama3.3:70b"
+
 # ═══════════════════════════════════════════════════════════
-# Phase C: 簡問簡答（補跑 + 新模型）
+# Phase C: 簡問簡答（由小到大）
 # ═══════════════════════════════════════════════════════════
 
-run_exp "gemma3:4b 簡問簡答（補跑 100K+130K）" \
+run_exp "gemma4:e2b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:e2b --resume
+unload_model "gemma4:e2b"
+
+run_exp "gemma4:e4b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:e4b --resume
+unload_model "gemma4:e4b"
+
+run_exp "gemma4:26b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:26b --resume
+unload_model "gemma4:26b"
+
+run_exp "gemma4:31b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:31b --resume
+unload_model "gemma4:31b"
+
+run_exp "qwen3.5:2b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:2b --resume
+unload_model "qwen3.5:2b"
+
+run_exp "qwen3.5:4b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:4b --resume
+unload_model "qwen3.5:4b"
+
+run_exp "qwen3.5:9b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:9b --resume
+unload_model "qwen3.5:9b"
+
+run_exp "qwen3.5:27b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:27b --resume
+unload_model "qwen3.5:27b"
+
+run_exp "qwen3.5:35b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:35b --resume
+unload_model "qwen3.5:35b"
+
+run_exp "gemma3:1b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma3:1b --resume
+unload_model "gemma3:1b"
+
+run_exp "gemma3:4b 簡問簡答（補跑）" \
     python3 scripts/06_hypothesis2_simp_question.py --model gemma3:4b --resume
 unload_model "gemma3:4b"
 
-run_exp "llama3.1:8b 簡問簡答（補跑 100K+130K）" \
+run_exp "gemma3:12b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma3:12b --resume
+unload_model "gemma3:12b"
+
+run_exp "gemma3:27b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma3:27b --resume
+unload_model "gemma3:27b"
+
+run_exp "llama3.1:8b 簡問簡答（補跑）" \
     python3 scripts/06_hypothesis2_simp_question.py --model llama3.1:8b --resume
 unload_model "llama3.1:8b"
+
+run_exp "llama3.3:70b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model llama3.3:70b --resume
+unload_model "llama3.3:70b"
 
 run_exp "qwen3:8b 簡問簡答" \
     python3 scripts/06_hypothesis2_simp_question.py --model qwen3:8b --resume
 unload_model "qwen3:8b"
 
-run_exp "qwen3.5:35b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:35b
-unload_model "qwen3.5:35b"
+# ═══════════════════════════════════════════════════════════
+# Phase D: 繁問簡答（由小到大）
+# ═══════════════════════════════════════════════════════════
 
-run_exp "qwen3.5:2b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:2b
-unload_model "qwen3.5:2b"
-
-run_exp "qwen3.5:4b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:4b
-unload_model "qwen3.5:4b"
-
-run_exp "qwen3.5:9b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:9b
-unload_model "qwen3.5:9b"
-
-run_exp "qwen3.5:27b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model qwen3.5:27b
-unload_model "qwen3.5:27b"
-
-run_exp "gemma3:27b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model gemma3:27b
-unload_model "gemma3:27b"
-
-run_exp "llama3.3:70b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model llama3.3:70b
-unload_model "llama3.3:70b"
-
-run_exp "gemma4:e2b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:e2b
+run_exp "gemma4:e2b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma4:e2b --variant simplified --resume
 unload_model "gemma4:e2b"
 
-run_exp "gemma4:e4b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:e4b
+run_exp "gemma4:e4b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma4:e4b --variant simplified --resume
 unload_model "gemma4:e4b"
 
-run_exp "gemma4:31b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:31b
-unload_model "gemma4:31b"
-
-run_exp "gemma4:26b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:26b
+run_exp "gemma4:26b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma4:26b --variant simplified --resume
 unload_model "gemma4:26b"
 
-# ═══════════════════════════════════════════════════════════
-# Phase D: 繁問簡答（補跑 + 新模型）
-# ═══════════════════════════════════════════════════════════
+run_exp "gemma4:31b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma4:31b --variant simplified --resume
+unload_model "gemma4:31b"
 
-run_exp "gemma3:4b 繁問簡答（補跑 100K+130K）" \
-    python3 scripts/03_run_experiment.py --model gemma3:4b --variant simplified --resume
-unload_model "gemma3:4b"
+run_exp "qwen3.5:2b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:2b --variant simplified --resume
+unload_model "qwen3.5:2b"
 
-run_exp "llama3.1:8b 繁問簡答（補跑 100K+130K）" \
-    python3 scripts/03_run_experiment.py --model llama3.1:8b --variant simplified --resume
-unload_model "llama3.1:8b"
+run_exp "qwen3.5:4b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:4b --variant simplified --resume
+unload_model "qwen3.5:4b"
 
-run_exp "qwen3:8b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model qwen3:8b --variant simplified --resume
-unload_model "qwen3:8b"
+run_exp "qwen3.5:9b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:9b --variant simplified --resume
+unload_model "qwen3.5:9b"
+
+run_exp "qwen3.5:27b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model qwen3.5:27b --variant simplified --resume
+unload_model "qwen3.5:27b"
 
 run_exp "qwen3.5:35b 繁問簡答" \
     python3 scripts/03_run_experiment.py --model qwen3.5:35b --variant simplified --resume
 unload_model "qwen3.5:35b"
 
-run_exp "qwen3.5:2b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:2b --variant simplified
-unload_model "qwen3.5:2b"
+run_exp "gemma3:1b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma3:1b --variant simplified --resume
+unload_model "gemma3:1b"
 
-run_exp "qwen3.5:4b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:4b --variant simplified
-unload_model "qwen3.5:4b"
+run_exp "gemma3:4b 繁問簡答（補跑）" \
+    python3 scripts/03_run_experiment.py --model gemma3:4b --variant simplified --resume
+unload_model "gemma3:4b"
 
-run_exp "qwen3.5:9b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:9b --variant simplified
-unload_model "qwen3.5:9b"
-
-run_exp "qwen3.5:27b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model qwen3.5:27b --variant simplified
-unload_model "qwen3.5:27b"
+run_exp "gemma3:12b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma3:12b --variant simplified --resume
+unload_model "gemma3:12b"
 
 run_exp "gemma3:27b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model gemma3:27b --variant simplified
+    python3 scripts/03_run_experiment.py --model gemma3:27b --variant simplified --resume
 unload_model "gemma3:27b"
 
+run_exp "llama3.1:8b 繁問簡答（補跑）" \
+    python3 scripts/03_run_experiment.py --model llama3.1:8b --variant simplified --resume
+unload_model "llama3.1:8b"
+
 run_exp "llama3.3:70b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant simplified
+    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant simplified --resume
 unload_model "llama3.3:70b"
 
-run_exp "gemma4:e2b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model gemma4:e2b --variant simplified
-unload_model "gemma4:e2b"
-
-run_exp "gemma4:e4b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model gemma4:e4b --variant simplified
-unload_model "gemma4:e4b"
-
-run_exp "gemma4:26b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model gemma4:26b --variant simplified
-unload_model "gemma4:26b"
-
-run_exp "gemma4:31b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model gemma4:31b --variant simplified
-unload_model "gemma4:31b"
+run_exp "qwen3:8b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model qwen3:8b --variant simplified --resume
+unload_model "qwen3:8b"
 
 # ═══════════════════════════════════════════════════════════
 
