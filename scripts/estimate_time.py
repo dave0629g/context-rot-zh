@@ -66,12 +66,14 @@ def is_running(model: str, variant_key: str) -> bool:
     except:
         return False
 
-MODELS = [
-    "gemma4:e2b", "gemma4:e4b", "gemma4:26b", "gemma4:31b",
-    "qwen3.5:2b", "qwen3.5:4b", "qwen3.5:9b", "qwen3.5:27b", "qwen3.5:35b",
-    "gemma3:1b", "gemma3:4b", "gemma3:12b", "gemma3:27b",
-    "llama3.1:8b", "llama3.3:70b", "qwen3:8b",
+FAMILIES = [
+    ("gemma4",  [("gemma4:e2b","E2B"), ("gemma4:e4b","E4B"), ("gemma4:26b","26B"), ("gemma4:31b","31B")]),
+    ("qwen3.5", [("qwen3.5:2b","2B"), ("qwen3.5:4b","4B"), ("qwen3.5:9b","9B"), ("qwen3.5:27b","27B"), ("qwen3.5:35b","35B")]),
+    ("gemma3",  [("gemma3:1b","1B"), ("gemma3:4b","4B"), ("gemma3:12b","12B"), ("gemma3:27b","27B")]),
+    ("llama",   [("llama3.1:8b","8B"), ("llama3.3:70b","70B")]),
+    ("qwen3",   [("qwen3:8b","8B")]),
 ]
+MODELS = [m for _, ms in FAMILIES for m, _ in ms]
 
 VARIANTS = [
     ("繁問繁答", "traditional",   lambda m: f"results/{m}_results.jsonl"),
@@ -143,8 +145,81 @@ def estimate_missing_length(known_avgs, target_length):
     return t1 + slope * (target_length - l1)
 
 
+SIZE_RATIO = {
+    "qwen3.5:35b":  ("qwen3:8b",    35 / 8),
+    "qwen3.5:27b":  ("qwen3.5:35b", 27 / 35),
+    "qwen3.5:9b":   ("qwen3:8b",     9 / 8),
+    "qwen3.5:4b":   ("qwen3:8b",     4 / 8),
+    "qwen3.5:2b":   ("qwen3:8b",     2 / 8),
+    "gemma3:27b":   ("gemma3:4b",   27 / 4),
+    "gemma3:12b":   ("gemma3:4b",   12 / 4),
+    "gemma3:1b":    ("gemma3:4b",    1 / 4),
+    "llama3.3:70b": ("llama3.1:8b", 70 / 8),
+    "gemma4:e2b":   ("gemma3:4b",    2 / 4),
+    "gemma4:e4b":   ("gemma3:4b",    4 / 4),
+    "gemma4:26b":   ("gemma3:4b",    4 / 4),   # MoE, 4B active
+    "gemma4:31b":   ("gemma3:27b",  31 / 27),
+}
+
+
+def compute_variant(model, label, vk, path_fn, model_data):
+    """計算單一 model+variant 的 (done, skipped, done_sec, remain_sec, color)"""
+    by_len = model_data[model][label]["by_len"]
+    skipped_lengths = model_data[model][label]["skipped"]
+    done = sum(len(v) for v in by_len.values())
+    skipped = sum(PER_LENGTH for l in skipped_lengths if l not in by_len)
+    done_sec = sum(sum(v) for v in by_len.values())
+    known_avgs = {l: sum(v) / len(v) for l, v in by_len.items() if v}
+
+    remain_sec = 0
+    for length in LENGTHS:
+        if length in skipped_lengths:
+            continue
+        done_at_len = len(by_len.get(length, []))
+        remain_at_len = PER_LENGTH - done_at_len
+        if remain_at_len <= 0:
+            continue
+
+        avg = None
+        if length in known_avgs:
+            avg = known_avgs[length]
+        elif known_avgs:
+            est = estimate_missing_length(known_avgs, length)
+            if est and est > 0:
+                avg = est
+
+        if avg is None and model in SIZE_RATIO:
+            ref_model, ratio = SIZE_RATIO[model]
+            ref_by_len = model_data.get(ref_model, {}).get(label, {}).get("by_len", {})
+            ref_avgs = {l: sum(v) / len(v) for l, v in ref_by_len.items() if v}
+            if length in ref_avgs:
+                avg = ref_avgs[length] * ratio
+            elif ref_avgs:
+                est = estimate_missing_length(ref_avgs, length)
+                if est and est > 0:
+                    avg = est * ratio
+
+        if avg is None or avg <= 0:
+            avg = 60
+        remain_sec += remain_at_len * max(avg, 0.1)
+
+    processed = done + skipped
+    if processed >= TOTAL:
+        color = GREEN
+    elif is_running(model, vk):
+        color = RED
+    elif done == 0 and skipped == 0:
+        color = DIM
+    else:
+        color = YELLOW
+
+    return done, skipped, done_sec, remain_sec, color
+
+
 def main():
-    # 收集所有已知的耗時資料（跨模型、跨 variant 共用同一個模型的資料）
+    from datetime import datetime
+
+    # 收集所有資料
     model_data = {}
     for model in MODELS:
         model_data[model] = {}
@@ -153,128 +228,59 @@ def main():
             by_len, skipped = scan_results(path, vk)
             model_data[model][label] = {"by_len": by_len, "skipped": skipped}
 
-    # 找同系列模型的參考資料（用於估算未開始的模型）
-    # gemma3:4b → gemma3:27b (按參數量比例)
-    # llama3.1:8b → llama3.3:70b
-    # qwen3:8b → qwen3.5:35b
-    SIZE_RATIO = {
-        # 原有
-        "qwen3.5:35b":  ("qwen3:8b",    35 / 8),
-        "qwen3.5:27b":  ("qwen3.5:35b", 27 / 35),
-        "qwen3.5:9b":   ("qwen3:8b",     9 / 8),
-        "qwen3.5:4b":   ("qwen3:8b",     4 / 8),
-        "qwen3.5:2b":   ("qwen3:8b",     2 / 8),
-        "gemma3:27b":   ("gemma3:4b",   27 / 4),
-        "gemma3:12b":   ("gemma3:4b",   12 / 4),
-        "gemma3:1b":    ("gemma3:4b",    1 / 4),
-        "llama3.3:70b": ("llama3.1:8b", 70 / 8),
-        # gemma4（MoE 模型以 active params 估算，e 系列參照 gemma3:4b）
-        "gemma4:e2b":   ("gemma3:4b",    2 / 4),
-        "gemma4:e4b":   ("gemma3:4b",    4 / 4),
-        "gemma4:26b":   ("gemma3:4b",    4 / 4),   # MoE, 4B active
-        "gemma4:31b":   ("gemma3:27b",  31 / 27),
-    }
+    # 欄位寬度：模型(14) 大小(4) + 每個 variant(進度14 + 剩餘8)
+    CM, CS, CP, CR = 14, 4, 14, 8
+    variant_labels = [label for label, _, _ in VARIANTS]
 
-    # 欄位寬度
-    C = [10, 16, 8, 8, 8]
-    headers = ["variant", "完成", "已花費", "剩餘估計", "總估計"]
+    # 表頭
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"  更新時間：{now}")
+    print()
 
-    print("═" * 62)
-    print("  實驗時間估算")
-    print("═" * 62)
+    def print_table_header():
+        h1 = ("  " + wljust("模型", CM) + "  " + wljust("大小", CS) + "  " +
+              "  ".join(wljust(lb, CP + 2 + CR) for lb in variant_labels))
+        sep = ("  " + "─" * CM + "  " + "─" * CS + "  " +
+               "  ".join("─" * CP + "  " + "─" * CR for _ in variant_labels))
+        sub = ("  " + " " * CM + "  " + " " * CS + "  " +
+               "  ".join(wljust("進度", CP) + "  " + wrjust("剩餘", CR) for _ in variant_labels))
+        print(h1)
+        print(sub)
+        print(sep)
 
     grand_done_sec = 0
     grand_remain_sec = 0
 
-    def print_header():
-        hdr = "    " + "  ".join(wljust(h, c) if i == 0 else wrjust(h, c) for i, (h, c) in enumerate(zip(headers, C)))
-        sep = "    " + "  ".join("─" * c for c in C)
-        print(hdr)
-        print(sep)
+    for fam_name, fam_models in FAMILIES:
+        print(f"  ▌ {fam_name}")
+        print_table_header()
 
-    for model in MODELS:
-        print(f"\n  ▌ {model}")
-        print_header()
+        for model, size in fam_models:
+            row_parts = [wljust(model, CM), wljust(size, CS)]
+            for label, vk, path_fn in VARIANTS:
+                done, skipped, done_sec, remain_sec, color = compute_variant(
+                    model, label, vk, path_fn, model_data)
+                grand_done_sec += done_sec
+                grand_remain_sec += remain_sec
 
-        for label, vk, path_fn in VARIANTS:
-            by_len = model_data[model][label]["by_len"]
-            skipped_lengths = model_data[model][label]["skipped"]
-            done = sum(len(v) for v in by_len.values())
-            skipped = sum(PER_LENGTH for l in skipped_lengths if l not in by_len)
-            done_sec = sum(sum(v) for v in by_len.values())
-            grand_done_sec += done_sec
+                processed = done + skipped
+                if skipped > 0:
+                    prog_str = f"{done}+{skipped}s/{TOTAL}"
+                elif processed == 0:
+                    prog_str = "—"
+                else:
+                    prog_str = f"{done}/{TOTAL}"
 
-            # 計算每個長度的平均耗時
-            known_avgs = {l: sum(v) / len(v) for l, v in by_len.items() if v}
+                rem_str = "✓" if processed >= TOTAL else fmt_time(remain_sec)
+                cell = f"{color}{wljust(prog_str, CP)}  {wrjust(rem_str, CR)}{RESET}"
+                row_parts.append(cell)
 
-            # 估算剩餘（排除已知 SKIP 的長度）
-            remain_sec = 0
-            remain_count = 0
-            for length in LENGTHS:
-                if length in skipped_lengths:
-                    continue  # 此長度已知會 SKIP，不計入剩餘時間
-                done_at_len = len(by_len.get(length, []))
-                remain_at_len = PER_LENGTH - done_at_len
-                if remain_at_len <= 0:
-                    continue
-                remain_count += remain_at_len
+            print("  " + "  ".join(row_parts))
 
-                avg = None
-                if length in known_avgs:
-                    avg = known_avgs[length]
-                elif known_avgs:
-                    est = estimate_missing_length(known_avgs, length)
-                    if est and est > 0:
-                        avg = est
+        print()
 
-                # 用參考模型估算
-                if avg is None and model in SIZE_RATIO:
-                    ref_model, ratio = SIZE_RATIO[model]
-                    ref_data = model_data[ref_model]
-                    ref_by_len = ref_data.get(label, {}).get("by_len", {})
-                    ref_avgs = {l: sum(v) / len(v) for l, v in ref_by_len.items() if v}
-                    if length in ref_avgs:
-                        avg = ref_avgs[length] * ratio
-                    elif ref_avgs:
-                        est = estimate_missing_length(ref_avgs, length)
-                        if est and est > 0:
-                            avg = est * ratio
-
-                if avg is None or avg <= 0:
-                    avg = 60  # 完全未知，用 60s 預設
-
-                remain_sec += remain_at_len * max(avg, 0.1)
-
-            grand_remain_sec += remain_sec
-            total_sec = done_sec + remain_sec
-            processed = done + skipped
-
-            # 狀態顏色
-            if processed >= TOTAL:
-                color = GREEN   # 完成
-            elif done == 0 and skipped == 0:
-                color = DIM     # 未開始（灰色）
-            elif is_running(model, vk):
-                color = RED     # 進行中
-            else:
-                color = YELLOW  # 暫停
-
-            # 完成欄：顯示 skip 數量
-            if skipped > 0:
-                done_str = f"{done}+{skipped}s/{TOTAL}"
-            else:
-                done_str = f"{done}/{TOTAL}"
-
-            cols = [label, done_str, fmt_time(done_sec),
-                    fmt_time(remain_sec), fmt_time(total_sec)]
-            line = "    " + "  ".join(
-                wljust(v, c) if i == 0 else wrjust(v, c)
-                for i, (v, c) in enumerate(zip(cols, C)))
-            print(f"{color}{line}{RESET}")
-
-    print()
-    print("─" * 62)
-    print(f"  合計已花費: {fmt_time(grand_done_sec)}  "
+    print("─" * 70)
+    print(f"  合計  已花費: {fmt_time(grand_done_sec)}  "
           f"剩餘估計: {fmt_time(grand_remain_sec)}  "
           f"總估計: {fmt_time(grand_done_sec + grand_remain_sec)}")
     print()
