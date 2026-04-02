@@ -79,8 +79,14 @@ MODEL_COLORS = {
     "qwen3.5:35b": "#8172B2",
     "gemma3:27b":  "#CCB974",
     "llama3.3:70b":"#64B5CD",
-    "gemma4:26b":  "#4C72B0",
-    "gemma4:31b":  "#4C72B0",
+    "qwen3.5:2b":  "#8172B2",
+    "qwen3.5:4b":  "#8172B2",
+    "qwen3.5:9b":  "#8172B2",
+    "qwen3.5:27b": "#8172B2",
+    "gemma4:e2b":  "#E8761E",
+    "gemma4:e4b":  "#E8761E",
+    "gemma4:26b":  "#E8761E",
+    "gemma4:31b":  "#E8761E",
 }
 MODEL_MARKERS = {
     # Gemma 3 家族：圓形，小=空心，大=實心
@@ -92,7 +98,15 @@ MODEL_MARKERS = {
     # Qwen 家族：上三角，小=空心，大=實心
     "qwen3:8b":     dict(marker="^",  fillstyle="none",  linestyle="--"),
     "qwen3.5:35b":  dict(marker="^",  fillstyle="full",  linestyle="-"),
-    # Gemma 4 家族：菱形，小=空心，大=實心
+    # Qwen3.5 系列：加號，小=空心，大=實心（≤9B空心，≥27B實心）
+    "qwen3.5:2b":   dict(marker="P",  fillstyle="none",  linestyle="--"),
+    "qwen3.5:4b":   dict(marker="P",  fillstyle="none",  linestyle="--"),
+    "qwen3.5:9b":   dict(marker="P",  fillstyle="none",  linestyle="-."),
+    "qwen3.5:27b":  dict(marker="P",  fillstyle="full",  linestyle="-"),
+    # Gemma 4 Edge 系列：倒三角，小=空心，大=實心
+    "gemma4:e2b":   dict(marker="v",  fillstyle="none",  linestyle="--"),
+    "gemma4:e4b":   dict(marker="v",  fillstyle="full",  linestyle="-"),
+    # Gemma 4 Standard 系列：菱形，小=空心，大=實心
     "gemma4:26b":   dict(marker="D",  fillstyle="none",  linestyle="--"),
     "gemma4:31b":   dict(marker="D",  fillstyle="full",  linestyle="-"),
 }
@@ -100,6 +114,9 @@ MODEL_LABELS = {
     "gemma3:4b": "Gemma 3 4B", "llama3.1:8b": "Llama 3.1 8B",
     "qwen3:8b": "Qwen3 8B", "qwen3.5:35b": "Qwen3.5 35B",
     "gemma3:27b": "Gemma 3 27B", "llama3.3:70b": "Llama 3.3 70B",
+    "qwen3.5:2b": "Qwen3.5 2B",  "qwen3.5:4b": "Qwen3.5 4B",
+    "qwen3.5:9b": "Qwen3.5 9B",  "qwen3.5:27b": "Qwen3.5 27B",
+    "gemma4:e2b": "Gemma 4 E2B", "gemma4:e4b": "Gemma 4 E4B",
     "gemma4:26b": "Gemma 4 26B", "gemma4:31b": "Gemma 4 31B",
 }
 

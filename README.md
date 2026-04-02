@@ -69,8 +69,14 @@ Needle 是插入 haystack 中的虛構事實句，模型需從長文中找到該
 | qwen3.5:35b | 35B | 262,144 | ✓（關閉）|
 | gemma3:27b | 27B | 131,072 | — |
 | llama3.3:70b | 70B | 131,072 | — |
-| gemma4:31b | 31B（dense）| 262,144 | ✓（關閉）|
+| gemma4:e2b | 2B（edge）| 131,072 | ✓（關閉）|
+| gemma4:e4b | 4B（edge）| 131,072 | ✓（關閉）|
 | gemma4:26b | 26B（MoE, 4B active）| 262,144 | ✓（關閉）|
+| gemma4:31b | 31B（dense）| 262,144 | ✓（關閉）|
+| qwen3.5:2b | 2B | 262,144 | ✓（關閉）|
+| qwen3.5:4b | 4B | 262,144 | ✓（關閉）|
+| qwen3.5:9b | 9B | 262,144 | ✓（關閉）|
+| qwen3.5:27b | 27B | 262,144 | ✓（關閉）|
 
 ## 環境需求
 
@@ -236,8 +242,14 @@ watch -n 5 bash scripts/watch_progress.sh
 | qwen3.5:35b | 35B | 220 筆（100K+130K）| — | — |
 | gemma3:27b | 27B | 進行中 | — | — |
 | llama3.3:70b | 70B | 進行中（100K done）| — | — |
-| gemma4:31b | 31B | 待執行（需更新 Ollama）| — | — |
+| gemma4:e2b | E2B | 待執行（需更新 Ollama）| — | — |
+| gemma4:e4b | E4B | 待執行（需更新 Ollama）| — | — |
 | gemma4:26b | 26B | 待執行（需更新 Ollama）| — | — |
+| gemma4:31b | 31B | 待執行（需更新 Ollama）| — | — |
+| qwen3.5:2b | 2B | 待執行 | — | — |
+| qwen3.5:4b | 4B | 待執行 | — | — |
+| qwen3.5:9b | 9B | 待執行 | — | — |
+| qwen3.5:27b | 27B | 待執行 | — | — |
 
 ## 結果（已完成部分）
 
