@@ -106,7 +106,7 @@ ollama pull gemma3:4b    # 下載要測試的模型
 | `temperature` | 0.0 | 固定為 greedy decoding，確保可復現 |
 | `think` | false | qwen3 / deepseek-r1 系列關閉推理模式 |
 
-> 以上參數在實驗期間不做調整，目的是確保跨模型比較的一致性。若未來調整（如啟用 Flash Attention），需重新執行並另行標注。
+> 以上參數在實驗期間不做調整。若未來調整（如啟用 Flash Attention），需重新執行並另行標注。
 
 ## 執行步驟
 
@@ -433,10 +433,12 @@ context-rot-zh/
 
 | 模型系列 | 關閉方式 |
 |---------|---------|
-| qwen3.*、deepseek-r1.* | Ollama API 參數 `"think": false` |
-| gemma4.* | Ollama API 參數 `"think": false`（gemma4 原生透過 system prompt `<\|think\|>` token 控制，新版 Ollama 統一支援 API 參數） |
+| qwen3.*、deepseek-r1.* | Ollama API 參數 `"think": false`（原生支援）|
+| gemma4.* | Ollama API 參數 `"think": false`（底層透過 prompt 注入控制 token 實作）|
 
-確保 response 只包含答案，不含推理過程，不污染 prompt。
+目的是確保 response 只包含答案，不含推理過程，不污染評估。
+
+> **注意**：部分模型（如 gemma4）的 thinking 控制是透過 prompt 注入實作，這類 token 會計入 context 消耗，導致跨模型之間的實際 token 使用量不完全可比。本實驗以**字元數**為控制單位，不強調跨模型的 token 數對等。
 
 ## 可復現性
 
