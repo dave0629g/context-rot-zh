@@ -102,7 +102,7 @@ def ollama_generate(model: str, prompt: str, num_ctx: int) -> dict:
         url, data=payload, headers={"Content-Type": "application/json"}
     )
     start = time.time()
-    with urllib.request.urlopen(req, timeout=600) as resp:
+    with urllib.request.urlopen(req, timeout=1200) as resp:
         data = json.loads(resp.read().decode("utf-8"))
     return {
         "response": data.get("response", ""),
