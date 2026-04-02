@@ -251,7 +251,17 @@ def main():
     grand_done_sec = 0
     grand_remain_sec = 0
 
-    for fam_name, fam_models in FAMILIES:
+    # 有正在執行的家族排到最後
+    def family_is_running(fam_models):
+        return any(
+            is_running(model, vk)
+            for model, _ in fam_models
+            for _, vk, _ in VARIANTS
+        )
+
+    sorted_families = sorted(FAMILIES, key=lambda f: family_is_running(f[1]))
+
+    for fam_name, fam_models in sorted_families:
         print(f"  ▌ {fam_name}")
         print_table_header()
 
