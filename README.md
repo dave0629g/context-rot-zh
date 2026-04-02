@@ -85,6 +85,21 @@ ollama serve
 ollama pull gemma3:4b    # 下載要測試的模型
 ```
 
+### 實驗執行參數（本次實驗固定設定）
+
+| 參數 | 值 | 說明 |
+|------|-----|------|
+| Ollama 版本 | 0.18.1 | |
+| 模型量化格式 | Q4_K_M | 所有模型統一使用 Ollama 預設 Q4_K_M |
+| `OLLAMA_FLASH_ATTENTION` | 未設定（預設關閉）| |
+| `OLLAMA_KV_CACHE_TYPE` | 未設定（預設 f16）| |
+| API timeout | 1200 秒 | 70B 模型 130K context 每筆約 650s+ |
+| `num_ctx`（context window）| 模型預設值 | 見下表 |
+| `temperature` | 0.0 | 固定為 greedy decoding，確保可復現 |
+| `think` | false | qwen3 / deepseek-r1 系列關閉推理模式 |
+
+> 以上參數在實驗期間不做調整，目的是確保跨模型比較的一致性。若未來調整（如啟用 Flash Attention），需重新執行並另行標注。
+
 ## 執行步驟
 
 ### Step 1: 下載維基百科語料
