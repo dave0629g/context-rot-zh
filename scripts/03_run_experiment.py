@@ -85,7 +85,9 @@ def is_thinking_model(model: str) -> bool:
     確保 response 只包含答案，不含推理過程。
     """
     model_lower = model.lower()
-    return model_lower.startswith("qwen3") or model_lower.startswith("deepseek-r1")
+    return (model_lower.startswith("qwen3")
+            or model_lower.startswith("deepseek-r1")
+            or model_lower.startswith("gemma4"))
 
 
 def ollama_generate(model: str, prompt: str, num_ctx: int, temperature: float = 0.0) -> dict:

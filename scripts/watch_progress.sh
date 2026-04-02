@@ -87,6 +87,8 @@ MODELS = [
     {"model": "qwen3.5:35b",  "size": "35B"},
     {"model": "gemma3:27b",   "size": "27B"},
     {"model": "llama3.3:70b", "size": "70B"},
+    {"model": "gemma4:31b",   "size": "31B"},
+    {"model": "gemma4:26b",   "size": "26B"},
 ]
 
 VARIANT_KEYS = [

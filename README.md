@@ -61,14 +61,16 @@ Needle 是插入 haystack 中的虛構事實句，模型需從長文中找到該
 
 ### 測試模型
 
-| 模型 | 大小 | Context Window |
-|------|------|---------------|
-| gemma3:4b | 4B | 131,072 |
-| llama3.1:8b | 8B | 131,072 |
-| qwen3:8b | 8B | 40,960 |
-| qwen3.5:35b | 35B | 131,072 |
-| gemma3:27b | 27B | 131,072 |
-| llama3.3:70b | 70B | 131,072 |
+| 模型 | 大小 | Context Window | Thinking |
+|------|------|---------------|---------|
+| gemma3:4b | 4B | 131,072 | — |
+| llama3.1:8b | 8B | 131,072 | — |
+| qwen3:8b | 8B | 40,960 | ✓（關閉）|
+| qwen3.5:35b | 35B | 262,144 | ✓（關閉）|
+| gemma3:27b | 27B | 131,072 | — |
+| llama3.3:70b | 70B | 131,072 | — |
+| gemma4:31b | 31B（dense）| 262,144 | ✓（關閉）|
+| gemma4:26b | 26B（MoE, 4B active）| 262,144 | ✓（關閉）|
 
 ## 環境需求
 
@@ -233,7 +235,9 @@ watch -n 5 bash scripts/watch_progress.sh
 | qwen3:8b | 8B | 1,100 筆（500–65K）✓ | 125 筆（部分）| — |
 | qwen3.5:35b | 35B | 220 筆（100K+130K）| — | — |
 | gemma3:27b | 27B | 進行中 | — | — |
-| llama3.3:70b | 70B | 待執行 | — | — |
+| llama3.3:70b | 70B | 進行中（100K done）| — | — |
+| gemma4:31b | 31B | 待執行（需更新 Ollama）| — | — |
+| gemma4:26b | 26B | 待執行（需更新 Ollama）| — | — |
 
 ## 結果（已完成部分）
 
@@ -413,9 +417,14 @@ context-rot-zh/
 
 ## Thinking 模型處理
 
-qwen3 系列和 deepseek-r1 系列為 thinking 模型，實驗腳本會自動：
-- 透過 Ollama API 參數 `"think": false` 關閉推理模式
-- 確保 response 只包含答案，不含推理過程，不污染 prompt
+下列模型為 thinking 模型，實驗腳本會自動關閉推理模式：
+
+| 模型系列 | 關閉方式 |
+|---------|---------|
+| qwen3.*、deepseek-r1.* | Ollama API 參數 `"think": false` |
+| gemma4.* | Ollama API 參數 `"think": false`（gemma4 原生透過 system prompt `<\|think\|>` token 控制，新版 Ollama 統一支援 API 參數） |
+
+確保 response 只包含答案，不含推理過程，不污染 prompt。
 
 ## 可復現性
 

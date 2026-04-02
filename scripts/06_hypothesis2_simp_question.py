@@ -71,7 +71,7 @@ def get_model_context_length(model: str) -> int:
 
 def is_thinking_model(model: str) -> bool:
     m = model.lower()
-    return m.startswith("qwen3") or m.startswith("deepseek-r1")
+    return m.startswith("qwen3") or m.startswith("deepseek-r1") or m.startswith("gemma4")
 
 
 def estimate_tokens(text: str) -> int:

@@ -71,6 +71,14 @@ run_exp "llama3.3:70b 繁問繁答 100K+130K" \
     python3 scripts/03_run_experiment.py --model llama3.3:70b --variant traditional --lengths 100000,130000
 unload_model "llama3.3:70b"
 
+run_exp "gemma4:31b 繁問繁答 100K+130K" \
+    python3 scripts/03_run_experiment.py --model gemma4:31b --variant traditional --lengths 100000,130000 --resume
+unload_model "gemma4:31b"
+
+run_exp "gemma4:26b 繁問繁答 100K+130K" \
+    python3 scripts/03_run_experiment.py --model gemma4:26b --variant traditional --lengths 100000,130000 --resume
+unload_model "gemma4:26b"
+
 # ═══════════════════════════════════════════════════════════
 # Phase B: 繁問繁答補 0001-1100
 # ═══════════════════════════════════════════════════════════
@@ -86,6 +94,14 @@ unload_model "gemma3:27b"
 run_exp "llama3.3:70b 繁問繁答（全部）" \
     python3 scripts/03_run_experiment.py --model llama3.3:70b --variant traditional --resume
 unload_model "llama3.3:70b"
+
+run_exp "gemma4:31b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model gemma4:31b --variant traditional --resume
+unload_model "gemma4:31b"
+
+run_exp "gemma4:26b 繁問繁答（全部）" \
+    python3 scripts/03_run_experiment.py --model gemma4:26b --variant traditional --resume
+unload_model "gemma4:26b"
 
 # ═══════════════════════════════════════════════════════════
 # Phase C: 簡問簡答（補跑 + 新模型）
@@ -115,6 +131,14 @@ run_exp "llama3.3:70b 簡問簡答" \
     python3 scripts/06_hypothesis2_simp_question.py --model llama3.3:70b
 unload_model "llama3.3:70b"
 
+run_exp "gemma4:31b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:31b
+unload_model "gemma4:31b"
+
+run_exp "gemma4:26b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model gemma4:26b
+unload_model "gemma4:26b"
+
 # ═══════════════════════════════════════════════════════════
 # Phase D: 繁問簡答（補跑 + 新模型）
 # ═══════════════════════════════════════════════════════════
@@ -142,6 +166,14 @@ unload_model "gemma3:27b"
 run_exp "llama3.3:70b 繁問簡答" \
     python3 scripts/03_run_experiment.py --model llama3.3:70b --variant simplified
 unload_model "llama3.3:70b"
+
+run_exp "gemma4:31b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma4:31b --variant simplified
+unload_model "gemma4:31b"
+
+run_exp "gemma4:26b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model gemma4:26b --variant simplified
+unload_model "gemma4:26b"
 
 # ═══════════════════════════════════════════════════════════
 

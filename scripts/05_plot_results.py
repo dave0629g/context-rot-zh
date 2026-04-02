@@ -79,9 +79,11 @@ MODEL_COLORS = {
     "qwen3.5:35b": "#8172B2",
     "gemma3:27b":  "#CCB974",
     "llama3.3:70b":"#64B5CD",
+    "gemma4:26b":  "#4C72B0",
+    "gemma4:31b":  "#4C72B0",
 }
 MODEL_MARKERS = {
-    # Gemma 家族：圓形，小=空心，大=實心
+    # Gemma 3 家族：圓形，小=空心，大=實心
     "gemma3:4b":    dict(marker="o",  fillstyle="none",  linestyle="--"),
     "gemma3:27b":   dict(marker="o",  fillstyle="full",  linestyle="-"),
     # Llama 家族：正方形，小=空心，大=實心
@@ -90,11 +92,15 @@ MODEL_MARKERS = {
     # Qwen 家族：上三角，小=空心，大=實心
     "qwen3:8b":     dict(marker="^",  fillstyle="none",  linestyle="--"),
     "qwen3.5:35b":  dict(marker="^",  fillstyle="full",  linestyle="-"),
+    # Gemma 4 家族：菱形，小=空心，大=實心
+    "gemma4:26b":   dict(marker="D",  fillstyle="none",  linestyle="--"),
+    "gemma4:31b":   dict(marker="D",  fillstyle="full",  linestyle="-"),
 }
 MODEL_LABELS = {
     "gemma3:4b": "Gemma 3 4B", "llama3.1:8b": "Llama 3.1 8B",
     "qwen3:8b": "Qwen3 8B", "qwen3.5:35b": "Qwen3.5 35B",
     "gemma3:27b": "Gemma 3 27B", "llama3.3:70b": "Llama 3.3 70B",
+    "gemma4:26b": "Gemma 4 26B", "gemma4:31b": "Gemma 4 31B",
 }
 
 
