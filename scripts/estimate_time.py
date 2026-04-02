@@ -67,8 +67,10 @@ def is_running(model: str, variant_key: str) -> bool:
         return False
 
 MODELS = [
-    "gemma3:4b", "llama3.1:8b", "qwen3:8b",
-    "qwen3.5:35b", "gemma3:27b", "llama3.3:70b",
+    "gemma4:e2b", "gemma4:e4b", "gemma4:26b", "gemma4:31b",
+    "qwen3.5:2b", "qwen3.5:4b", "qwen3.5:9b", "qwen3.5:27b", "qwen3.5:35b",
+    "gemma3:1b", "gemma3:4b", "gemma3:12b", "gemma3:27b",
+    "llama3.1:8b", "llama3.3:70b", "qwen3:8b",
 ]
 
 VARIANTS = [
@@ -156,9 +158,21 @@ def main():
     # llama3.1:8b → llama3.3:70b
     # qwen3:8b → qwen3.5:35b
     SIZE_RATIO = {
-        "qwen3.5:35b": ("qwen3:8b", 35 / 8),
-        "gemma3:27b":  ("gemma3:4b", 27 / 4),
+        # 原有
+        "qwen3.5:35b":  ("qwen3:8b",    35 / 8),
+        "qwen3.5:27b":  ("qwen3.5:35b", 27 / 35),
+        "qwen3.5:9b":   ("qwen3:8b",     9 / 8),
+        "qwen3.5:4b":   ("qwen3:8b",     4 / 8),
+        "qwen3.5:2b":   ("qwen3:8b",     2 / 8),
+        "gemma3:27b":   ("gemma3:4b",   27 / 4),
+        "gemma3:12b":   ("gemma3:4b",   12 / 4),
+        "gemma3:1b":    ("gemma3:4b",    1 / 4),
         "llama3.3:70b": ("llama3.1:8b", 70 / 8),
+        # gemma4（MoE 模型以 active params 估算，e 系列參照 gemma3:4b）
+        "gemma4:e2b":   ("gemma3:4b",    2 / 4),
+        "gemma4:e4b":   ("gemma3:4b",    4 / 4),
+        "gemma4:26b":   ("gemma3:4b",    4 / 4),   # MoE, 4B active
+        "gemma4:31b":   ("gemma3:27b",  31 / 27),
     }
 
     # 欄位寬度
