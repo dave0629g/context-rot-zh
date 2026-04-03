@@ -217,7 +217,9 @@ def compute_variant(model, label, vk, path_fn, model_data):
 
 
 def main():
+    import sys
     from datetime import datetime
+    watch_mode = "--watch" in sys.argv
 
     # 收集所有資料
     model_data = {}
@@ -251,7 +253,7 @@ def main():
     grand_done_sec = 0
     grand_remain_sec = 0
 
-    # 有正在執行的家族排到最後
+    # watch 模式：正在執行的家族排最前；直接執行：排最後
     def family_is_running(fam_models):
         return any(
             is_running(model, vk)
@@ -259,7 +261,10 @@ def main():
             for _, vk, _ in VARIANTS
         )
 
-    sorted_families = sorted(FAMILIES, key=lambda f: family_is_running(f[1]))
+    sorted_families = sorted(
+        FAMILIES,
+        key=lambda f: not family_is_running(f[1]) if watch_mode else family_is_running(f[1])
+    )
 
     for fam_name, fam_models in sorted_families:
         print(f"  ▌ {fam_name}")

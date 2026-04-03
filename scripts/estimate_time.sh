@@ -3,4 +3,4 @@
 # 用法: watch --color -n 30 bash scripts/estimate_time.sh
 
 cd "$(dirname "$0")/.." || exit 1
-python3 scripts/estimate_time.py
+python3 scripts/estimate_time.py --watch
