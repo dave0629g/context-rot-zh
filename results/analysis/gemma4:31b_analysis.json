@@ -1,0 +1,39 @@
+{
+  "model": "gemma4:31b",
+  "total_results": 69,
+  "token_stats": {
+    "message": "無 token 計數資料"
+  },
+  "accuracy_by_length": {
+    "traditional": {
+      "100000": 1.0
+    },
+    "simplified": {}
+  },
+  "accuracy_by_position": {
+    "traditional": {
+      "0.0": 1.0,
+      "0.1": 1.0,
+      "0.2": 1.0,
+      "0.3": 1.0,
+      "0.4": 1.0,
+      "0.5": 1.0,
+      "0.6": 1.0
+    },
+    "simplified": {}
+  },
+  "heatmap": {
+    "traditional": {
+      "100000": {
+        "0.0": 1.0,
+        "0.1": 1.0,
+        "0.2": 1.0,
+        "0.3": 1.0,
+        "0.4": 1.0,
+        "0.5": 1.0,
+        "0.6": 1.0
+      }
+    },
+    "simplified": {}
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "model": "h2_llama3.1:8b",
+  "total_results": 1100,
+  "token_stats": {
+    "message": "無 token 計數資料"
+  },
+  "accuracy_by_length": {
+    "traditional": {},
+    "simplified": {}
+  },
+  "accuracy_by_position": {
+    "traditional": {},
+    "simplified": {}
+  },
+  "heatmap": {
+    "traditional": {},
+    "simplified": {}
+  }
+}
