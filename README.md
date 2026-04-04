@@ -63,20 +63,22 @@ Needle 是插入 haystack 中的虛構事實句，模型需從長文中找到該
 
 | 模型 | 大小 | Context Window | Thinking |
 |------|------|---------------|---------|
+| gemma3:1b | 1B | 131,072 | — |
 | gemma3:4b | 4B | 131,072 | — |
-| llama3.1:8b | 8B | 131,072 | — |
-| qwen3:8b | 8B | 40,960 | ✓（關閉）|
-| qwen3.5:35b | 35B | 262,144 | ✓（關閉）|
+| gemma3:12b | 12B | 131,072 | — |
 | gemma3:27b | 27B | 131,072 | — |
-| llama3.3:70b | 70B | 131,072 | — |
 | gemma4:e2b | 2B（edge）| 131,072 | ✓（關閉）|
 | gemma4:e4b | 4B（edge）| 131,072 | ✓（關閉）|
 | gemma4:26b | 26B（MoE, 4B active）| 262,144 | ✓（關閉）|
 | gemma4:31b | 31B（dense）| 262,144 | ✓（關閉）|
+| llama3.1:8b | 8B | 131,072 | — |
+| llama3.3:70b | 70B | 131,072 | — |
+| qwen3:8b | 8B | 40,960 | ✓（關閉）|
 | qwen3.5:2b | 2B | 262,144 | ✓（關閉）|
 | qwen3.5:4b | 4B | 262,144 | ✓（關閉）|
 | qwen3.5:9b | 9B | 262,144 | ✓（關閉）|
 | qwen3.5:27b | 27B | 262,144 | ✓（關閉）|
+| qwen3.5:35b | 35B | 262,144 | ✓（關閉）|
 
 ## 環境需求
 
@@ -236,20 +238,22 @@ watch -n 5 bash scripts/watch_progress.sh
 
 | 模型 | 大小 | 繁問繁答 | 繁問簡答 | 簡問簡答 |
 |------|------|---------|---------|---------|
+| gemma4:e2b | E2B | 1,320 筆 ✓ | 進行中 | 進行中 |
+| gemma4:e4b | E4B | 1,320 筆 ✓ | 待執行 | 待執行 |
+| gemma4:26b | 26B | 1,320 筆 ✓ | 待執行 | 待執行 |
+| gemma4:31b | 31B | 進行中（100K 部分）| 待執行 | 待執行 |
+| qwen3.5:2b | 2B | 待執行 | 待執行 | 待執行 |
+| qwen3.5:4b | 4B | 待執行 | 待執行 | 待執行 |
+| qwen3.5:9b | 9B | 待執行 | 待執行 | 待執行 |
+| qwen3.5:27b | 27B | 待執行 | 待執行 | 待執行 |
+| qwen3.5:35b | 35B | 220 筆（100K+130K）| 待執行 | 待執行 |
+| gemma3:1b | 1B | 待執行 | 待執行 | 待執行 |
 | gemma3:4b | 4B | 1,320 筆 ✓ | 1,100 筆 ✓ | 1,100 筆 ✓ |
+| gemma3:12b | 12B | 待執行 | 待執行 | 待執行 |
+| gemma3:27b | 27B | 220 筆（100K+130K，資料異常⚠️）| 待執行 | 待執行 |
 | llama3.1:8b | 8B | 1,320 筆 ✓ | 1,100 筆 ✓ | 1,100 筆 ✓ |
-| qwen3:8b | 8B | 1,100 筆（500–65K）✓ | 125 筆（部分）| — |
-| qwen3.5:35b | 35B | 220 筆（100K+130K）| — | — |
-| gemma3:27b | 27B | 進行中 | — | — |
-| llama3.3:70b | 70B | 進行中（100K done）| — | — |
-| gemma4:e2b | E2B | 待執行（需更新 Ollama）| — | — |
-| gemma4:e4b | E4B | 待執行（需更新 Ollama）| — | — |
-| gemma4:26b | 26B | 待執行（需更新 Ollama）| — | — |
-| gemma4:31b | 31B | 待執行（需更新 Ollama）| — | — |
-| qwen3.5:2b | 2B | 待執行 | — | — |
-| qwen3.5:4b | 4B | 待執行 | — | — |
-| qwen3.5:9b | 9B | 待執行 | — | — |
-| qwen3.5:27b | 27B | 待執行 | — | — |
+| llama3.3:70b | 70B | 144 筆（100K + 130K 部分）| 待執行 | 待執行 |
+| qwen3:8b | 8B | 1,100 筆（500–65K）✓ | 125 筆（部分）| 待執行 |
 
 ## 結果（已完成部分）
 
@@ -259,14 +263,47 @@ watch -n 5 bash scripts/watch_progress.sh
 
 | 模型 | 繁問繁答 | 繁問簡答 | 簡問簡答 | Tokenizer Overhead |
 |------|---------|---------|---------|-------------------|
-| gemma3:4b | 91.6% | **99.1%** | 98.4% | +5.7% |
-| llama3.1:8b | 97.1% | **98.8%** | 99.1% | +7.1% |
-| qwen3:8b | 94.1%（≤32K 全滿，65K 崩潰）| 100.0%（部分） | — | +13.6% |
-| qwen3.5:35b | **100.0%**（100K+130K） | — | — | — |
+| gemma4:e2b | **99.8%** | — | — | — |
+| gemma4:e4b | **99.9%** | — | — | — |
+| gemma4:26b | **98.9%** | — | — | — |
+| qwen3.5:35b | **100.0%**（100K+130K）| — | — | — |
+| gemma3:4b | 91.6% | **99.1%** | 96.8% | +5.7% |
+| llama3.1:8b | 97.1% | **98.8%** | 95.3% | +7.1% |
+| qwen3:8b | 94.1%（≤32K 全滿，65K 崩潰）| 100.0%（部分）| — | +13.6% |
 
-> 繁問簡答 = 簡體 context + 繁體 question；簡問簡答 = 全簡體。兩者皆比繁問繁答更高，支持 tokenizer overhead 影響長 context 檢索的假說。
+> gemma4 系列（thinking 模型，以 prompt 注入關閉推理）在繁體中文長 context 下表現極佳。
 
 ### 準確率 vs Context 長度
+
+#### gemma4:e2b
+
+| 長度 | 繁問繁答 |
+|------|---------|
+| 500–24K | 100.0% |
+| 32K | 99.1% |
+| 65K | 100.0% |
+| 100K | 99.1% |
+| 130K | 100.0% |
+
+#### gemma4:e4b
+
+| 長度 | 繁問繁答 |
+|------|---------|
+| 500、4K–130K | 100.0% |
+| 2K | 99.1% |
+
+#### gemma4:26b
+
+| 長度 | 繁問繁答 |
+|------|---------|
+| 500–12K | 100.0% |
+| 16K | 99.1% |
+| 24K–32K | 100.0% |
+| 65K | 98.2% |
+| 100K | 97.3% |
+| 130K | 92.7% |
+
+> gemma4:26b（MoE 架構，4B active params）在 130K 字元下仍維持 92.7%，對比 gemma3:4b（dense 4B）同長度只有 52.7%，架構差異顯著。
 
 #### gemma3:4b
 
@@ -279,9 +316,9 @@ watch -n 5 bash scripts/watch_progress.sh
 | 8K | 100.0% | 100.0% | 100.0% |
 | 12K | 99.1% | 100.0% | 100.0% |
 | 16K | 97.3% | 97.3% | 98.2% |
-| 24K | 95.5% | 100.0% | 95.5% |
-| 32K | 98.2% | 100.0% | 97.3% |
-| 65K | 88.2% | **93.6%** | **92.7%** |
+| 24K | 95.5% | 100.0% | 90.9% |
+| 32K | 98.2% | 100.0% | 96.4% |
+| 65K | 88.2% | **93.6%** | 82.7% |
 | 100K | 68.2% | — | — |
 | 130K | 52.7% | — | — |
 
@@ -289,16 +326,16 @@ watch -n 5 bash scripts/watch_progress.sh
 
 | 長度 | 繁問繁答 | 繁問簡答 | 簡問簡答 |
 |------|---------|---------|---------|
-| 500 | 94.5% | 97.3% | 97.3% |
-| 2K | 98.2% | 99.1% | 99.1% |
-| 4K | 99.1% | 100.0% | 100.0% |
-| 6K | 100.0% | 100.0% | 100.0% |
-| 8K | 100.0% | 100.0% | 100.0% |
-| 12K | 100.0% | 100.0% | 100.0% |
-| 16K | 100.0% | 100.0% | 100.0% |
-| 24K | 100.0% | 100.0% | 100.0% |
-| 32K | 98.2% | 97.3% | 98.2% |
-| 65K | 92.7% | **94.5%** | **96.4%** |
+| 500 | 94.5% | 97.3% | 92.7% |
+| 2K | 98.2% | 99.1% | 95.5% |
+| 4K | 99.1% | 100.0% | 98.2% |
+| 6K | 100.0% | 100.0% | 98.2% |
+| 8K | 100.0% | 100.0% | 98.2% |
+| 12K | 100.0% | 100.0% | 99.1% |
+| 16K | 100.0% | 100.0% | 96.4% |
+| 24K | 100.0% | 100.0% | 94.5% |
+| 32K | 98.2% | 97.3% | 95.5% |
+| 65K | 92.7% | **94.5%** | 84.5% |
 | 100K | 90.9% | — | — |
 | 130K | 91.8% | — | — |
 
@@ -309,7 +346,7 @@ watch -n 5 bash scripts/watch_progress.sh
 | 500–32K | 100.0% | 穩定 |
 | **65K** | **40.9%** | ~36K tokens ≈ 88% context window，嚴重崩潰 |
 
-> qwen3:8b 的 context window 只有 40,960 tokens，65K 字元繁體（~36K tokens）已逼近上限。同時 tokenizer overhead 最高（+13.6%），導致比其他模型更快撞到限制。
+> qwen3:8b 的 context window 只有 40,960 tokens，65K 字元繁體（~36K tokens）已逼近上限，是 context window 截斷效應而非 context rot。
 
 #### qwen3.5:35b（繁問繁答，部分資料：僅 100K+130K）
 
@@ -318,31 +355,39 @@ watch -n 5 bash scripts/watch_progress.sh
 | 100K | **100.0%** | ~70K tokens，26% context window |
 | 130K | **100.0%** | ~91K tokens，35% context window |
 
-> 35B 模型（context window 262,144）在這兩個長度下完美命中，但短長度資料尚待補齊。
+#### llama3.3:70b（繁問繁答，部分資料：100K 完整 + 130K 部分）
+
+| 長度 | 繁問繁答 | 備註 |
+|------|---------|------|
+| 100K | 97.3% | 完整 110 筆 |
+| 130K | 67.7% | 34 筆（進行中）|
 
 ### 關鍵發現
 
-1. **繁體 context rot 假說得到支持（gemma3:4b 最明顯）**
+1. **gemma4 系列在長 context 下表現優異**
+   - gemma4:e2b（2B edge）全長度維持 99.8%，包含 130K
+   - gemma4:e4b（4B edge）幾乎全部 100%
+   - gemma4:26b（26B MoE）在 130K 仍有 92.7%，遠優於同 active params 的 gemma3:4b（52.7%）
+   - 推測 MoE 架構與 gemma4 訓練改善對長 context 有顯著幫助
+
+2. **繁體 context rot 假說在 gemma3:4b 得到支持**
    - 65K 字元下：繁問繁答 88.2% vs 繁問簡答 93.6%（差距 **+5.4pp**）
-   - 繁問簡答和簡問簡答一致優於繁問繁答，排除 question 語言干擾
    - llama3.1:8b 差距較小（+1.8pp），整體更穩健
+   - gemma4 系列差距目前尚無資料（繁問簡答/簡問簡答尚在執行中）
 
-2. **模型大小是長 context 穩健性的關鍵因素**
-   - 同為 100K 字元：gemma3:4b 68.2% vs llama3.1:8b 90.9%（差距 **22.7pp**）
-   - gemma3:4b 在 130K 崩潰至 52.7%；llama3.1:8b 仍維持 91.8%
-   - qwen3.5:35b 在 100K–130K 維持 100%（但 context window 更大，token 佔用率僅 35%）
+3. **模型大小是長 context 穩健性的關鍵因素（gemma3 系列內）**
+   - 100K：gemma3:4b 68.2% vs llama3.1:8b 90.9%（差距 **22.7pp**）
+   - 130K：gemma3:4b 崩潰至 52.7%；llama3.1:8b 仍維持 91.8%
 
-3. **qwen3:8b 的 context window 限制導致 65K 嚴重崩潰**
+4. **qwen3:8b 的 context window 限制導致 65K 嚴重崩潰**
    - 0–32K 全部 100%，65K 驟降至 40.9%（非漸進式衰退）
-   - 原因：tokenizer overhead 最高（+13.6%），65K 字元已佔 88% context window
-   - 這是 context window 截斷效應，而非一般性的 context rot
+   - tokenizer overhead 最高（+13.6%），65K 字元已佔 88% context window
 
-4. **Tokenizer overhead 與 context rot 敏感度正相關**
-   - qwen3:8b: +13.6% overhead → 最早撞上 context 限制
-   - llama3.1:8b: +7.1% overhead → 比 gemma3:4b (+5.7%) 更差但表現更好（模型品質補償）
+5. **gemma3:27b 資料異常（⚠️ 待重跑）**
+   - 100K+130K 結果幾乎全部為 `<pad>` token，推論過程異常，資料不可信
 
-5. **llama3.1:8b 在短 context（500 字元）準確率略低（94.5%）**
-   - 疑似短文本下模型傾向自由生成而非嚴格檢索 needle
+6. **llama3.3:70b 初步結果**
+   - 100K 達 97.3%，表現良好；130K 降至 67.7%（資料仍不完整）
 
 ### 圖表
 
@@ -361,6 +406,36 @@ watch -n 5 bash scripts/watch_progress.sh
 #### 65K 字元下各 Variant 準確率
 
 ![65K 準確率](results/plots/compare_65k_accuracy.png)
+
+#### gemma4:e2b 個別圖表
+
+![gemma4:e2b 準確率 vs 長度](results/plots/gemma4_e2b_accuracy_vs_length.png)
+
+![gemma4:e2b 準確率 vs 位置](results/plots/gemma4_e2b_accuracy_vs_position.png)
+
+![gemma4:e2b 熱力圖](results/plots/gemma4_e2b_heatmap.png)
+
+![gemma4:e2b Needle 準確率](results/plots/gemma4_e2b_needle_accuracy.png)
+
+#### gemma4:e4b 個別圖表
+
+![gemma4:e4b 準確率 vs 長度](results/plots/gemma4_e4b_accuracy_vs_length.png)
+
+![gemma4:e4b 準確率 vs 位置](results/plots/gemma4_e4b_accuracy_vs_position.png)
+
+![gemma4:e4b 熱力圖](results/plots/gemma4_e4b_heatmap.png)
+
+![gemma4:e4b Needle 準確率](results/plots/gemma4_e4b_needle_accuracy.png)
+
+#### gemma4:26b 個別圖表
+
+![gemma4:26b 準確率 vs 長度](results/plots/gemma4_26b_accuracy_vs_length.png)
+
+![gemma4:26b 準確率 vs 位置](results/plots/gemma4_26b_accuracy_vs_position.png)
+
+![gemma4:26b 熱力圖](results/plots/gemma4_26b_heatmap.png)
+
+![gemma4:26b Needle 準確率](results/plots/gemma4_26b_needle_accuracy.png)
 
 #### gemma3:4b 個別圖表
 
