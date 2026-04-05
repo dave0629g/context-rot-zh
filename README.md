@@ -208,6 +208,59 @@ python scripts/05_plot_results.py --models gemma3:4b llama3.1:8b
 watch -n 5 bash scripts/watch_progress.sh
 ```
 
+## 互動式分析介面
+
+實驗結果提供兩種互動介面，支援自由勾選模型組合與 variant 進行比較。
+
+### Streamlit 本機版（app.py）
+
+讀取本機 JSONL 檔，即時評估，資料永遠最新。
+
+```bash
+pip install streamlit plotly pandas
+streamlit run app.py
+```
+
+瀏覽器開啟後，在左側側邊欄可：
+- 依家族展開/收合，勾選要比較的模型
+- 勾選 variant（繁問繁答 / 繁問簡答 / 簡問簡答）
+- 切換圖表類型（準確率 vs 長度 / vs 位置 / 熱力圖 / Needle 準確率 / Tokenizer Overhead）
+
+**部署到 Streamlit Community Cloud（免費）：**
+1. 將 repo push 到 GitHub
+2. 前往 [share.streamlit.io](https://share.streamlit.io)，連結此 repo
+3. 指定 `app.py` 為入口，即可取得公開 URL
+
+### GitHub Pages 靜態版（docs/index.html）
+
+不需任何伺服器，部署為靜態網頁。資料為預先聚合的 `docs/data.json`。
+
+#### 更新資料
+
+每次新增實驗結果後：
+
+```bash
+python scripts/07_export_web.py   # 重新產生 docs/data.json
+git add docs/data.json && git commit -m "更新 web 資料"
+git push
+```
+
+#### 啟用 GitHub Pages
+
+在 GitHub repo 的 **Settings → Pages** 中：
+- Source：`Deploy from a branch`
+- Branch：`main`，Folder：`/docs`
+
+儲存後取得公開 URL（格式：`https://{user}.github.io/{repo}/`）
+
+#### 本機預覽
+
+```bash
+# 需要 HTTP 伺服器（直接開 index.html 因 CORS 限制無法 fetch data.json）
+python -m http.server 8080 --directory docs
+# 開啟 http://localhost:8080
+```
+
 ## 完整分析流程（實驗跑完後執行）
 
 一個模型的所有 variant 完成後，依序執行以下指令即可取得所有輸出：

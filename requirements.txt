@@ -2,3 +2,12 @@
 
 # 繁簡轉換（純 Python 實作，不需要 C 編譯）
 opencc-python-reimplemented>=0.1.7
+
+# 圖表（matplotlib 用於靜態 PNG，plotly 用於 Streamlit 互動圖）
+matplotlib
+numpy
+plotly>=5.20
+
+# Streamlit 互動式分析介面（app.py）
+streamlit>=1.35
+pandas>=2.0

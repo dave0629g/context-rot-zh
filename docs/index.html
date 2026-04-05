@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>繁體中文 Context Rot 實驗</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:13px;background:#f0f2f5;color:#222}
+#app{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+#sidebar{width:256px;min-width:256px;background:#fff;border-right:1px solid #dde;
+  overflow-y:auto;display:flex;flex-direction:column;gap:0}
+#sidebar-header{padding:14px 16px 10px;border-bottom:1px solid #eee}
+#sidebar-header h1{font-size:15px;font-weight:700;color:#1a1a2e}
+#sidebar-header p{font-size:11px;color:#888;margin-top:2px}
+.sb-section{padding:10px 16px}
+.sb-section h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;
+  color:#666;margin-bottom:8px}
+.sb-divider{border:none;border-top:1px solid #eee;margin:0}
+
+/* Chart type buttons */
+.ct-btn{display:block;width:100%;text-align:left;padding:7px 10px;margin-bottom:3px;
+  border:1px solid #e0e0e0;background:#fafafa;border-radius:6px;cursor:pointer;font-size:12.5px;color:#333}
+.ct-btn:hover{background:#f0f4ff;border-color:#b0c0f0}
+.ct-btn.active{background:#2E86AB;color:#fff;border-color:#2E86AB;font-weight:600}
+
+/* Family groups */
+details.family{margin-bottom:6px;border:1px solid #e8eaf0;border-radius:6px;overflow:hidden}
+details.family summary{padding:6px 10px;background:#f5f7fa;cursor:pointer;font-weight:600;
+  font-size:12px;list-style:none;display:flex;align-items:center;gap:6px;user-select:none}
+details.family summary::-webkit-details-marker{display:none}
+details.family summary::before{content:"▾";font-size:10px;transition:transform .15s}
+details.family:not([open]) summary::before{transform:rotate(-90deg)}
+details.family summary:hover{background:#edf0f7}
+.family-body{padding:4px 10px 8px}
+
+/* Model checkboxes */
+.model-item{display:flex;align-items:center;gap:7px;padding:3px 0}
+.model-item input[type=checkbox]{width:14px;height:14px;cursor:pointer;flex-shrink:0}
+.model-item label{cursor:pointer;flex:1;font-size:12.5px}
+.color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.badge{font-size:10px;color:#aaa;background:#f0f0f0;border-radius:3px;padding:1px 4px}
+
+/* Variant checkboxes */
+.var-item{display:flex;align-items:center;gap:7px;padding:4px 0}
+.var-item input{width:14px;height:14px;cursor:pointer}
+.var-item label{cursor:pointer;font-size:12.5px}
+
+/* Select toggles */
+.select-toggle{font-size:11px;color:#2E86AB;cursor:pointer;text-decoration:underline;
+  margin-left:auto;font-weight:400}
+
+/* ── Main ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#main-header{padding:12px 20px 8px;background:#fff;border-bottom:1px solid #dde}
+#main-header h2{font-size:17px;font-weight:700}
+#main-header p{font-size:11.5px;color:#666;margin-top:3px}
+#chart-area{flex:1;padding:16px 20px;overflow-y:auto}
+#heatmap-controls{display:none;gap:16px;margin-bottom:12px}
+#heatmap-controls label{font-size:12.5px;font-weight:600;color:#444}
+#heatmap-controls select{padding:5px 8px;border:1px solid #ccc;border-radius:5px;font-size:12.5px;
+  margin-top:4px;display:block;min-width:160px}
+#chart-container{background:#fff;border-radius:8px;border:1px solid #e0e3ea;
+  min-height:480px;padding:4px}
+#status-msg{padding:40px;text-align:center;color:#888;font-size:14px}
+
+/* Data table */
+details#table-wrap{margin-top:12px}
+details#table-wrap summary{cursor:pointer;font-size:12.5px;font-weight:600;color:#444;
+  padding:8px 12px;background:#f5f7fa;border:1px solid #e0e3ea;border-radius:6px;
+  list-style:none;display:flex;align-items:center;gap:6px}
+details#table-wrap summary::-webkit-details-marker{display:none}
+details#table-wrap summary::before{content:"▾";font-size:10px;transition:transform .15s}
+details#table-wrap:not([open]) summary::before{transform:rotate(-90deg)}
+#data-table-inner{overflow-x:auto;margin-top:4px}
+table.data-tbl{width:100%;border-collapse:collapse;font-size:12px}
+table.data-tbl th{background:#f0f2f5;padding:6px 10px;text-align:left;border:1px solid #ddd;
+  font-weight:600;white-space:nowrap}
+table.data-tbl td{padding:5px 10px;border:1px solid #eee}
+table.data-tbl tr:nth-child(even) td{background:#fafafa}
+
+/* Info / warning */
+.msg-box{padding:16px;background:#f0f6ff;border-left:3px solid #2E86AB;
+  border-radius:4px;color:#444;font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Sidebar ── -->
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <h1>🔬 Context Rot</h1>
+      <p>繁體中文 NIAH 實驗分析</p>
+    </div>
+
+    <div class="sb-section">
+      <h3>圖表類型</h3>
+      <div id="chart-type-btns"></div>
+    </div>
+
+    <hr class="sb-divider">
+
+    <div class="sb-section">
+      <h3>模型
+        <span class="select-toggle" id="toggle-all-models"></span>
+      </h3>
+      <div id="model-list"></div>
+    </div>
+
+    <hr class="sb-divider">
+
+    <div class="sb-section" id="variant-section">
+      <h3>Variant</h3>
+      <div id="variant-list"></div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main id="main">
+    <div id="main-header">
+      <h2>繁體中文 Context Rot 實驗結果瀏覽器</h2>
+      <p>Needle-in-a-Haystack：比較繁體 vs 簡體 context 對 LLM 長文檢索能力的影響</p>
+    </div>
+    <div id="chart-area">
+      <div id="heatmap-controls">
+        <div>
+          <label for="hm-model">模型</label>
+          <select id="hm-model"></select>
+        </div>
+        <div>
+          <label for="hm-variant">Variant</label>
+          <select id="hm-variant">
+            <option>繁問繁答</option>
+            <option>繁問簡答</option>
+            <option>簡問簡答</option>
+          </select>
+        </div>
+      </div>
+      <div id="chart-container"><div id="status-msg">載入資料中...</div></div>
+      <details id="table-wrap" style="display:none">
+        <summary>📊 數值表格</summary>
+        <div id="data-table-inner"></div>
+      </details>
+    </div>
+  </main>
+</div>
+
+<script>
+'use strict';
+
+// ── 常數 ────────────────────────────────────────────────────────────────────
+const CHART_TYPES = [
+  {id:'length',   label:'準確率 vs 長度'},
+  {id:'position', label:'準確率 vs 位置'},
+  {id:'heatmap',  label:'熱力圖'},
+  {id:'needle',   label:'各 Needle 準確率'},
+  {id:'token',    label:'Tokenizer Overhead'},
+];
+const VARIANT_DASH = {'繁問繁答':'solid','繁問簡答':'dash','簡問簡答':'dot'};
+const ALL_VARIANTS = ['繁問繁答','繁問簡答','簡問簡答'];
+const NEEDLE_LABELS = {N01:'N01 金額',N02:'N02 人名',N03:'N03 面積',N04:'N04 數量',N05:'N05 百分比'};
+const FAMILY_ORDER = ['Gemma 3','Gemma 4 Edge','Gemma 4','Llama','Qwen3','Qwen3.5'];
+const DEFAULT_MODELS = new Set(['gemma3:4b','llama3.1:8b','gemma4:e2b']);
+
+// ── 狀態 ────────────────────────────────────────────────────────────────────
+const S = {
+  data: null,
+  chartType: 'length',
+  selectedModels: new Set(),
+  selectedVariants: new Set(['繁問繁答','繁問簡答','簡問簡答']),
+  heatmapModel: null,
+  heatmapVariant: '繁問繁答',
+  plotInitialized: false,
+};
+
+// ── 工具函式 ────────────────────────────────────────────────────────────────
+function fmtLen(n){return n>=1000 ? Math.round(n/1000)+'K' : String(n);}
+
+function modelColor(modelId){
+  return S.data.models[modelId]?.color ?? '#888';
+}
+function modelLabel(modelId){
+  return S.data.models[modelId]?.label ?? modelId;
+}
+
+function selectedModelList(){
+  return Object.keys(S.data.models).filter(m=>S.selectedModels.has(m));
+}
+function selectedVariantList(){
+  return ALL_VARIANTS.filter(v=>S.selectedVariants.has(v));
+}
+
+function accBy(variantData, keyGetter){
+  // variantData: {by_length:{...}, by_position:{...}, ...}
+  // keyGetter: 'by_length' | 'by_position' | 'by_needle'
+  const raw = variantData[keyGetter] ?? {};
+  // Sort keys numerically where appropriate
+  const keys = Object.keys(raw).sort((a,b)=>parseFloat(a)-parseFloat(b));
+  return {keys, vals: keys.map(k=>raw[k])};
+}
+
+// ── 初始化 ──────────────────────────────────────────────────────────────────
+async function init(){
+  try{
+    const res = await fetch('data.json');
+    S.data = await res.json();
+    // Default selections
+    Object.keys(S.data.models).forEach(m=>{
+      if(DEFAULT_MODELS.has(m)) S.selectedModels.add(m);
+    });
+    buildSidebar();
+    bindEvents();
+    render();
+  }catch(e){
+    document.getElementById('status-msg').textContent='載入失敗：'+e.message;
+  }
+}
+
+// ── 建構 UI ──────────────────────────────────────────────────────────────────
+function buildSidebar(){
+  // Chart type buttons
+  const ctDiv=document.getElementById('chart-type-btns');
+  CHART_TYPES.forEach(ct=>{
+    const btn=document.createElement('button');
+    btn.className='ct-btn'+(ct.id===S.chartType?' active':'');
+    btn.textContent=ct.label;
+    btn.dataset.ct=ct.id;
+    ctDiv.appendChild(btn);
+  });
+
+  // Model list by family
+  const mlDiv=document.getElementById('model-list');
+  const byFamily={};
+  Object.entries(S.data.models).forEach(([m,meta])=>{
+    (byFamily[meta.family]=byFamily[meta.family]||[]).push(m);
+  });
+  // Render in FAMILY_ORDER, then any remaining
+  const ordered=[...FAMILY_ORDER,...Object.keys(byFamily).filter(f=>!FAMILY_ORDER.includes(f))];
+  ordered.forEach(family=>{
+    const models=byFamily[family];
+    if(!models?.length) return;
+    const det=document.createElement('details');
+    det.className='family';
+    det.open=models.some(m=>DEFAULT_MODELS.has(m));
+    const sum=document.createElement('summary');
+    sum.textContent=family;
+    det.appendChild(sum);
+    const body=document.createElement('div');
+    body.className='family-body';
+    models.forEach(modelId=>{
+      const meta=S.data.models[modelId];
+      const vc=Object.entries(meta.record_counts).map(([v,c])=>`${v}:${c}`).join(', ');
+      const item=document.createElement('div');
+      item.className='model-item';
+      item.innerHTML=`
+        <input type="checkbox" data-model="${modelId}"
+               ${S.selectedModels.has(modelId)?'checked':''}>
+        <span class="color-dot" style="background:${meta.color}"></span>
+        <label title="${vc}">${meta.label}</label>
+        <span class="badge">${meta.params}</span>`;
+      body.appendChild(item);
+    });
+    det.appendChild(body);
+    mlDiv.appendChild(det);
+  });
+
+  // Select all toggle
+  updateToggleLabel();
+
+  // Variant checkboxes
+  const vDiv=document.getElementById('variant-list');
+  ALL_VARIANTS.forEach(v=>{
+    const item=document.createElement('div');
+    item.className='var-item';
+    item.innerHTML=`<input type="checkbox" data-variant="${v}"
+                      ${S.selectedVariants.has(v)?'checked':''}>
+                    <label>${v}</label>`;
+    vDiv.appendChild(item);
+  });
+
+  // Heatmap model select
+  const hmSel=document.getElementById('hm-model');
+  Object.entries(S.data.models).forEach(([m,meta])=>{
+    const opt=document.createElement('option');
+    opt.value=m; opt.textContent=meta.label;
+    hmSel.appendChild(opt);
+  });
+  S.heatmapModel=Object.keys(S.data.models)[0]||null;
+  if(S.heatmapModel) hmSel.value=S.heatmapModel;
+}
+
+function updateToggleLabel(){
+  const total=document.querySelectorAll('#model-list input[data-model]').length;
+  const checked=document.querySelectorAll('#model-list input[data-model]:checked').length;
+  const el=document.getElementById('toggle-all-models');
+  el.textContent=checked===total?'[取消全選]':'[全選]';
+}
+
+function bindEvents(){
+  // Chart type
+  document.getElementById('chart-type-btns').addEventListener('click',e=>{
+    const btn=e.target.closest('.ct-btn');
+    if(!btn) return;
+    S.chartType=btn.dataset.ct;
+    document.querySelectorAll('.ct-btn').forEach(b=>b.classList.toggle('active',b.dataset.ct===S.chartType));
+    render();
+  });
+
+  // Model checkboxes
+  document.getElementById('model-list').addEventListener('change',e=>{
+    const m=e.target.dataset.model;
+    if(!m) return;
+    e.target.checked ? S.selectedModels.add(m) : S.selectedModels.delete(m);
+    updateToggleLabel();
+    render();
+  });
+
+  // Select all toggle
+  document.getElementById('toggle-all-models').addEventListener('click',()=>{
+    const allCbs=document.querySelectorAll('#model-list input[data-model]');
+    const allChecked=[...allCbs].every(cb=>cb.checked);
+    allCbs.forEach(cb=>{
+      cb.checked=!allChecked;
+      !allChecked ? S.selectedModels.add(cb.dataset.model) : S.selectedModels.delete(cb.dataset.model);
+    });
+    updateToggleLabel();
+    render();
+  });
+
+  // Variant checkboxes
+  document.getElementById('variant-list').addEventListener('change',e=>{
+    const v=e.target.dataset.variant;
+    if(!v) return;
+    e.target.checked ? S.selectedVariants.add(v) : S.selectedVariants.delete(v);
+    render();
+  });
+
+  // Heatmap controls
+  document.getElementById('hm-model').addEventListener('change',e=>{
+    S.heatmapModel=e.target.value;
+    render();
+  });
+  document.getElementById('hm-variant').addEventListener('change',e=>{
+    S.heatmapVariant=e.target.value;
+    render();
+  });
+}
+
+// ── 渲染入口 ─────────────────────────────────────────────────────────────────
+function render(){
+  const isHeatmap=S.chartType==='heatmap';
+  document.getElementById('heatmap-controls').style.display=isHeatmap?'flex':'none';
+  document.getElementById('variant-section').style.display=isHeatmap?'none':'';
+  document.getElementById('table-wrap').style.display=S.chartType==='length'?'':'none';
+  document.getElementById('status-msg').style.display='none';
+
+  const models=selectedModelList();
+  const variants=selectedVariantList();
+
+  if(S.chartType==='heatmap'){
+    renderHeatmap();
+  } else if(!models.length){
+    showMsg('← 請在左側勾選至少一個模型');
+  } else if(S.chartType!=='token' && !variants.length){
+    showMsg('← 請在左側勾選至少一個 Variant');
+  } else {
+    if(S.chartType==='length')   renderLength(models, variants);
+    if(S.chartType==='position') renderPosition(models, variants);
+    if(S.chartType==='needle')   renderNeedle(models, variants);
+    if(S.chartType==='token')    renderToken(models);
+  }
+}
+
+function showMsg(msg){
+  document.getElementById('chart-container').innerHTML=
+    `<div class="msg-box">${msg}</div>`;
+  S.plotInitialized=false;
+}
+
+function plotChart(traces, layout){
+  const el=document.getElementById('chart-container');
+  const fullLayout={
+    ...layout,
+    font:{size:12},
+    paper_bgcolor:'#fff',
+    plot_bgcolor:'#fff',
+    margin:{t:50,r:20,b:60,l:60,...(layout.margin||{})},
+  };
+  if(S.plotInitialized){
+    Plotly.react(el, traces, fullLayout);
+  } else {
+    el.innerHTML='';
+    Plotly.newPlot(el, traces, fullLayout, {responsive:true});
+    S.plotInitialized=true;
+  }
+}
+
+// ── 準確率 vs 長度 ────────────────────────────────────────────────────────────
+function renderLength(models, variants){
+  const traces=[];
+  let allVals=[];
+  models.forEach(m=>{
+    variants.forEach(v=>{
+      const vd=S.data.data[m]?.[v];
+      if(!vd) return;
+      const raw=vd.by_length;
+      const keys=Object.keys(raw).sort((a,b)=>+a-+b);
+      const vals=keys.map(k=>raw[k]);
+      allVals.push(...vals);
+      traces.push({
+        type:'scatter', mode:'lines+markers',
+        x: keys.map(k=>fmtLen(+k)),
+        y: vals,
+        name:`${modelLabel(m)} ${v}`,
+        line:{color:modelColor(m), dash:VARIANT_DASH[v]||'solid', width:2},
+        marker:{size:7},
+        hovertemplate:`<b>%{fullData.name}</b><br>%{x}字元<br>準確率: %{y:.1f}%<extra></extra>`,
+      });
+    });
+  });
+  const yMin=allVals.length ? Math.max(0, Math.min(...allVals)-5) : 60;
+  plotChart(traces,{
+    title:'準確率 vs Context 長度',
+    xaxis:{title:'Context 長度（字元）'},
+    yaxis:{title:'準確率（%）', range:[yMin,102]},
+    hovermode:'x unified',
+    legend:{x:1.02,y:1,xanchor:'left'},
+    margin:{r:220},
+    height:480,
+  });
+  renderLengthTable(models, variants);
+}
+
+function renderLengthTable(models, variants){
+  const rows=[];
+  models.forEach(m=>{
+    variants.forEach(v=>{
+      const vd=S.data.data[m]?.[v];
+      if(!vd) return;
+      const raw=vd.by_length;
+      Object.keys(raw).sort((a,b)=>+a-+b).forEach(k=>{
+        rows.push([modelLabel(m), v, fmtLen(+k), raw[k].toFixed(1)+'%']);
+      });
+    });
+  });
+  if(!rows.length){document.getElementById('data-table-inner').innerHTML='';return;}
+  const html=`<table class="data-tbl">
+    <thead><tr><th>模型</th><th>Variant</th><th>Context 長度</th><th>準確率</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+  document.getElementById('data-table-inner').innerHTML=html;
+}
+
+// ── 準確率 vs 位置 ────────────────────────────────────────────────────────────
+function renderPosition(models, variants){
+  const traces=[];
+  models.forEach(m=>{
+    variants.forEach(v=>{
+      const vd=S.data.data[m]?.[v];
+      if(!vd) return;
+      const raw=vd.by_position;
+      const keys=Object.keys(raw).sort((a,b)=>+a-+b);
+      traces.push({
+        type:'scatter', mode:'lines+markers',
+        x: keys.map(k=>(+k*100)),
+        y: keys.map(k=>raw[k]),
+        name:`${modelLabel(m)} ${v}`,
+        line:{color:modelColor(m), dash:VARIANT_DASH[v]||'solid', width:2},
+        marker:{size:7},
+        hovertemplate:`<b>%{fullData.name}</b><br>位置: %{x:.0f}%<br>準確率: %{y:.1f}%<extra></extra>`,
+      });
+    });
+  });
+  plotChart(traces,{
+    title:'準確率 vs Needle 位置',
+    xaxis:{title:'Needle 位置（%）', tickmode:'linear', tick0:0, dtick:10},
+    yaxis:{title:'準確率（%）'},
+    hovermode:'x unified',
+    legend:{x:1.02,y:1,xanchor:'left'},
+    margin:{r:220},
+    height:480,
+  });
+}
+
+// ── 熱力圖 ────────────────────────────────────────────────────────────────────
+function renderHeatmap(){
+  const m=S.heatmapModel, v=S.heatmapVariant;
+  const vd=S.data.data[m]?.[v];
+  if(!vd){showMsg(`${modelLabel(m)} 沒有 ${v} 資料`); return;}
+  const hm=vd.heatmap;
+  const lengths=Object.keys(hm).sort((a,b)=>+a-+b);
+  const posSet=new Set();
+  lengths.forEach(l=>Object.keys(hm[l]).forEach(p=>posSet.add(p)));
+  const positions=[...posSet].sort((a,b)=>+a-+b);
+
+  const z=lengths.map(l=>positions.map(p=>hm[l]?.[p]??null));
+  const text=z.map(row=>row.map(v=>v!=null?v.toFixed(0):''));
+
+  plotChart([{
+    type:'heatmap',
+    x: positions.map(p=>`${(+p*100).toFixed(0)}%`),
+    y: lengths.map(l=>fmtLen(+l)),
+    z, text, texttemplate:'%{text}',
+    colorscale:'RdYlGn', zmin:0, zmax:100,
+    hovertemplate:'長度: %{y}<br>位置: %{x}<br>準確率: %{z:.1f}%<extra></extra>',
+  }],{
+    title:`NIAH Heatmap：${modelLabel(m)} — ${v}`,
+    xaxis:{title:'Needle 位置'},
+    yaxis:{title:'Context 長度'},
+    height:480,
+  });
+}
+
+// ── Needle 準確率 ─────────────────────────────────────────────────────────────
+function renderNeedle(models, variants){
+  const needles=Object.keys(NEEDLE_LABELS).sort();
+  const traces=[];
+  models.forEach(m=>{
+    variants.forEach(v=>{
+      const vd=S.data.data[m]?.[v];
+      if(!vd) return;
+      traces.push({
+        type:'bar',
+        x: needles.map(n=>NEEDLE_LABELS[n]),
+        y: needles.map(n=>vd.by_needle[n]??0),
+        name:`${modelLabel(m)} ${v}`,
+        marker:{color:modelColor(m), opacity:0.85},
+        hovertemplate:`<b>%{fullData.name}</b><br>%{x}: %{y:.1f}%<extra></extra>`,
+      });
+    });
+  });
+  plotChart(traces,{
+    title:'各 Needle 準確率', barmode:'group',
+    yaxis:{title:'準確率（%）', range:[0,105]},
+    height:460,
+  });
+}
+
+// ── Tokenizer Overhead ────────────────────────────────────────────────────────
+function renderToken(models){
+  const labels=[], vals=[], colors=[];
+  models.forEach(m=>{
+    const ov=S.data.data[m]?.token_overhead_pct;
+    if(ov==null) return;
+    labels.push(modelLabel(m));
+    vals.push(ov);
+    colors.push(modelColor(m));
+  });
+  if(!labels.length){showMsg('需要選擇有「繁問繁答」+ 「繁問簡答」配對資料的模型');return;}
+  plotChart([{
+    type:'bar',
+    x: labels, y: vals,
+    marker:{color:colors},
+    text: vals.map(v=>`+${v.toFixed(1)}%`), textposition:'outside',
+    hovertemplate:'<b>%{x}</b><br>繁體多用 %{y:.1f}%<extra></extra>',
+  }],{
+    title:'Tokenizer Overhead：繁體比簡體多用的 Token（%）',
+    yaxis:{title:'多用比例（%）', range:[0, Math.max(...vals)*1.5+1]},
+    height:420,
+  });
+}
+
+// ── 啟動 ─────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
