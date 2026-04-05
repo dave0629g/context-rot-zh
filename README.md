@@ -208,6 +208,98 @@ python scripts/05_plot_results.py --models gemma3:4b llama3.1:8b
 watch -n 5 bash scripts/watch_progress.sh
 ```
 
+## 完整分析流程（實驗跑完後執行）
+
+一個模型的所有 variant 完成後，依序執行以下指令即可取得所有輸出：
+
+### Step 4：分析結果（重新評估 + 輸出統計 JSON）
+
+```bash
+# 指定單一模型
+python scripts/04_analyze.py --model gemma3:4b --reeval
+
+# 或一次分析所有已有結果的模型
+python scripts/04_analyze.py --all --reeval
+```
+
+`--reeval` 使用修正版評估邏輯（中文數字正規化 + 同義詞比對）。
+
+輸出：`results/analysis/{model}_analysis.json`
+
+### Step 5：產生圖表
+
+```bash
+# 指定模型清單（建議：已完成繁問繁答的模型）
+python scripts/05_plot_results.py \
+  --models gemma3:4b llama3.1:8b qwen3:8b \
+           gemma4:e2b gemma4:e4b gemma4:26b
+
+# 或自動偵測 results/ 目錄下所有有資料的模型
+python scripts/05_plot_results.py --all
+```
+
+輸出：
+- `results/plots/{model}_accuracy_vs_length.png` — 準確率 vs Context 長度（各 variant）
+- `results/plots/{model}_accuracy_vs_position.png` — 準確率 vs Needle 位置
+- `results/plots/{model}_heatmap.png` — 熱力圖（長度 × 位置）
+- `results/plots/{model}_needle_accuracy.png` — 各 Needle 準確率
+- `results/plots/compare_accuracy_vs_length.png` — 跨模型準確率比較
+- `results/plots/compare_token_ratio.png` — Tokenizer overhead 比較
+- `results/plots/compare_65k_accuracy.png` — 65K 各模型 × 各 variant
+- `results/plots/compare_token_map.png` — 字元數 → Token 數對照
+
+### 一鍵執行（6 個已完成模型）
+
+```bash
+python scripts/04_analyze.py --all --reeval && \
+python scripts/05_plot_results.py \
+  --models gemma3:4b llama3.1:8b qwen3:8b gemma4:e2b gemma4:e4b gemma4:26b
+```
+
+## 圖表設計原則
+
+圖表以 `matplotlib` 撰寫，不依賴 LLM 生成。`scripts/05_plot_results.py` 的視覺設計考量如下：
+
+### 黑白列印可辨識
+
+每條線同時以**三個獨立維度**編碼，即使灰階列印也能辨識：
+
+| 維度 | 說明 |
+|------|------|
+| **marker 形狀** | 同家族相同，跨家族不同 |
+| **fillstyle** | 小模型 = 空心（none）；大模型 = 實心（full） |
+| **linestyle** | 小模型 = 虛線（`--` 或 `-.`）；大模型 = 實線（`-`） |
+
+### 家族分組（marker 形狀對照）
+
+| 家族 | Marker 形狀 | 彩色時的色調 |
+|------|------------|------------|
+| Gemma 3 | 圓形 `o` | 藍色系（深=27B，淺=1B）|
+| Gemma 4 Edge（E2B/E4B）| 倒三角 `v` | 橘色系 |
+| Gemma 4 Standard（26B/31B）| 菱形 `D` | 紅橘系 |
+| Llama | 正方形 `s` | 紅色系 |
+| Qwen3 | 上三角 `^` | 綠色系 |
+| Qwen3.5 | 加號 `P` | 紫色系（深=35B，淺=2B）|
+
+### 各 Variant 的線條樣式（單模型圖）
+
+| Variant | Marker | Fillstyle | Linestyle | 顏色 |
+|---------|--------|-----------|-----------|------|
+| 繁問繁答 | `o` | full（實心）| `-`（實線）| 藍 `#2E86AB` |
+| 簡問簡答 | `s` | none（空心）| `--`（虛線）| 紫 `#A23B72` |
+| 繁問簡答 | `^` | full（實心）| `-.`（點劃線）| 橘 `#F18F01` |
+
+### 新增模型時的擴充方式
+
+在 `05_plot_results.py` 頂部的 `MODEL_COLORS`、`MODEL_MARKERS`、`MODEL_LABELS` 三個 dict 加入新模型即可。遵循同家族同 marker 形狀、深色大模型 / 淺色小模型的原則。
+
+```python
+# 範例：加入 gemma3:12b
+MODEL_COLORS["gemma3:12b"]  = "#3A62B8"      # 藍色系中間深度
+MODEL_MARKERS["gemma3:12b"] = dict(marker="o", fillstyle="full", linestyle="-.")
+MODEL_LABELS["gemma3:12b"]  = "Gemma 3 12B"
+```
+
 ## 評估方法
 
 ### 期望答案與正規化
@@ -238,22 +330,22 @@ watch -n 5 bash scripts/watch_progress.sh
 
 | 模型 | 大小 | 繁問繁答 | 繁問簡答 | 簡問簡答 |
 |------|------|---------|---------|---------|
-| gemma4:e2b | E2B | 1,320 筆 ✓ | 進行中 | 進行中 |
-| gemma4:e4b | E4B | 1,320 筆 ✓ | 待執行 | 待執行 |
-| gemma4:26b | 26B | 1,320 筆 ✓ | 待執行 | 待執行 |
-| gemma4:31b | 31B | 進行中（100K 部分）| 待執行 | 待執行 |
-| qwen3.5:2b | 2B | 待執行 | 待執行 | 待執行 |
-| qwen3.5:4b | 4B | 待執行 | 待執行 | 待執行 |
-| qwen3.5:9b | 9B | 待執行 | 待執行 | 待執行 |
-| qwen3.5:27b | 27B | 待執行 | 待執行 | 待執行 |
-| qwen3.5:35b | 35B | 220 筆（100K+130K）| 待執行 | 待執行 |
 | gemma3:1b | 1B | 待執行 | 待執行 | 待執行 |
 | gemma3:4b | 4B | 1,320 筆 ✓ | 1,100 筆 ✓ | 1,100 筆 ✓ |
 | gemma3:12b | 12B | 待執行 | 待執行 | 待執行 |
 | gemma3:27b | 27B | 220 筆（100K+130K，資料異常⚠️）| 待執行 | 待執行 |
+| gemma4:e2b | E2B | 1,320 筆 ✓ | 待執行 | 待執行 |
+| gemma4:e4b | E4B | 1,320 筆 ✓ | 待執行 | 待執行 |
+| gemma4:26b | 26B | 1,320 筆 ✓ | 待執行 | 待執行 |
+| gemma4:31b | 31B | 1,320 筆 ✓ | 待執行 | 待執行 |
 | llama3.1:8b | 8B | 1,320 筆 ✓ | 1,100 筆 ✓ | 1,100 筆 ✓ |
 | llama3.3:70b | 70B | 144 筆（100K + 130K 部分）| 待執行 | 待執行 |
 | qwen3:8b | 8B | 1,100 筆（500–65K）✓ | 125 筆（部分）| 待執行 |
+| qwen3.5:2b | 2B | 1,320 筆 ✓ | 待執行 | 待執行 |
+| qwen3.5:4b | 4B | 938 筆（部分）| 待執行 | 待執行 |
+| qwen3.5:9b | 9B | 待執行 | 待執行 | 待執行 |
+| qwen3.5:27b | 27B | 待執行 | 待執行 | 待執行 |
+| qwen3.5:35b | 35B | 220 筆（100K+130K）| 待執行 | 待執行 |
 
 ## 結果（已完成部分）
 

@@ -53,72 +53,97 @@ plt.rcParams["axes.unicode_minus"] = False
 plt.rcParams["figure.dpi"] = 150
 
 # 標記符號：空心/實心交替，確保黑白列印可辨識
-MARKER_STYLES = [
-    dict(marker="o",  fillstyle="full",  linestyle="-"),
-    dict(marker="o",  fillstyle="none",  linestyle="--"),
-    dict(marker="s",  fillstyle="full",  linestyle="-"),
-    dict(marker="s",  fillstyle="none",  linestyle="--"),
-    dict(marker="^",  fillstyle="full",  linestyle="-."),
-    dict(marker="^",  fillstyle="none",  linestyle="-."),
-    dict(marker="D",  fillstyle="full",  linestyle=":"),
-    dict(marker="D",  fillstyle="none",  linestyle=":"),
-    dict(marker="v",  fillstyle="full",  linestyle="-"),
-    dict(marker="P",  fillstyle="full",  linestyle="--"),
-]
-
 VARIANT_LABELS = {"繁問繁答": "#2E86AB", "簡問簡答": "#A23B72", "繁問簡答": "#F18F01"}
 VARIANT_MARKERS = {
     "繁問繁答": dict(marker="o",  fillstyle="full",  linestyle="-"),
     "簡問簡答": dict(marker="s",  fillstyle="none",  linestyle="--"),
     "繁問簡答": dict(marker="^",  fillstyle="full",  linestyle="-."),
 }
+
+# ── 家族辨識設計原則 ──────────────────────────────────────────────────────────
+#
+# 黑白列印可辨識：每條線同時以三維度區分
+#   1. marker 形狀：同家族相同，跨家族不同
+#   2. fillstyle：小模型=空心(none)，大模型=實心(full)
+#   3. linestyle：小模型=虛線(--/-./)，大模型=實線(-)
+#
+# 彩色顯示：同家族同色調、不同深淺
+#   - 深色=大模型，淺色=小模型
+#
+# 家族 → marker 形狀對照：
+#   Gemma 3          → 圓形  o  （藍色系）
+#   Gemma 4 Edge     → 倒三角 v  （橘色系）
+#   Gemma 4 Standard → 菱形  D  （紅橘系）
+#   Llama            → 正方形 s  （紅色系）
+#   Qwen 3           → 上三角 ^  （綠色系）
+#   Qwen 3.5         → 加號  P  （紫色系）
+#
 MODEL_COLORS = {
-    "gemma3:4b":   "#4C72B0",
-    "llama3.1:8b": "#C44E52",
-    "qwen3:8b":    "#55A868",
-    "qwen3.5:35b": "#8172B2",
-    "gemma3:27b":  "#CCB974",
-    "llama3.3:70b":"#64B5CD",
-    "qwen3.5:2b":  "#8172B2",
-    "qwen3.5:4b":  "#8172B2",
-    "qwen3.5:9b":  "#8172B2",
-    "qwen3.5:27b": "#8172B2",
-    "gemma4:e2b":  "#E8761E",
-    "gemma4:e4b":  "#E8761E",
-    "gemma4:26b":  "#E8761E",
-    "gemma4:31b":  "#E8761E",
+    # Gemma 3：藍色系（小→淺，大→深）
+    "gemma3:1b":   "#A8C0FF",
+    "gemma3:4b":   "#6690E0",
+    "gemma3:12b":  "#3A62B8",
+    "gemma3:27b":  "#1A3A8C",
+    # Gemma 4 Edge：橘色系
+    "gemma4:e2b":  "#FFB060",
+    "gemma4:e4b":  "#D07010",
+    # Gemma 4 Standard：紅橘系
+    "gemma4:26b":  "#E06040",
+    "gemma4:31b":  "#8B2500",
+    # Llama：紅色系
+    "llama3.1:8b": "#E07070",
+    "llama3.3:70b":"#8B0000",
+    # Qwen 3：綠色系
+    "qwen3:8b":    "#2E8B4A",
+    # Qwen 3.5：紫色系（小→淺，大→深）
+    "qwen3.5:2b":  "#C09AE8",
+    "qwen3.5:4b":  "#A070D0",
+    "qwen3.5:9b":  "#7840B8",
+    "qwen3.5:27b": "#5010A0",
+    "qwen3.5:35b": "#2E0060",
 }
 MODEL_MARKERS = {
-    # Gemma 3 家族：圓形，小=空心，大=實心
+    # Gemma 3：圓形
+    "gemma3:1b":    dict(marker="o",  fillstyle="none",  linestyle=":"),
     "gemma3:4b":    dict(marker="o",  fillstyle="none",  linestyle="--"),
+    "gemma3:12b":   dict(marker="o",  fillstyle="full",  linestyle="-."),
     "gemma3:27b":   dict(marker="o",  fillstyle="full",  linestyle="-"),
-    # Llama 家族：正方形，小=空心，大=實心
-    "llama3.1:8b":  dict(marker="s",  fillstyle="none",  linestyle="--"),
-    "llama3.3:70b": dict(marker="s",  fillstyle="full",  linestyle="-"),
-    # Qwen 家族：上三角，小=空心，大=實心
-    "qwen3:8b":     dict(marker="^",  fillstyle="none",  linestyle="--"),
-    "qwen3.5:35b":  dict(marker="^",  fillstyle="full",  linestyle="-"),
-    # Qwen3.5 系列：加號，小=空心，大=實心（≤9B空心，≥27B實心）
-    "qwen3.5:2b":   dict(marker="P",  fillstyle="none",  linestyle="--"),
-    "qwen3.5:4b":   dict(marker="P",  fillstyle="none",  linestyle="--"),
-    "qwen3.5:9b":   dict(marker="P",  fillstyle="none",  linestyle="-."),
-    "qwen3.5:27b":  dict(marker="P",  fillstyle="full",  linestyle="-"),
-    # Gemma 4 Edge 系列：倒三角，小=空心，大=實心
+    # Gemma 4 Edge：倒三角
     "gemma4:e2b":   dict(marker="v",  fillstyle="none",  linestyle="--"),
     "gemma4:e4b":   dict(marker="v",  fillstyle="full",  linestyle="-"),
-    # Gemma 4 Standard 系列：菱形，小=空心，大=實心
+    # Gemma 4 Standard：菱形
     "gemma4:26b":   dict(marker="D",  fillstyle="none",  linestyle="--"),
     "gemma4:31b":   dict(marker="D",  fillstyle="full",  linestyle="-"),
+    # Llama：正方形
+    "llama3.1:8b":  dict(marker="s",  fillstyle="none",  linestyle="--"),
+    "llama3.3:70b": dict(marker="s",  fillstyle="full",  linestyle="-"),
+    # Qwen 3：上三角
+    "qwen3:8b":     dict(marker="^",  fillstyle="none",  linestyle="--"),
+    # Qwen 3.5：加號（小=空心虛線，大=實心實線）
+    "qwen3.5:2b":   dict(marker="P",  fillstyle="none",  linestyle=":"),
+    "qwen3.5:4b":   dict(marker="P",  fillstyle="none",  linestyle="--"),
+    "qwen3.5:9b":   dict(marker="P",  fillstyle="none",  linestyle="-."),
+    "qwen3.5:27b":  dict(marker="P",  fillstyle="full",  linestyle="-."),
+    "qwen3.5:35b":  dict(marker="P",  fillstyle="full",  linestyle="-"),
 }
 MODEL_LABELS = {
-    "gemma3:4b": "Gemma 3 4B", "llama3.1:8b": "Llama 3.1 8B",
-    "qwen3:8b": "Qwen3 8B", "qwen3.5:35b": "Qwen3.5 35B",
-    "gemma3:27b": "Gemma 3 27B", "llama3.3:70b": "Llama 3.3 70B",
-    "qwen3.5:2b": "Qwen3.5 2B",  "qwen3.5:4b": "Qwen3.5 4B",
-    "qwen3.5:9b": "Qwen3.5 9B",  "qwen3.5:27b": "Qwen3.5 27B",
+    "gemma3:1b": "Gemma 3 1B",   "gemma3:4b": "Gemma 3 4B",
+    "gemma3:12b": "Gemma 3 12B", "gemma3:27b": "Gemma 3 27B",
     "gemma4:e2b": "Gemma 4 E2B", "gemma4:e4b": "Gemma 4 E4B",
     "gemma4:26b": "Gemma 4 26B", "gemma4:31b": "Gemma 4 31B",
+    "llama3.1:8b": "Llama 3.1 8B", "llama3.3:70b": "Llama 3.3 70B",
+    "qwen3:8b": "Qwen3 8B",
+    "qwen3.5:2b": "Qwen3.5 2B",  "qwen3.5:4b": "Qwen3.5 4B",
+    "qwen3.5:9b": "Qwen3.5 9B",  "qwen3.5:27b": "Qwen3.5 27B",
+    "qwen3.5:35b": "Qwen3.5 35B",
 }
+# 家族顏色（供圖例分組標注用）
+FAMILY_COLORS = {
+    "Gemma 3": "#3A62B8", "Gemma 4 Edge": "#D07010",
+    "Gemma 4": "#8B2500", "Llama": "#8B0000",
+    "Qwen3": "#2E8B4A",   "Qwen3.5": "#5010A0",
+}
+_FALLBACK_STYLE = dict(marker="x", fillstyle="full", linestyle="-")
 
 
 # ── 資料載入 ──────────────────────────────────────────────────────────────────
@@ -331,15 +356,31 @@ def plot_compare_length(all_data, out_path):
     fig.suptitle("跨模型比較：準確率 vs Context 長度", fontsize=14, fontweight="bold")
 
     for ax, variant in zip(axes, available):
+        # 先收集所有模型在此 variant 的資料，統一 x 軸
+        all_accs = {}
+        all_lengths = set()
         for model, data in all_data.items():
             if variant not in data:
                 continue
             acc = acc_by_key(data[variant], lambda r: r["context_length_chars"])
-            lengths = sorted(acc)
+            all_accs[model] = acc
+            all_lengths.update(acc.keys())
+        lengths = sorted(all_lengths)
+        if not lengths:
+            continue
+
+        all_vals = []
+        for model, acc in all_accs.items():
             color = MODEL_COLORS.get(model, "#666666")
             label = MODEL_LABELS.get(model, model)
-            st = MODEL_MARKERS.get(model, MARKER_STYLES[0])
-            ax.plot(range(len(lengths)), [acc[l] for l in lengths],
+            st = MODEL_MARKERS.get(model, _FALLBACK_STYLE)
+            ys = [acc.get(l, None) for l in lengths]
+            valid_ys = [y for y in ys if y is not None]
+            all_vals.extend(valid_ys)
+            # None → 空白（不連線）
+            xs = [i for i, y in enumerate(ys) if y is not None]
+            ys_plot = [y for y in ys if y is not None]
+            ax.plot(xs, ys_plot,
                     color=color, label=label, linewidth=2, markersize=6,
                     marker=st["marker"], fillstyle=st["fillstyle"],
                     linestyle=st["linestyle"], markeredgewidth=1.5)
@@ -350,7 +391,8 @@ def plot_compare_length(all_data, out_path):
                            rotation=45, ha="right", fontsize=8)
         ax.set_xlabel("Context 長度")
         ax.set_ylabel("準確率（%）")
-        ax.set_ylim(70, 102)
+        y_min = max(0, min(all_vals) - 5) if all_vals else 70
+        ax.set_ylim(y_min, 102)
         ax.grid(True, alpha=0.3)
         ax.legend(fontsize=8)
 
@@ -439,9 +481,14 @@ def plot_65k_comparison(all_data, out_path):
 # ── 8. 字元數 → Token 數對照圖 ───────────────────────────────────────────────
 
 CTX_WINDOWS = {
-    "gemma3:4b": 131072, "llama3.1:8b": 131072,
-    "qwen3:8b": 40960, "qwen3.5:35b": 262144,
-    "gemma3:27b": 131072, "llama3.3:70b": 131072,
+    "gemma3:1b": 131072,  "gemma3:4b": 131072,
+    "gemma3:12b": 131072, "gemma3:27b": 131072,
+    "gemma4:e2b": 131072, "gemma4:e4b": 131072,
+    "gemma4:26b": 262144, "gemma4:31b": 262144,
+    "llama3.1:8b": 131072, "llama3.3:70b": 131072,
+    "qwen3:8b": 40960,
+    "qwen3.5:2b": 262144, "qwen3.5:4b": 262144,
+    "qwen3.5:9b": 262144, "qwen3.5:27b": 262144, "qwen3.5:35b": 262144,
 }
 
 def plot_token_map(all_data, out_path):
@@ -469,7 +516,7 @@ def plot_token_map(all_data, out_path):
 
         color = MODEL_COLORS.get(model, "#666666")
         label = MODEL_LABELS.get(model, model)
-        st = MODEL_MARKERS.get(model, MARKER_STYLES[0])
+        st = MODEL_MARKERS.get(model, _FALLBACK_STYLE)
         ax.plot(lengths, avg_tokens, color=color, label=label,
                 linewidth=2, markersize=6,
                 marker=st["marker"], fillstyle=st["fillstyle"],
@@ -509,11 +556,41 @@ def plot_token_map(all_data, out_path):
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 
+DEFAULT_MODELS = [
+    "gemma3:4b", "llama3.1:8b", "qwen3:8b",
+    "gemma4:e2b", "gemma4:e4b", "gemma4:26b",
+]
+
+
+def detect_available_models() -> list[str]:
+    """掃描 results/ 目錄，回傳有非空繁問繁答資料的模型清單"""
+    models = []
+    for fname in os.listdir(RESULTS_DIR):
+        if not fname.endswith("_results.jsonl"):
+            continue
+        if fname.startswith("h2_"):
+            continue
+        model = fname.replace("_results.jsonl", "")
+        fpath = os.path.join(RESULTS_DIR, fname)
+        if os.path.getsize(fpath) > 0:
+            models.append(model)
+    # 照家族排序：gemma3 → gemma4 → llama → qwen3 → qwen3.5
+    order = list(MODEL_LABELS.keys())
+    models.sort(key=lambda m: order.index(m) if m in order else 999)
+    return models
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--models", nargs="+",
-                        default=["gemma3:4b", "llama3.1:8b"])
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--models", nargs="+", default=DEFAULT_MODELS,
+                       help="指定要產生圖表的模型（預設：6 個已完成繁問繁答的模型）")
+    group.add_argument("--all", action="store_true",
+                       help="自動偵測 results/ 目錄下所有有資料的模型")
     args = parser.parse_args()
+    if args.all:
+        args.models = detect_available_models()
+        print(f"偵測到 {len(args.models)} 個模型：{args.models}")
 
     os.makedirs(PLOT_DIR, exist_ok=True)
 
