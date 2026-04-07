@@ -180,6 +180,8 @@ for m in MODELS:
                 "time_str": time_str,
             })
 
+active.sort(key=lambda a: (0 if a["running"] else 1))
+
 if active:
     print()
     print("  ▌ 進行中 / 暫停")
