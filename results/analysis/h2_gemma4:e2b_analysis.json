@@ -1,0 +1,19 @@
+{
+  "model": "h2_gemma4:e2b",
+  "total_results": 904,
+  "token_stats": {
+    "message": "無 token 計數資料"
+  },
+  "accuracy_by_length": {
+    "traditional": {},
+    "simplified": {}
+  },
+  "accuracy_by_position": {
+    "traditional": {},
+    "simplified": {}
+  },
+  "heatmap": {
+    "traditional": {},
+    "simplified": {}
+  }
+}
