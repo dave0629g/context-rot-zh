@@ -31,6 +31,7 @@ def scan_variant(jsonl_path, variant):
     skipped = 0
     total_sec = 0.0
     last = None
+    done_lengths = set()
     try:
         with open(jsonl_path) as f:
             for line in f:
@@ -44,6 +45,7 @@ def scan_variant(jsonl_path, variant):
                     done += 1
                     total_sec += r.get("elapsed_seconds", 0)
                     last = r
+                    done_lengths.add(r["context_length_chars"])
                 except: pass
     except:
         pass
@@ -54,8 +56,8 @@ def scan_variant(jsonl_path, variant):
         mtime = "—"
 
     if last:
-        return done, skipped, total_sec, str(last["experiment_id"]), f"{last['context_length_chars']:,}", f"{last['elapsed_seconds']:.1f}s", mtime
-    return done, skipped, 0, "—", "—", "—", "—"
+        return done, skipped, total_sec, str(last["experiment_id"]), f"{last['context_length_chars']:,}", f"{last['elapsed_seconds']:.1f}s", mtime, done_lengths
+    return done, skipped, 0, "—", "—", "—", "—", done_lengths
 
 def fmt_time(sec):
     if sec <= 0: return "—"
@@ -113,12 +115,13 @@ for m in MODELS:
     m["data"] = {}
     for label, vk in VARIANT_KEYS:
         p = path_sq if vk == "simplified_q" else path
-        d, s, t, lid, llen, lt, mtime = scan_variant(p, vk)
+        d, s, t, lid, llen, lt, mtime, dlens = scan_variant(p, vk)
         m["data"][vk] = {
             "done": d, "skip": s, "sec": t,
             "last": (lid, llen, lt),
             "mtime": mtime,
             "running": is_running(m["model"], vk),
+            "done_lengths": dlens,
         }
 
 def fmt(done, skip):
@@ -127,9 +130,16 @@ def fmt(done, skip):
     if skip > 0: return f"{done}+{skip}s/{TOTAL}"
     return f"{done}/{TOTAL}"
 
+PER_LENGTH = 110  # 11 positions × 10 needles
+
 def color_for(d):
     processed = d["done"] + d["skip"]
     if processed >= TOTAL: return GREEN
+    # context window 較小的模型：大長度被跳過不寫入，
+    # 若 done = 已完成長度數 × 110，代表所有可做的都做完了
+    if not d["running"] and d["skip"] > 0 and d["done"] > 0:
+        if d["done"] == len(d["done_lengths"]) * PER_LENGTH:
+            return GREEN
     if d["running"]: return RED
     if d["done"] == 0 and d["skip"] == 0: return DIM
     return YELLOW
