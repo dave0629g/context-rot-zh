@@ -1,5 +1,5 @@
 {
-  "model": "gemma4:31b",
+  "model": "qwen3.5:9b",
   "total_results": 1320,
   "token_stats": {
     "message": "無 token 計數資料"
