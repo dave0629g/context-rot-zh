@@ -60,9 +60,17 @@ DEFAULT_MODELS = {"gemma3:4b", "llama3.1:8b", "gemma4:e2b"}
 
 # ── 資料載入 ──────────────────────────────────────────────────────────────────
 
+def _jsonl_max_mtime() -> float:
+    """回傳所有 JSONL 結果檔的最新修改時間，作為快取失效 key。"""
+    mtimes = [f.stat().st_mtime for f in RESULTS_DIR.glob("*_results.jsonl")]
+    return max(mtimes) if mtimes else 0.0
+
+
 @st.cache_data(show_spinner="載入並評估資料（首次約需 10–20 秒）...")
-def load_all_data() -> dict:
-    """回傳 {model: {variant_label: [records]}}"""
+def load_all_data(mtime_key: float = 0.0) -> dict:
+    """回傳 {model: {variant_label: [records]}}
+    mtime_key 由呼叫端傳入，確保 JSONL 更新後快取自動失效。
+    """
     result = {}
     variant_source = [
         ("traditional",  lambda m: RESULTS_DIR / f"{m}_results.jsonl",    "繁問繁答"),
@@ -303,7 +311,7 @@ st.set_page_config(
 st.title("🔬 繁體中文 Context Rot 實驗結果瀏覽器")
 st.caption("Needle-in-a-Haystack：比較繁體 vs 簡體 context 對 LLM 長文檢索能力的影響")
 
-all_data = load_all_data()
+all_data = load_all_data(mtime_key=_jsonl_max_mtime())
 # 只保留有資料且在 MODEL_META 中定義的模型，按家族順序排列
 available_models = [
     m for fam_models in FAMILIES.values()
