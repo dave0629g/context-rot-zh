@@ -286,13 +286,13 @@ run_exp "llama3.1:8b 簡問簡答（補跑）" \
     python3 scripts/06_hypothesis2_simp_question.py --model llama3.1:8b --resume
 unload_model "llama3.1:8b"
 
-run_exp "llama3.3:70b 簡問簡答" \
-    python3 scripts/06_hypothesis2_simp_question.py --model llama3.3:70b --resume
-unload_model "llama3.3:70b"
-
 run_exp "qwen3:8b 簡問簡答" \
     python3 scripts/06_hypothesis2_simp_question.py --model qwen3:8b --resume
 unload_model "qwen3:8b"
+
+run_exp "llama3.3:70b 簡問簡答" \
+    python3 scripts/06_hypothesis2_simp_question.py --model llama3.3:70b --resume
+unload_model "llama3.3:70b"
 
 # ═══════════════════════════════════════════════════════════
 # Phase D: 繁問簡答（由小到大）
@@ -354,13 +354,13 @@ run_exp "llama3.1:8b 繁問簡答（補跑）" \
     python3 scripts/03_run_experiment.py --model llama3.1:8b --variant simplified --resume
 unload_model "llama3.1:8b"
 
-run_exp "llama3.3:70b 繁問簡答" \
-    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant simplified --resume
-unload_model "llama3.3:70b"
-
 run_exp "qwen3:8b 繁問簡答" \
     python3 scripts/03_run_experiment.py --model qwen3:8b --variant simplified --resume
 unload_model "qwen3:8b"
+
+run_exp "llama3.3:70b 繁問簡答" \
+    python3 scripts/03_run_experiment.py --model llama3.3:70b --variant simplified --resume
+unload_model "llama3.3:70b"
 
 # ═══════════════════════════════════════════════════════════
 
