@@ -184,28 +184,45 @@ def reevaluate(r: dict) -> bool:
     return exact_match or number_match
 
 
-def load_results(model: str, eval_file: str = None, reeval: bool = False) -> list[dict]:
-    """載入指定模型的結果，可選擇用 LLM 評估檔覆蓋原始判斷"""
-    path = os.path.join(RESULTS_DIR, f"{model}_results.jsonl")
-    if not os.path.exists(path):
-        print(f"找不到結果檔案: {path}")
-        return []
+def _load_jsonl(path: str) -> list[dict]:
+    """載入 JSONL 檔案，排除 skipped 記錄"""
     results = []
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 results.append(json.loads(line))
-
-    # 排除已標記為跳過的記錄
     skipped = [r for r in results if r.get("skipped")]
     if skipped:
         results = [r for r in results if not r.get("skipped")]
-        print(f"排除 {len(skipped)} 筆 context_length_exceeded 記錄")
+        print(f"  排除 {len(skipped)} 筆 context_length_exceeded 記錄 ({os.path.basename(path)})")
+    return results
+
+
+def load_results(model: str, eval_file: str = None, reeval: bool = False) -> list[dict]:
+    """載入指定模型的結果（含 h2_ 檔案），可選擇用 LLM 評估檔覆蓋原始判斷"""
+    path = os.path.join(RESULTS_DIR, f"{model}_results.jsonl")
+    h2_path = os.path.join(RESULTS_DIR, f"h2_{model}_results.jsonl")
+
+    if not os.path.exists(path):
+        print(f"找不到結果檔案: {path}")
+        return []
+
+    results = _load_jsonl(path)
+
+    # 合併 h2_ 結果（simplified_q variant）
+    if os.path.exists(h2_path):
+        h2_results = _load_jsonl(h2_path)
+        print(f"合併 h2_ 結果：{len(h2_results)} 筆 simplified_q")
+        results.extend(h2_results)
 
     if reeval:
         for r in results:
             r["evaluation"]["is_correct"] = reevaluate(r)
-        print(f"已重新評估（修正版文字比對）：{len(results)} 筆")
+        # 統計各 variant 的 reeval 數量
+        from collections import Counter
+        vc = Counter(r["variant"] for r in results)
+        parts = ", ".join(f"{v}={n}" for v, n in sorted(vc.items()))
+        print(f"已重新評估（修正版文字比對）：{len(results)} 筆 ({parts})")
 
     if eval_file:
         if not os.path.exists(eval_file):
@@ -271,7 +288,9 @@ def compute_accuracy_by_length(results: list[dict]) -> dict:
         counts[variant][length]["correct"] += int(is_correct)
 
     accuracy = {}
-    for variant in ["traditional", "simplified"]:
+    for variant in ["traditional", "simplified", "simplified_q"]:
+        if variant not in counts:
+            continue
         accuracy[variant] = {}
         for length in sorted(counts[variant].keys()):
             c = counts[variant][length]
@@ -294,7 +313,9 @@ def compute_accuracy_by_position(results: list[dict]) -> dict:
         counts[variant][position]["correct"] += int(is_correct)
 
     accuracy = {}
-    for variant in ["traditional", "simplified"]:
+    for variant in ["traditional", "simplified", "simplified_q"]:
+        if variant not in counts:
+            continue
         accuracy[variant] = {}
         for pos in sorted(counts[variant].keys()):
             c = counts[variant][pos]
@@ -366,7 +387,9 @@ def compute_heatmap_data(results: list[dict]) -> dict:
         counts[variant][length][position]["correct"] += int(is_correct)
 
     heatmap = {}
-    for variant in ["traditional", "simplified"]:
+    for variant in ["traditional", "simplified", "simplified_q"]:
+        if variant not in counts:
+            continue
         heatmap[variant] = {}
         for length in sorted(counts[variant].keys()):
             heatmap[variant][length] = {}
@@ -381,38 +404,64 @@ def compute_heatmap_data(results: list[dict]) -> dict:
 
 
 def print_accuracy_table(accuracy: dict, label: str):
-    """印出準確率表格"""
-    print(f"\n{'─' * 60}")
+    """印出準確率表格（支援 traditional / simplified / simplified_q）"""
+    print(f"\n{'─' * 75}")
     print(f"  {label}")
-    print(f"{'─' * 60}")
+    print(f"{'─' * 75}")
 
-    lengths = sorted(
-        set(list(accuracy.get("traditional", {}).keys())
-            + list(accuracy.get("simplified", {}).keys()))
-    )
+    all_keys = set()
+    for v in ["traditional", "simplified", "simplified_q"]:
+        all_keys.update(accuracy.get(v, {}).keys())
+    lengths = sorted(all_keys)
 
     if not lengths:
         print("  （無資料）")
         return
 
-    # 表頭
-    print(f"  {'長度':>10s}  {'繁體':>8s}  {'簡體':>8s}  {'差異':>8s}")
-    print(f"  {'─' * 10}  {'─' * 8}  {'─' * 8}  {'─' * 8}")
+    has_simp = bool(accuracy.get("simplified"))
+    has_simp_q = bool(accuracy.get("simplified_q"))
+
+    # 動態表頭
+    header = f"  {'長度':>10s}  {'繁問繁答':>8s}"
+    sep = f"  {'─' * 10}  {'─' * 8}"
+    if has_simp:
+        header += f"  {'繁問簡答':>8s}"
+        sep += f"  {'─' * 8}"
+    if has_simp_q:
+        header += f"  {'簡問簡答':>8s}"
+        sep += f"  {'─' * 8}"
+    header += f"  {'繁-簡q':>8s}" if has_simp_q else (f"  {'差異':>8s}" if has_simp else "")
+    sep += f"  {'─' * 8}" if (has_simp_q or has_simp) else ""
+    print(header)
+    print(sep)
 
     for length in lengths:
         trad = accuracy.get("traditional", {}).get(length, None)
         simp = accuracy.get("simplified", {}).get(length, None)
+        simp_q = accuracy.get("simplified_q", {}).get(length, None)
 
         trad_str = f"{trad * 100:6.1f}%" if trad is not None else "   N/A"
-        simp_str = f"{simp * 100:6.1f}%" if simp is not None else "   N/A"
+        row = f"  {length:>10,}  {trad_str}"
 
-        if trad is not None and simp is not None:
-            diff = (trad - simp) * 100
+        if has_simp:
+            simp_str = f"{simp * 100:6.1f}%" if simp is not None else "   N/A"
+            row += f"  {simp_str}"
+
+        if has_simp_q:
+            simp_q_str = f"{simp_q * 100:6.1f}%" if simp_q is not None else "   N/A"
+            row += f"  {simp_q_str}"
+
+        # 差異欄：優先用 trad vs simp_q，否則用 trad vs simp
+        ref = simp_q if has_simp_q else (simp if has_simp else None)
+        if trad is not None and ref is not None:
+            diff = (trad - ref) * 100
             diff_str = f"{diff:+6.1f}%"
         else:
             diff_str = "   N/A"
+        if has_simp_q or has_simp:
+            row += f"  {diff_str}"
 
-        print(f"  {length:>10,}  {trad_str}  {simp_str}  {diff_str}")
+        print(row)
 
 
 def generate_report(model: str, results: list[dict]):
@@ -482,10 +531,10 @@ def main():
     args = parser.parse_args()
 
     if args.all:
-        # 掃描 results 目錄下的所有結果檔
+        # 掃描 results 目錄下的所有結果檔（h2_ 檔案會自動合併，不另外列出）
         models = []
         for f in os.listdir(RESULTS_DIR):
-            if f.endswith("_results.jsonl"):
+            if f.endswith("_results.jsonl") and not f.startswith("h2_"):
                 models.append(f.replace("_results.jsonl", ""))
     elif args.model:
         models = [args.model]
@@ -506,22 +555,33 @@ def main():
         print(f"  跨模型比較")
         print(f"{'═' * 60}")
 
-        print(f"\n  {'模型':>15s}  {'繁/簡token比':>12s}  {'繁體最長準確率':>14s}  {'簡體最長準確率':>14s}")
-        print(f"  {'─' * 15}  {'─' * 12}  {'─' * 14}  {'─' * 14}")
+        print(f"\n  {'模型':>15s}  {'繁/簡token比':>12s}  {'繁問繁答@max':>14s}  {'簡問簡答@max':>14s}  {'差距':>8s}")
+        print(f"  {'─' * 15}  {'─' * 12}  {'─' * 14}  {'─' * 14}  {'─' * 8}")
 
         for model, analysis in all_analyses.items():
             ratio = analysis["token_stats"].get("avg_ratio_trad_over_simp", "N/A")
             acc_trad = analysis["accuracy_by_length"].get("traditional", {})
+            acc_simp_q = analysis["accuracy_by_length"].get("simplified_q", {})
             acc_simp = analysis["accuracy_by_length"].get("simplified", {})
 
-            max_len = max(list(acc_trad.keys()) + list(acc_simp.keys()), default=0)
+            # 用 simp_q 優先，沒有則用 simp
+            acc_ref = acc_simp_q or acc_simp
+
+            all_keys = list(acc_trad.keys()) + list(acc_ref.keys())
+            max_len = max(all_keys, default=0)
             trad_at_max = acc_trad.get(max_len, None)
-            simp_at_max = acc_simp.get(max_len, None)
+            ref_at_max = acc_ref.get(max_len, None)
 
             trad_str = f"{trad_at_max*100:.1f}%" if trad_at_max else "N/A"
-            simp_str = f"{simp_at_max*100:.1f}%" if simp_at_max else "N/A"
+            ref_str = f"{ref_at_max*100:.1f}%" if ref_at_max else "N/A"
 
-            print(f"  {model:>15s}  {str(ratio):>12s}  {trad_str:>14s}  {simp_str:>14s}")
+            if trad_at_max is not None and ref_at_max is not None:
+                diff = (trad_at_max - ref_at_max) * 100
+                diff_str = f"{diff:+.1f}%"
+            else:
+                diff_str = "N/A"
+
+            print(f"  {model:>15s}  {str(ratio):>12s}  {trad_str:>14s}  {ref_str:>14s}  {diff_str:>8s}")
 
 
 if __name__ == "__main__":
