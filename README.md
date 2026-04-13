@@ -1291,6 +1291,50 @@ gemma3:27b 在 65K 以前表現完美，在 100K 開始輸出大量 `<pad>` toke
 
 ---
 
+### 架構世代改進與繁體 Context Rot 免疫機制
+
+本節分析為何 Gemma 4 和 Qwen 3.5 在硬體不變的情況下對繁體 context rot 完全免疫，而 Gemma 3 和 LLaMA 3.x 仍存在退化。
+
+#### 注意力機制演進
+
+| 模型家族 | 注意力架構 | 長 context 特性 | 來源 |
+|---------|----------|----------------|------|
+| LLaMA 3.x | 標準 softmax + GQA | 全 O(n²)，128K 後品質衰減 | [arXiv 2407.21783](https://arxiv.org/abs/2407.21783) |
+| Gemma 3 | Sliding window + global（混合） | 最後一層設計缺陷（4B 為 local），KV cache 數值不穩 | [arXiv 2503.19786](https://arxiv.org/abs/2503.19786) |
+| Gemma 4 | Sliding window + global（5:1 交錯），最終層強制 global | O(window × n)，256K stable | [Model Card](https://ai.google.dev/gemma/docs/core/model_card_4) |
+| Qwen 3.5 | Gated DeltaNet（線性）+ full softmax（1:3 交錯） | GDN 層 O(1)/token，原生 262K，可擴展 1M+ | [arXiv 2505.09388](https://arxiv.org/abs/2505.09388) |
+
+#### 位置編碼演進
+
+| 模型家族 | 位置編碼 | 特性 | 來源 |
+|---------|---------|------|------|
+| LLaMA 3.x | 標準 RoPE（base 500K） | 訓練長度外外推失敗 | [arXiv 2407.21783](https://arxiv.org/abs/2407.21783) |
+| Gemma 4 | Proportional RoPE (p-RoPE) | Global 層位置編碼隨序列長度等比例縮放 | [Model Card](https://ai.google.dev/gemma/docs/core/model_card_4) |
+| Qwen 3.5 | YaRN + NTK-aware interpolation | 高頻少縮、低頻多縮，加溫度參數 | [arXiv 2309.00071](https://arxiv.org/abs/2309.00071) |
+
+#### KV Cache 優化
+
+Gemma 4 引入 **Shared KV Cache**（後 N 層複用前面層的 K/V 張量），降低長 context 下的記憶體佔用與量化數值不穩定風險。此改進可能解釋了 gemma3:27b 在 100K+ 出現 pad token 崩潰、而 gemma4 同規模完全穩定的差異。
+
+#### 對繁體中文的具體幫助
+
+1. **安全餘量吸收 token overhead**：繁體多 5.9–10.6% token，若模型有效 context window 從 ~60% 利用率（Gemma 3）提升至 37%（Qwen 3.5 @130K chars / 262K ctx），overhead 完全被安全餘量吸收。
+2. **混合注意力消除 Lost in the Middle**：Sliding window 層不受全局序列長度影響，繁體的額外 token 不再稀釋中段注意力權重。
+3. **線性注意力對 token 密度不敏感**：Qwen 3.5 GDN 層將 context 壓縮為固定大小 state，不管 90K tokens（簡體）或 98K tokens（繁體），壓縮後 state 大小相同。
+
+#### 參考文獻
+
+| 主題 | 來源 |
+|------|------|
+| Gemma 3 架構 | [arXiv 2503.19786](https://arxiv.org/abs/2503.19786) |
+| Gemma 4 架構 | [Gemma 4 Model Card](https://ai.google.dev/gemma/docs/core/model_card_4)、[Visual Guide to Gemma 4](https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-gemma-4) |
+| Qwen 3/3.5 架構 | [arXiv 2505.09388](https://arxiv.org/abs/2505.09388) |
+| LLaMA 3 架構 | [arXiv 2407.21783](https://arxiv.org/abs/2407.21783) |
+| YaRN 位置編碼 | [arXiv 2309.00071](https://arxiv.org/abs/2309.00071) |
+| 架構效率比較 | [arXiv 2604.07035](https://arxiv.org/abs/2604.07035) |
+
+---
+
 ### 總體結論與研究局限
 
 #### 已建立的發現
