@@ -167,6 +167,17 @@ for m in MODELS:
         parts.append(f"{col}{wrjust(sec, C[3+i*2])}{RESET}")
     print("  " + "  ".join(parts))
 
+# 合計列（繁問繁答）
+total_trad = sum(m["data"]["traditional"]["sec"] for m in MODELS)
+total_simp_q = sum(m["data"]["simplified_q"]["sec"] for m in MODELS)
+total_simp = sum(m["data"]["simplified"]["sec"] for m in MODELS)
+print(SEP)
+sum_parts = [wljust("合計", C[0]), wljust("", C[1])]
+for total_sec in [total_trad, total_simp_q, total_simp]:
+    sum_parts.append(wrjust("", C[2]))
+    sum_parts.append(wrjust(fmt_time(total_sec), C[3]))
+print("  " + "  ".join(sum_parts))
+
 # ── 進行中 / 暫停 ───────────────────────────────────────────────
 active = []
 AC = [14, 10, 16, 6, 8, 8, 10]  # model, variant, progress, id, len, elapsed, mtime
@@ -174,7 +185,7 @@ for m in MODELS:
     for label, vk in VARIANT_KEYS:
         d = m["data"][vk]
         processed = d["done"] + d["skip"]
-        if d["running"] or 0 < processed < TOTAL:
+        if d["running"] or (0 < processed < TOTAL and color_for(d) != GREEN):
             lid, llen, lt = d["last"]
             skip_info = f"+{d['skip']}s" if d["skip"] > 0 else ""
             progress = f"{d['done']}{skip_info}/{TOTAL}"
