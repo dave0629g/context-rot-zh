@@ -17,6 +17,10 @@ sys.path.insert(0, os.path.dirname(__file__))
 from importlib import import_module
 _analyze = import_module("04_analyze")
 reevaluate = _analyze.reevaluate
+compute_rot_coefficient = _analyze.compute_rot_coefficient
+compute_breakpoint = _analyze.compute_breakpoint
+compute_token_overhead_by_length = _analyze.compute_token_overhead_by_length
+compute_long_context_accuracy = _analyze.compute_long_context_accuracy
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "docs")
@@ -163,6 +167,78 @@ def main():
             model_data.get("繁問簡答", []),
         )
         output["data"][model]["token_overhead_pct"] = overhead
+
+        # ── 深度分析指標 ──
+        # 將記錄轉回 04_analyze 格式（需要 variant + evaluation.is_correct）
+        LABEL_TO_VARIANT = {"繁問繁答": "traditional", "繁問簡答": "simplified", "簡問簡答": "simplified_q"}
+        flat_records = []
+        for label, recs in model_data.items():
+            vkey = LABEL_TO_VARIANT.get(label)
+            if not vkey:
+                continue
+            for r in recs:
+                r["variant"] = vkey
+                r["evaluation"] = {"is_correct": r["_correct"]}
+                flat_records.append(r)
+
+        rot = compute_rot_coefficient(flat_records)
+        bps = compute_breakpoint(flat_records)
+        long_acc = compute_long_context_accuracy(flat_records)
+        overhead_by_len = compute_token_overhead_by_length(flat_records)
+
+        VARIANT_TO_LABEL = {v: k for k, v in LABEL_TO_VARIANT.items()}
+        output["data"][model]["rot_coefficient"] = {
+            VARIANT_TO_LABEL.get(v, v): {
+                "slope": rc["slope_pp_per_1k_chars"],
+                "r_squared": rc["r_squared"],
+                "baseline_pct": rc["baseline_pct"],
+            }
+            for v, rc in rot.items()
+        }
+        output["data"][model]["breakpoints"] = {
+            VARIANT_TO_LABEL.get(v, v): {
+                "breakpoint_drop": bp["breakpoint_drop"],
+                "breakpoint_below_80": bp["breakpoint_below_80"],
+                "baseline_pct": bp["baseline_pct"],
+                "acc_at_max_length": bp["acc_at_max_length"],
+                "total_drop_pp": bp["total_drop_pp"],
+            }
+            for v, bp in bps.items()
+        }
+        output["data"][model]["long_context_accuracy"] = {
+            VARIANT_TO_LABEL.get(v, v): round(a * 100, 2) if a else None
+            for v, a in long_acc.items()
+        }
+        if overhead_by_len:
+            output["data"][model]["token_overhead_by_length"] = {
+                str(l): d["overhead_pct"] for l, d in overhead_by_len.items()
+            }
+
+    # ── 跨模型比較摘要 ──
+    cross_model = []
+    for model_id in model_ids:
+        d = output["data"].get(model_id)
+        if not d:
+            continue
+        meta = MODEL_META.get(model_id, {})
+        rot_trad = (d.get("rot_coefficient") or {}).get("繁問繁答", {})
+        rot_simp = (d.get("rot_coefficient") or {}).get("簡問簡答", {})
+        bp_trad = (d.get("breakpoints") or {}).get("繁問繁答", {})
+        bp_simp = (d.get("breakpoints") or {}).get("簡問簡答", {})
+        cross_model.append({
+            "model": model_id,
+            "label": meta.get("label", model_id),
+            "family": meta.get("family", ""),
+            "params": meta.get("params", ""),
+            "rot_slope_trad": rot_trad.get("slope"),
+            "rot_slope_simp": rot_simp.get("slope"),
+            "breakpoint_trad": bp_trad.get("breakpoint_drop"),
+            "breakpoint_simp": bp_simp.get("breakpoint_drop"),
+            "total_drop_trad": bp_trad.get("total_drop_pp"),
+            "total_drop_simp": bp_simp.get("total_drop_pp"),
+            "token_overhead_pct": d.get("token_overhead_pct"),
+        })
+    output["cross_model_summary"] = cross_model
 
     out_path = os.path.join(DOCS_DIR, "data.json")
     with open(out_path, "w", encoding="utf-8") as f:

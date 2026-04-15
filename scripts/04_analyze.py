@@ -403,6 +403,171 @@ def compute_heatmap_data(results: list[dict]) -> dict:
     return heatmap
 
 
+def compute_rot_coefficient(results: list[dict]) -> dict:
+    """
+    計算每個 variant 的衰退係數（rot coefficient）。
+
+    方法：以短上下文（≤8000 字元）的平均準確率為基線，
+    對所有長度做線性迴歸，斜率即為每增加 1K 字元的準確率變化（pp/1K chars）。
+    同時回傳 R² 以評估線性假設的合理性。
+    """
+    acc = compute_accuracy_by_length(results)
+    rot = {}
+    for variant, length_acc in acc.items():
+        points = sorted(length_acc.items())
+        if len(points) < 3:
+            continue
+        xs = [l / 1000 for l, _ in points]  # 轉為 K chars
+        ys = [a * 100 for _, a in points]    # 轉為百分比
+
+        n = len(xs)
+        sx = sum(xs)
+        sy = sum(ys)
+        sxx = sum(x * x for x in xs)
+        sxy = sum(x * y for x, y in zip(xs, ys))
+
+        denom = n * sxx - sx * sx
+        if denom == 0:
+            continue
+        slope = (n * sxy - sx * sy) / denom
+        intercept = (sy - slope * sx) / n
+
+        # R²
+        y_mean = sy / n
+        ss_tot = sum((y - y_mean) ** 2 for y in ys)
+        ss_res = sum((y - (slope * x + intercept)) ** 2 for x, y in zip(xs, ys))
+        r_squared = 1 - ss_res / ss_tot if ss_tot > 0 else 0
+
+        # 短上下文基線（≤8K）
+        baseline_pts = [a for l, a in points if l <= 8000]
+        baseline = sum(baseline_pts) / len(baseline_pts) * 100 if baseline_pts else ys[0]
+
+        rot[variant] = {
+            "slope_pp_per_1k_chars": round(slope, 4),
+            "intercept": round(intercept, 2),
+            "r_squared": round(r_squared, 4),
+            "baseline_pct": round(baseline, 2),
+            "points_count": n,
+        }
+    return rot
+
+
+def compute_breakpoint(results: list[dict], threshold_drop: float = 10.0) -> dict:
+    """
+    偵測每個 variant 的性能斷點（breakpoint）。
+
+    定義：以最短 3 個長度的平均準確率為基線，
+    斷點為準確率首次下降超過 threshold_drop (pp) 的上下文長度。
+    同時回傳準確率首次低於 80% 的長度。
+    """
+    acc = compute_accuracy_by_length(results)
+    breakpoints = {}
+    for variant, length_acc in acc.items():
+        points = sorted(length_acc.items())
+        if len(points) < 3:
+            continue
+
+        # 基線：最短 3 個長度的平均
+        baseline = sum(a for _, a in points[:3]) / 3 * 100
+
+        bp_drop = None
+        bp_80 = None
+        for length, a in points:
+            pct = a * 100
+            if bp_drop is None and baseline - pct >= threshold_drop:
+                bp_drop = length
+            if bp_80 is None and pct < 80:
+                bp_80 = length
+
+        breakpoints[variant] = {
+            "baseline_pct": round(baseline, 2),
+            "drop_threshold_pp": threshold_drop,
+            "breakpoint_drop": bp_drop,        # 首次掉 threshold_drop pp 的長度
+            "breakpoint_below_80": bp_80,       # 首次低於 80% 的長度
+            "acc_at_max_length": round(points[-1][1] * 100, 2),
+            "max_length": points[-1][0],
+            "total_drop_pp": round(baseline - points[-1][1] * 100, 2),
+        }
+    return breakpoints
+
+
+def compute_token_overhead_by_length(results: list[dict]) -> dict:
+    """
+    按上下文長度計算繁體 vs 簡體的 token overhead。
+
+    回傳 {context_length: {avg_ratio, trad_tokens, simp_tokens, overhead_pct}}
+    """
+    from collections import defaultdict
+
+    pairs = defaultdict(lambda: defaultdict(dict))
+    for r in results:
+        if r.get("skipped"):
+            continue
+        tp = r.get("token_count_prompt") or r.get("token_count_actual") or 0
+        if tp > 0:
+            pairs[r["experiment_id"]][r["variant"]] = {
+                "tokens": tp,
+                "length": r["context_length_chars"],
+            }
+
+    length_data = defaultdict(lambda: {"trad": [], "simp": []})
+    for exp_id, variants in pairs.items():
+        if "traditional" in variants and "simplified" in variants:
+            length = variants["traditional"]["length"]
+            length_data[length]["trad"].append(variants["traditional"]["tokens"])
+            length_data[length]["simp"].append(variants["simplified"]["tokens"])
+
+    result = {}
+    for length in sorted(length_data):
+        d = length_data[length]
+        if d["trad"] and d["simp"]:
+            avg_trad = sum(d["trad"]) / len(d["trad"])
+            avg_simp = sum(d["simp"]) / len(d["simp"])
+            result[length] = {
+                "avg_trad_tokens": round(avg_trad, 1),
+                "avg_simp_tokens": round(avg_simp, 1),
+                "overhead_pct": round((avg_trad / avg_simp - 1) * 100, 2),
+                "pair_count": min(len(d["trad"]), len(d["simp"])),
+            }
+    return result
+
+
+def compute_accuracy_by_needle(results: list[dict]) -> dict:
+    """計算各 variant 各 needle 的準確率"""
+    counts = defaultdict(lambda: defaultdict(lambda: {"correct": 0, "total": 0}))
+    for r in results:
+        variant = r["variant"]
+        needle = r.get("needle_id", "unknown")
+        is_correct = r["evaluation"]["is_correct"]
+        counts[variant][needle]["total"] += 1
+        counts[variant][needle]["correct"] += int(is_correct)
+
+    result = {}
+    for variant in ["traditional", "simplified", "simplified_q"]:
+        if variant not in counts:
+            continue
+        result[variant] = {}
+        for needle in sorted(counts[variant]):
+            c = counts[variant][needle]
+            if c["total"] > 0:
+                result[variant][needle] = round(c["correct"] / c["total"], 4)
+    return result
+
+
+def compute_long_context_accuracy(results: list[dict], min_length: int = 65000) -> dict:
+    """計算長上下文（≥min_length）下各 variant 的準確率"""
+    counts = defaultdict(lambda: {"correct": 0, "total": 0})
+    for r in results:
+        if r["context_length_chars"] >= min_length:
+            v = r["variant"]
+            counts[v]["total"] += 1
+            counts[v]["correct"] += int(r["evaluation"]["is_correct"])
+    return {
+        v: round(c["correct"] / c["total"], 4) if c["total"] > 0 else None
+        for v, c in counts.items()
+    }
+
+
 def print_accuracy_table(accuracy: dict, label: str):
     """印出準確率表格（支援 traditional / simplified / simplified_q）"""
     print(f"\n{'─' * 75}")
@@ -500,6 +665,30 @@ def generate_report(model: str, results: list[dict]):
     # 4. 熱力圖數據
     heatmap = compute_heatmap_data(results)
 
+    # 5. 衰退係數
+    rot_coeff = compute_rot_coefficient(results)
+    print(f"\n📉 衰退係數（pp / 1K 字元）")
+    for v, rc in rot_coeff.items():
+        print(f"  {v}: slope={rc['slope_pp_per_1k_chars']:.3f}, "
+              f"R²={rc['r_squared']:.3f}, baseline={rc['baseline_pct']:.1f}%")
+
+    # 6. 斷點偵測
+    breakpoints = compute_breakpoint(results)
+    print(f"\n📍 斷點位置（首次掉 10pp）")
+    for v, bp in breakpoints.items():
+        bp_str = f"{bp['breakpoint_drop']:,}" if bp['breakpoint_drop'] else "未觸發"
+        print(f"  {v}: {bp_str} 字元（基線={bp['baseline_pct']:.1f}%, "
+              f"最長={bp['acc_at_max_length']:.1f}%, 落差={bp['total_drop_pp']:.1f}pp）")
+
+    # 7. Token overhead by length
+    overhead_by_len = compute_token_overhead_by_length(results)
+
+    # 8. 各 needle 準確率
+    acc_by_needle = compute_accuracy_by_needle(results)
+
+    # 9. 長上下文準確率
+    long_ctx_acc = compute_long_context_accuracy(results)
+
     # 儲存完整分析結果
     analysis = {
         "model": model,
@@ -508,6 +697,11 @@ def generate_report(model: str, results: list[dict]):
         "accuracy_by_length": acc_by_length,
         "accuracy_by_position": acc_by_position,
         "heatmap": heatmap,
+        "rot_coefficient": rot_coeff,
+        "breakpoints": breakpoints,
+        "token_overhead_by_length": overhead_by_len,
+        "accuracy_by_needle": acc_by_needle,
+        "long_context_accuracy": long_ctx_acc,
     }
 
     os.makedirs(ANALYSIS_DIR, exist_ok=True)

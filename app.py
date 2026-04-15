@@ -21,6 +21,9 @@ sys.path.insert(0, str(Path(__file__).parent / "scripts"))
 from importlib import import_module
 _analyze = import_module("04_analyze")
 reevaluate = _analyze.reevaluate
+compute_rot_coefficient = _analyze.compute_rot_coefficient
+compute_breakpoint = _analyze.compute_breakpoint
+compute_long_context_accuracy = _analyze.compute_long_context_accuracy
 
 # ── 常數 ──────────────────────────────────────────────────────────────────────
 RESULTS_DIR = Path(__file__).parent / "results"
@@ -279,6 +282,266 @@ def chart_token_overhead(all_data, models) -> go.Figure | None:
     return fig
 
 
+LABEL_TO_VARIANT = {"繁問繁答": "traditional", "繁問簡答": "simplified", "簡問簡答": "simplified_q"}
+VARIANT_TO_LABEL = {v: k for k, v in LABEL_TO_VARIANT.items()}
+
+
+def _to_flat_records(all_data: dict, model: str) -> list:
+    """將 Streamlit 格式的資料轉回 04_analyze 格式"""
+    flat = []
+    for label, recs in all_data.get(model, {}).items():
+        vkey = LABEL_TO_VARIANT.get(label)
+        if not vkey:
+            continue
+        for r in recs:
+            r["variant"] = vkey
+            r["evaluation"] = {"is_correct": r["_correct"]}
+            flat.append(r)
+    return flat
+
+
+def chart_rot_coefficient(all_data, models) -> go.Figure:
+    """衰退速率比較：各模型的 rot coefficient（斜率）"""
+    rows = []
+    for model in models:
+        flat = _to_flat_records(all_data, model)
+        if not flat:
+            continue
+        rot = compute_rot_coefficient(flat)
+        label = MODEL_META.get(model, {}).get("label", model)
+        for vkey, rc in rot.items():
+            rows.append({
+                "model": model, "label": label,
+                "variant": VARIANT_TO_LABEL.get(vkey, vkey),
+                "slope": rc["slope_pp_per_1k_chars"],
+                "r_squared": rc["r_squared"],
+            })
+
+    if not rows:
+        return None
+    df = pd.DataFrame(rows)
+
+    fig = go.Figure()
+    for variant in ALL_VARIANTS:
+        vdf = df[df["variant"] == variant]
+        if vdf.empty:
+            continue
+        fig.add_trace(go.Bar(
+            x=vdf["label"], y=vdf["slope"],
+            name=variant,
+            text=[f"{s:.2f}" for s in vdf["slope"]],
+            textposition="outside",
+            hovertemplate=(
+                "<b>%{x}</b> %{fullData.name}<br>"
+                "斜率: %{y:.3f} pp/1K字元<br>"
+                "<extra></extra>"
+            ),
+        ))
+    fig.update_layout(
+        title="衰退速率比較（Rot Coefficient）",
+        yaxis_title="斜率（pp / 1K 字元）",
+        xaxis_title="",
+        barmode="group",
+        height=500,
+        legend=dict(x=1.02, y=1),
+        margin=dict(r=180),
+    )
+    # 加一條 y=0 的參考線
+    fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+    return fig
+
+
+def chart_breakpoint(all_data, models) -> go.Figure:
+    """斷點分析：各模型準確率首次大幅下降的位置"""
+    rows = []
+    for model in models:
+        flat = _to_flat_records(all_data, model)
+        if not flat:
+            continue
+        bps = compute_breakpoint(flat)
+        label = MODEL_META.get(model, {}).get("label", model)
+        for vkey, bp in bps.items():
+            vlabel = VARIANT_TO_LABEL.get(vkey, vkey)
+            rows.append({
+                "model": model, "label": label,
+                "variant": vlabel,
+                "breakpoint": bp["breakpoint_drop"],
+                "total_drop": bp["total_drop_pp"],
+                "acc_at_max": bp["acc_at_max_length"],
+            })
+
+    if not rows:
+        return None
+    df = pd.DataFrame(rows)
+
+    fig = go.Figure()
+    for variant in ALL_VARIANTS:
+        vdf = df[df["variant"] == variant]
+        if vdf.empty:
+            continue
+        # 將 None 斷點顯示為 ">130K"（未觸發）
+        bp_vals = []
+        bp_text = []
+        for _, r in vdf.iterrows():
+            if r["breakpoint"] is None:
+                bp_vals.append(140000)  # 超出範圍表示未觸發
+                bp_text.append(">130K")
+            else:
+                bp_vals.append(r["breakpoint"])
+                bp_text.append(fmt_length(int(r["breakpoint"])))
+
+        fig.add_trace(go.Bar(
+            x=vdf["label"], y=bp_vals,
+            name=variant,
+            text=bp_text, textposition="outside",
+            hovertemplate=(
+                "<b>%{x}</b> %{fullData.name}<br>"
+                "斷點: %{text}<br>"
+                "<extra></extra>"
+            ),
+        ))
+
+    fig.update_layout(
+        title="斷點分析：準確率首次下降 ≥10pp 的位置",
+        yaxis_title="上下文長度（字元）",
+        yaxis=dict(
+            tickvals=[0, 8000, 16000, 32000, 65000, 100000, 130000, 140000],
+            ticktext=["0", "8K", "16K", "32K", "65K", "100K", "130K", ">130K"],
+        ),
+        barmode="group",
+        height=500,
+        legend=dict(x=1.02, y=1),
+        margin=dict(r=180),
+    )
+    return fig
+
+
+def chart_sensitivity(all_data, models) -> go.Figure:
+    """模型敏感度散佈圖：衰退斜率 vs 總落差"""
+    rows = []
+    for model in models:
+        flat = _to_flat_records(all_data, model)
+        if not flat:
+            continue
+        rot = compute_rot_coefficient(flat)
+        bps = compute_breakpoint(flat)
+        label = MODEL_META.get(model, {}).get("label", model)
+        color = MODEL_META.get(model, {}).get("color", "#888")
+        for vkey in rot:
+            if vkey not in bps:
+                continue
+            vlabel = VARIANT_TO_LABEL.get(vkey, vkey)
+            rows.append({
+                "label": label, "variant": vlabel,
+                "slope": rot[vkey]["slope_pp_per_1k_chars"],
+                "total_drop": bps[vkey]["total_drop_pp"],
+                "color": color,
+            })
+
+    if not rows:
+        return None
+
+    fig = go.Figure()
+    markers = {"繁問繁答": "circle", "繁問簡答": "diamond", "簡問簡答": "square"}
+    for variant in ALL_VARIANTS:
+        vrows = [r for r in rows if r["variant"] == variant]
+        if not vrows:
+            continue
+        fig.add_trace(go.Scatter(
+            x=[r["slope"] for r in vrows],
+            y=[r["total_drop"] for r in vrows],
+            mode="markers+text",
+            marker=dict(
+                size=14,
+                symbol=markers.get(variant, "circle"),
+                color=[r["color"] for r in vrows],
+                line=dict(width=1, color="black"),
+            ),
+            text=[r["label"] for r in vrows],
+            textposition="top center",
+            textfont=dict(size=9),
+            name=variant,
+            hovertemplate=(
+                "<b>%{text}</b> %{fullData.name}<br>"
+                "斜率: %{x:.3f} pp/1K字元<br>"
+                "總落差: %{y:.1f}pp<br>"
+                "<extra></extra>"
+            ),
+        ))
+
+    fig.update_layout(
+        title="模型敏感度：衰退斜率 vs 總落差",
+        xaxis_title="衰退斜率（pp / 1K 字元）— 越負越快衰退",
+        yaxis_title="總落差（pp）— 基線 vs 最長上下文",
+        height=550,
+        legend=dict(x=1.02, y=1),
+        margin=dict(r=180),
+    )
+    return fig
+
+
+def chart_breakpoint_shift(all_data, models) -> go.Figure:
+    """斷點偏移：繁體 vs 簡體的斷點位置差異"""
+    rows = []
+    for model in models:
+        flat = _to_flat_records(all_data, model)
+        if not flat:
+            continue
+        bps = compute_breakpoint(flat)
+        label = MODEL_META.get(model, {}).get("label", model)
+        color = MODEL_META.get(model, {}).get("color", "#888")
+
+        bp_trad = bps.get("traditional", {}).get("breakpoint_drop")
+        bp_simp = bps.get("simplified_q", bps.get("simplified", {})).get("breakpoint_drop")
+
+        drop_trad = bps.get("traditional", {}).get("total_drop_pp", 0)
+        drop_simp = bps.get("simplified_q", bps.get("simplified", {})).get("total_drop_pp", 0)
+
+        if bp_trad is None and bp_simp is None:
+            # 兩者都未觸發，跳過
+            continue
+
+        rows.append({
+            "label": label, "color": color,
+            "bp_trad": bp_trad, "bp_simp": bp_simp,
+            "drop_trad": drop_trad, "drop_simp": drop_simp,
+        })
+
+    if not rows:
+        return None
+
+    fig = go.Figure()
+    labels = [r["label"] for r in rows]
+    max_val = 140000
+
+    fig.add_trace(go.Bar(
+        x=labels,
+        y=[r["bp_trad"] if r["bp_trad"] else max_val for r in rows],
+        name="繁問繁答",
+        text=[fmt_length(r["bp_trad"]) if r["bp_trad"] else ">130K" for r in rows],
+        textposition="outside",
+    ))
+    fig.add_trace(go.Bar(
+        x=labels,
+        y=[r["bp_simp"] if r["bp_simp"] else max_val for r in rows],
+        name="簡問簡答",
+        text=[fmt_length(r["bp_simp"]) if r["bp_simp"] else ">130K" for r in rows],
+        textposition="outside",
+    ))
+
+    fig.update_layout(
+        title="斷點偏移：繁體 vs 簡體的退化起始位置",
+        yaxis_title="上下文長度（字元）",
+        yaxis=dict(
+            tickvals=[0, 8000, 16000, 32000, 65000, 100000, 130000, 140000],
+            ticktext=["0", "8K", "16K", "32K", "65K", "100K", "130K", ">130K"],
+        ),
+        barmode="group",
+        height=500,
+    )
+    return fig
+
+
 def length_table(all_data, models, variants) -> pd.DataFrame:
     rows = []
     for model in models:
@@ -329,7 +592,8 @@ with st.sidebar:
 
     chart_type = st.radio(
         "圖表類型",
-        ["準確率 vs 長度", "準確率 vs 位置", "熱力圖", "各 Needle 準確率", "Tokenizer Overhead"],
+        ["準確率 vs 長度", "準確率 vs 位置", "熱力圖", "各 Needle 準確率",
+         "Tokenizer Overhead", "衰退速率", "斷點分析", "模型敏感度", "斷點偏移"],
     )
 
     st.divider()
@@ -353,8 +617,9 @@ with st.sidebar:
                 ):
                     selected_models.append(m)
 
-    # variant 選擇（熱力圖時不顯示，改為在主區域用下拉）
-    if chart_type != "熱力圖":
+    # variant 選擇（熱力圖和深度分析圖表不顯示）
+    NO_VARIANT_CHARTS = {"熱力圖", "衰退速率", "斷點分析", "模型敏感度", "斷點偏移"}
+    if chart_type not in NO_VARIANT_CHARTS:
         st.divider()
         st.subheader("📋 選擇 Variant")
         sel_variants = [
@@ -381,7 +646,7 @@ if chart_type == "熱力圖":
 elif not selected_models:
     st.info("← 請在左側勾選至少一個模型")
 
-elif chart_type != "Tokenizer Overhead" and not sel_variants:
+elif chart_type not in NO_VARIANT_CHARTS and chart_type != "Tokenizer Overhead" and not sel_variants:
     st.info("← 請在左側勾選至少一個 Variant")
 
 else:
@@ -407,3 +672,39 @@ else:
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("需要同時有「繁問繁答」和「繁問簡答」資料的模型才能計算 token overhead。")
+
+    elif chart_type == "衰退速率":
+        fig = chart_rot_coefficient(all_data, selected_models)
+        if fig:
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("斜率越負代表衰退越快（每增加 1K 字元損失的準確率百分點）。"
+                       "數值接近 0 表示長上下文下準確率穩定。")
+        else:
+            st.info("無足夠資料計算衰退係數")
+
+    elif chart_type == "斷點分析":
+        fig = chart_breakpoint(all_data, selected_models)
+        if fig:
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("斷點定義：以最短 3 個長度的平均準確率為基線，"
+                       "準確率首次下降 ≥10 百分點的上下文長度。\">130K\" 表示在實驗範圍內未觸發。")
+        else:
+            st.info("無足夠資料進行斷點分析")
+
+    elif chart_type == "模型敏感度":
+        fig = chart_sensitivity(all_data, selected_models)
+        if fig:
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("左下角 = 衰退快且落差大（最脆弱）。"
+                       "右上角靠近原點 = 穩定。不同標記形狀代表不同 variant。")
+        else:
+            st.info("無足夠資料")
+
+    elif chart_type == "斷點偏移":
+        fig = chart_breakpoint_shift(all_data, selected_models)
+        if fig:
+            st.plotly_chart(fig, use_container_width=True)
+            st.caption("比較同一模型在繁體 vs 簡體下的退化起始位置。"
+                       "繁體斷點更早 = tokenizer 碎片化可能提前引發退化。")
+        else:
+            st.info("所選模型在實驗範圍內均未觸發斷點")
