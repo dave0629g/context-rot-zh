@@ -379,5 +379,62 @@
         "1.0": 0.0
       }
     }
+  },
+  "rot_coefficient": {
+    "traditional": {
+      "slope_pp_per_1k_chars": -0.7508,
+      "intercept": 110.0,
+      "r_squared": 0.8295,
+      "baseline_pct": 100.0,
+      "points_count": 12
+    },
+    "simplified_q": {
+      "slope_pp_per_1k_chars": -0.5321,
+      "intercept": 108.17,
+      "r_squared": 0.63,
+      "baseline_pct": 100.0,
+      "points_count": 12
+    }
+  },
+  "breakpoints": {
+    "traditional": {
+      "baseline_pct": 100.0,
+      "drop_threshold_pp": 10.0,
+      "breakpoint_drop": 100000,
+      "breakpoint_below_80": 100000,
+      "acc_at_max_length": 0.0,
+      "max_length": 130000,
+      "total_drop_pp": 100.0
+    },
+    "simplified_q": {
+      "baseline_pct": 100.0,
+      "drop_threshold_pp": 10.0,
+      "breakpoint_drop": 100000,
+      "breakpoint_below_80": 130000,
+      "acc_at_max_length": 0.91,
+      "max_length": 130000,
+      "total_drop_pp": 99.09
+    }
+  },
+  "token_overhead_by_length": {},
+  "accuracy_by_needle": {
+    "traditional": {
+      "N01": 0.8523,
+      "N02": 0.8598,
+      "N03": 0.8409,
+      "N04": 0.8523,
+      "N05": 0.8447
+    },
+    "simplified_q": {
+      "N01": 0.8902,
+      "N02": 0.9053,
+      "N03": 0.9053,
+      "N04": 0.9205,
+      "N05": 0.9015
+    }
+  },
+  "long_context_accuracy": {
+    "traditional": 0.4,
+    "simplified_q": 0.6182
   }
 }

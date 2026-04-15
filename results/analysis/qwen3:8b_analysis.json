@@ -210,5 +210,80 @@
         "0.3": 1.0
       }
     }
+  },
+  "rot_coefficient": {
+    "traditional": {
+      "slope_pp_per_1k_chars": -0.8177,
+      "intercept": 107.95,
+      "r_squared": 0.7388,
+      "baseline_pct": 100.0,
+      "points_count": 10
+    },
+    "simplified": {
+      "slope_pp_per_1k_chars": 0.0,
+      "intercept": 100.0,
+      "r_squared": 0,
+      "baseline_pct": 100.0,
+      "points_count": 3
+    }
+  },
+  "breakpoints": {
+    "traditional": {
+      "baseline_pct": 100.0,
+      "drop_threshold_pp": 10.0,
+      "breakpoint_drop": 65000,
+      "breakpoint_below_80": 65000,
+      "acc_at_max_length": 40.91,
+      "max_length": 65000,
+      "total_drop_pp": 59.09
+    },
+    "simplified": {
+      "baseline_pct": 100.0,
+      "drop_threshold_pp": 10.0,
+      "breakpoint_drop": null,
+      "breakpoint_below_80": null,
+      "acc_at_max_length": 100.0,
+      "max_length": 12000,
+      "total_drop_pp": 0.0
+    }
+  },
+  "token_overhead_by_length": {
+    "500": {
+      "avg_trad_tokens": 485.2,
+      "avg_simp_tokens": 428.6,
+      "overhead_pct": 13.2,
+      "pair_count": 105
+    },
+    "2000": {
+      "avg_trad_tokens": 1635.6,
+      "avg_simp_tokens": 1417.1,
+      "overhead_pct": 15.41,
+      "pair_count": 14
+    },
+    "12000": {
+      "avg_trad_tokens": 9595.8,
+      "avg_simp_tokens": 8356.3,
+      "overhead_pct": 14.83,
+      "pair_count": 6
+    }
+  },
+  "accuracy_by_needle": {
+    "traditional": {
+      "N01": 0.9409,
+      "N02": 0.9409,
+      "N03": 0.9409,
+      "N04": 0.9409,
+      "N05": 0.9409
+    },
+    "simplified": {
+      "N01": 1.0,
+      "N02": 1.0,
+      "N03": 1.0,
+      "N04": 1.0,
+      "N05": 1.0
+    }
+  },
+  "long_context_accuracy": {
+    "traditional": 0.4091
   }
 }
