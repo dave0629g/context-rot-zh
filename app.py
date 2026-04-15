@@ -379,16 +379,17 @@ def chart_breakpoint(all_data, models) -> go.Figure:
         vdf = df[df["variant"] == variant]
         if vdf.empty:
             continue
-        # 將 None 斷點顯示為 ">130K"（未觸發）
+        # 將 None/NaN 斷點顯示為 ">130K"（未觸發）
         bp_vals = []
         bp_text = []
         for _, r in vdf.iterrows():
-            if r["breakpoint"] is None:
+            bp = r["breakpoint"]
+            if bp is None or (isinstance(bp, float) and pd.isna(bp)):
                 bp_vals.append(140000)  # 超出範圍表示未觸發
                 bp_text.append(">130K")
             else:
-                bp_vals.append(r["breakpoint"])
-                bp_text.append(fmt_length(int(r["breakpoint"])))
+                bp_vals.append(int(bp))
+                bp_text.append(fmt_length(int(bp)))
 
         fig.add_trace(go.Bar(
             x=vdf["label"], y=bp_vals,
