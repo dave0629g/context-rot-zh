@@ -45,7 +45,8 @@ MODEL_META = {
     "qwen3.5:4b":  dict(label="Qwen3.5 4B",  family="Qwen3.5",       color="#A070D0"),
     "qwen3.5:9b":  dict(label="Qwen3.5 9B",  family="Qwen3.5",       color="#7840B8"),
     "qwen3.5:27b": dict(label="Qwen3.5 27B", family="Qwen3.5",       color="#5010A0"),
-    "qwen3.5:35b": dict(label="Qwen3.5 35B", family="Qwen3.5",       color="#2E0060"),
+    "qwen3.5:35b": dict(label="Qwen3.5 35B A3B", family="Qwen3.5",  color="#2E0060"),
+    "qwen3.6:35b-a3b": dict(label="Qwen3.6 35B A3B", family="Qwen3.6", color="#006040"),
 }
 FAMILIES = {
     "Gemma 3":      ["gemma3:1b", "gemma3:4b", "gemma3:12b", "gemma3:27b"],
@@ -54,6 +55,7 @@ FAMILIES = {
     "Llama":        ["llama3.1:8b", "llama3.3:70b"],
     "Qwen3":        ["qwen3:8b"],
     "Qwen3.5":      ["qwen3.5:2b", "qwen3.5:4b", "qwen3.5:9b", "qwen3.5:27b", "qwen3.5:35b"],
+    "Qwen3.6":      ["qwen3.6:35b-a3b"],
 }
 ALL_VARIANTS = ["繁問繁答", "繁問簡答", "簡問簡答"]
 VARIANT_DASH  = {"繁問繁答": "solid", "繁問簡答": "dash", "簡問簡答": "dot"}

@@ -41,7 +41,8 @@ MODEL_META = {
     "qwen3.5:4b":  dict(label="Qwen3.5 4B",  family="Qwen3.5",       color="#A070D0", params="4B",  ctx=262144),
     "qwen3.5:9b":  dict(label="Qwen3.5 9B",  family="Qwen3.5",       color="#7840B8", params="9B",  ctx=262144),
     "qwen3.5:27b": dict(label="Qwen3.5 27B", family="Qwen3.5",       color="#5010A0", params="27B", ctx=262144),
-    "qwen3.5:35b": dict(label="Qwen3.5 35B", family="Qwen3.5",       color="#2E0060", params="35B", ctx=262144),
+    "qwen3.5:35b": dict(label="Qwen3.5 35B A3B", family="Qwen3.5",  color="#2E0060", params="35B(A3B)", ctx=262144),
+    "qwen3.6:35b-a3b": dict(label="Qwen3.6 35B A3B", family="Qwen3.6", color="#006040", params="35B(A3B)", ctx=262144),
 }
 
 # (file_prefix, variant_key_in_jsonl) → 顯示名稱
