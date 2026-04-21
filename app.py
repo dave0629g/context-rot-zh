@@ -18,8 +18,9 @@ import plotly.graph_objects as go
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).parent / "scripts"))
-from importlib import import_module
-_analyze = import_module("04_analyze")
+import importlib
+_analyze = importlib.import_module("04_analyze")
+importlib.reload(_analyze)  # 強制重新載入，避免 Streamlit Cloud 快取舊版
 reevaluate = _analyze.reevaluate
 compute_rot_coefficient = _analyze.compute_rot_coefficient
 compute_breakpoint = _analyze.compute_breakpoint
