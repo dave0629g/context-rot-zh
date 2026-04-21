@@ -1,12 +1,12 @@
 {
   "model": "llama3.1:8b",
-  "total_results": 3740,
+  "total_results": 3960,
   "token_stats": {
-    "pair_count": 1100,
-    "avg_ratio_trad_over_simp": 1.0705,
+    "pair_count": 1320,
+    "avg_ratio_trad_over_simp": 1.0706,
     "max_ratio": 1.1694,
     "min_ratio": 1.0083,
-    "interpretation": "繁體平均比簡體多 7.0% 的 tokens"
+    "interpretation": "繁體平均比簡體多 7.1% 的 tokens"
   },
   "accuracy_by_length": {
     "traditional": {
@@ -33,7 +33,9 @@
       "16000": 1.0,
       "24000": 1.0,
       "32000": 0.9727,
-      "65000": 0.9455
+      "65000": 0.9455,
+      "100000": 0.9273,
+      "130000": 0.8455
     },
     "simplified_q": {
       "500": 0.9727,
@@ -65,17 +67,17 @@
       "1.0": 0.9333
     },
     "simplified": {
-      "0.0": 1.0,
-      "0.1": 0.99,
-      "0.2": 0.98,
-      "0.3": 0.99,
-      "0.4": 1.0,
-      "0.5": 0.98,
-      "0.6": 0.99,
-      "0.7": 1.0,
+      "0.0": 0.9417,
+      "0.1": 0.9417,
+      "0.2": 0.9417,
+      "0.3": 0.975,
+      "0.4": 0.9917,
+      "0.5": 0.9667,
+      "0.6": 0.9917,
+      "0.7": 0.9917,
       "0.8": 1.0,
-      "0.9": 0.97,
-      "1.0": 0.97
+      "0.9": 0.9667,
+      "1.0": 0.975
     },
     "simplified_q": {
       "0.0": 0.9333,
@@ -380,6 +382,32 @@
         "0.8": 1.0,
         "0.9": 0.9,
         "1.0": 1.0
+      },
+      "100000": {
+        "0.0": 0.8,
+        "0.1": 0.9,
+        "0.2": 0.6,
+        "0.3": 1.0,
+        "0.4": 0.9,
+        "0.5": 1.0,
+        "0.6": 1.0,
+        "0.7": 1.0,
+        "0.8": 1.0,
+        "0.9": 1.0,
+        "1.0": 1.0
+      },
+      "130000": {
+        "0.0": 0.5,
+        "0.1": 0.5,
+        "0.2": 0.9,
+        "0.3": 0.8,
+        "0.4": 1.0,
+        "0.5": 0.8,
+        "0.6": 1.0,
+        "0.7": 0.9,
+        "0.8": 1.0,
+        "0.9": 0.9,
+        "1.0": 1.0
       }
     },
     "simplified_q": {
@@ -550,11 +578,11 @@
       "points_count": 12
     },
     "simplified": {
-      "slope_pp_per_1k_chars": -0.0704,
-      "intercept": 100.01,
-      "r_squared": 0.5469,
+      "slope_pp_per_1k_chars": -0.1018,
+      "intercept": 100.51,
+      "r_squared": 0.87,
       "baseline_pct": 99.27,
-      "points_count": 10
+      "points_count": 12
     },
     "simplified_q": {
       "slope_pp_per_1k_chars": -0.1108,
@@ -577,11 +605,11 @@
     "simplified": {
       "baseline_pct": 98.79,
       "drop_threshold_pp": 10.0,
-      "breakpoint_drop": null,
+      "breakpoint_drop": 130000,
       "breakpoint_below_80": null,
-      "acc_at_max_length": 94.55,
-      "max_length": 65000,
-      "total_drop_pp": 4.24
+      "acc_at_max_length": 84.55,
+      "max_length": 130000,
+      "total_drop_pp": 14.24
     },
     "simplified_q": {
       "baseline_pct": 98.79,
@@ -653,6 +681,18 @@
       "avg_simp_tokens": 53399.4,
       "overhead_pct": 7.21,
       "pair_count": 110
+    },
+    "100000": {
+      "avg_trad_tokens": 88040.1,
+      "avg_simp_tokens": 82199.8,
+      "overhead_pct": 7.1,
+      "pair_count": 110
+    },
+    "130000": {
+      "avg_trad_tokens": 114661.2,
+      "avg_simp_tokens": 107012.4,
+      "overhead_pct": 7.15,
+      "pair_count": 110
     }
   },
   "accuracy_by_needle": {
@@ -664,11 +704,11 @@
       "N05": 1.0
     },
     "simplified": {
-      "N01": 0.9636,
-      "N02": 0.9955,
-      "N03": 0.9955,
-      "N04": 0.9955,
-      "N05": 0.9909
+      "N01": 0.9432,
+      "N02": 0.9886,
+      "N03": 0.9811,
+      "N04": 0.9773,
+      "N05": 0.9659
     },
     "simplified_q": {
       "N01": 0.9356,
@@ -680,7 +720,7 @@
   },
   "long_context_accuracy": {
     "traditional": 0.9182,
-    "simplified": 0.9455,
+    "simplified": 0.9061,
     "simplified_q": 0.903
   }
 }
