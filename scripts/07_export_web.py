@@ -35,6 +35,7 @@ MODEL_META = {
     "gemma4:26b":  dict(label="Gemma 4 26B",  family="Gemma 4",      color="#E06040", params="26B", ctx=262144),
     "gemma4:31b":  dict(label="Gemma 4 31B",  family="Gemma 4",      color="#8B2500", params="31B", ctx=262144),
     "llama3.1:8b": dict(label="Llama 3.1 8B", family="Llama",        color="#E07070", params="8B",  ctx=131072),
+    "llama3.1:70b":dict(label="Llama 3.1 70B",family="Llama",        color="#C04040", params="70B", ctx=131072),
     "llama3.3:70b":dict(label="Llama 3.3 70B",family="Llama",        color="#8B0000", params="70B", ctx=131072),
     "qwen3:8b":    dict(label="Qwen3 8B",     family="Qwen3",        color="#2E8B4A", params="8B",  ctx=40960),
     "qwen3.5:2b":  dict(label="Qwen3.5 2B",  family="Qwen3.5",       color="#C09AE8", params="2B",  ctx=262144),

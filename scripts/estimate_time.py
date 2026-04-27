@@ -70,7 +70,7 @@ FAMILIES = [
     ("gemma4",  [("gemma4:e2b","E2B"), ("gemma4:e4b","E4B"), ("gemma4:26b","26B"), ("gemma4:31b","31B")]),
     ("qwen3.5", [("qwen3.5:2b","2B"), ("qwen3.5:4b","4B"), ("qwen3.5:9b","9B"), ("qwen3.5:27b","27B"), ("qwen3.5:35b","35B")]),
     ("gemma3",  [("gemma3:1b","1B"), ("gemma3:4b","4B"), ("gemma3:12b","12B"), ("gemma3:27b","27B")]),
-    ("llama",   [("llama3.1:8b","8B"), ("llama3.3:70b","70B")]),
+    ("llama",   [("llama3.1:8b","8B"), ("llama3.1:70b","70B"), ("llama3.3:70b","70B")]),
     ("qwen3",   [("qwen3:8b","8B")]),
 ]
 MODELS = [m for _, ms in FAMILIES for m, _ in ms]

@@ -92,6 +92,7 @@ MODEL_COLORS = {
     "gemma4:31b":  "#8B2500",
     # Llama：紅色系
     "llama3.1:8b": "#E07070",
+    "llama3.1:70b":"#C04040",
     "llama3.3:70b":"#8B0000",
     # Qwen 3：綠色系
     "qwen3:8b":    "#2E8B4A",
@@ -116,6 +117,7 @@ MODEL_MARKERS = {
     "gemma4:31b":   dict(marker="D",  fillstyle="full",  linestyle="-"),
     # Llama：正方形
     "llama3.1:8b":  dict(marker="s",  fillstyle="none",  linestyle="--"),
+    "llama3.1:70b": dict(marker="s",  fillstyle="full",  linestyle="-."),
     "llama3.3:70b": dict(marker="s",  fillstyle="full",  linestyle="-"),
     # Qwen 3：上三角
     "qwen3:8b":     dict(marker="^",  fillstyle="none",  linestyle="--"),
@@ -131,7 +133,8 @@ MODEL_LABELS = {
     "gemma3:12b": "Gemma 3 12B", "gemma3:27b": "Gemma 3 27B",
     "gemma4:e2b": "Gemma 4 E2B", "gemma4:e4b": "Gemma 4 E4B",
     "gemma4:26b": "Gemma 4 26B", "gemma4:31b": "Gemma 4 31B",
-    "llama3.1:8b": "Llama 3.1 8B", "llama3.3:70b": "Llama 3.3 70B",
+    "llama3.1:8b": "Llama 3.1 8B", "llama3.1:70b": "Llama 3.1 70B",
+    "llama3.3:70b": "Llama 3.3 70B",
     "qwen3:8b": "Qwen3 8B",
     "qwen3.5:2b": "Qwen3.5 2B",  "qwen3.5:4b": "Qwen3.5 4B",
     "qwen3.5:9b": "Qwen3.5 9B",  "qwen3.5:27b": "Qwen3.5 27B",
@@ -485,7 +488,7 @@ CTX_WINDOWS = {
     "gemma3:12b": 131072, "gemma3:27b": 131072,
     "gemma4:e2b": 131072, "gemma4:e4b": 131072,
     "gemma4:26b": 262144, "gemma4:31b": 262144,
-    "llama3.1:8b": 131072, "llama3.3:70b": 131072,
+    "llama3.1:8b": 131072, "llama3.1:70b": 131072, "llama3.3:70b": 131072,
     "qwen3:8b": 40960,
     "qwen3.5:2b": 262144, "qwen3.5:4b": 262144,
     "qwen3.5:9b": 262144, "qwen3.5:27b": 262144, "qwen3.5:35b": 262144,
