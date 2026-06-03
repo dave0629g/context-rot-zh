@@ -1,0 +1,18 @@
+# RQ3 per-model advance (chars / tokens)
+model,family,scale_B,sp_trad_chars,sp_simp_q_chars,advance_chars,fertility_family,advance_tokens,trad_censored,simp_q_censored,trad_baseline_pct,simp_q_baseline_pct,drop_pp
+gemma3:4b,Gemma,4.0,65000.0,65000.0,0.0,0.7420469267191141,0.0,False,False,100.0,100.0,5.0
+gemma3:12b,Gemma,12.0,100000.0,100000.0,0.0,0.7420469267191141,0.0,False,False,100.0,100.0,5.0
+gemma3:27b,Gemma,27.0,65000.0,65000.0,0.0,0.7420469267191141,0.0,True,True,100.0,100.0,5.0
+llama3.1:8b,LLaMA,8.0,65000.0,100000.0,35000.0,0.9098343658702409,31844.202805458433,False,False,98.36363636363636,99.27272727272728,5.0
+llama3.1:70b,LLaMA,70.0,130000.0,130000.0,0.0,0.9098343658702409,0.0,False,False,99.27272727272728,100.0,5.0
+llama3.3:70b,LLaMA,70.0,130000.0,130000.0,0.0,0.9098343658702409,0.0,False,False,99.81818181818183,100.0,5.0
+
+# RQ3 family-level mean advance
+family,n_models,mean_advance_chars,sd_advance_chars,mean_advance_tokens,sd_advance_tokens,fertility_family
+Gemma,3,0.0,0.0,0.0,0.0,0.7420469267191141
+LLaMA,3,11666.666666666666,20207.259421636903,10614.734268486145,18385.259061860463,0.9098343658702409
+
+# RQ3 family fertility (traditional, tokens per char)
+family,fertility_family
+Gemma,0.7420469267191141
+LLaMA,0.9098343658702409
