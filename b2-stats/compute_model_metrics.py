@@ -42,11 +42,19 @@ ALL_MODELS = [
     "qwen3.5:2b", "qwen3.5:4b", "qwen3.5:9b", "qwen3.5:27b", "qwen3.5:35b",
 ]
 
-# 退化型模型（RQ1, RQ3）
+# 退化型模型（完整集合，6 個）
 DEGRADING_MODELS = [
     "gemma3:4b", "gemma3:12b", "gemma3:27b",
     "llama3.1:8b", "llama3.1:70b", "llama3.3:70b",
 ]
+
+# RQ1 / RQ3 之 family×scale 分析樣本（n=5）。
+# 排除 llama3.1:70b：其與 llama3.3:70b 同屬 LLaMA 家族、同為 70B 參數規模，
+# 於 (family, scale_B) 設計矩陣中佔據完全相同之 (LLaMA, 70.0) 格位；且二者衰減
+# 起始點於本實驗長度範圍內均為右截尾上限值（log10 sp_tokens 相同），對 DV1 為
+# 重複觀測。為避免單一 (家族×規模) 組合在僅 5 點之迴歸中被加倍加權、扭曲 Unique R²
+# 之分配，保留較新世代之 llama3.3:70b、排除 llama3.1:70b（與 gemma3:1b 之排除並列）。
+ANALYSIS_MODELS = [m for m in DEGRADING_MODELS if m != "llama3.1:70b"]
 
 # 模型家族與參數規模（B）
 MODEL_META = {
@@ -249,6 +257,6 @@ def build_metrics_table(models: list[str], variant: str = "traditional",
 
 
 if __name__ == "__main__":
-    # 退化型模型 traditional 5pp
-    tab = build_metrics_table(DEGRADING_MODELS, variant="traditional", drop_pp=5.0)
+    # 分析樣本 traditional 5pp（n=5；排除 llama3.1:70b，見 ANALYSIS_MODELS 註解）
+    tab = build_metrics_table(ANALYSIS_MODELS, variant="traditional", drop_pp=5.0)
     print(tab.to_string(index=False))

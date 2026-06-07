@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from compute_model_metrics import (
-    DEGRADING_MODELS, MODEL_META,
+    ANALYSIS_MODELS, MODEL_META,
     load_results, load_results_h2, to_dataframe,
     compute_length_accuracy, compute_starting_point,
 )
@@ -48,7 +48,7 @@ def main():
     drop_pp = 5.0
     # 1) 家族 fertility
     families = {}
-    for m in DEGRADING_MODELS:
+    for m in ANALYSIS_MODELS:
         fam = MODEL_META[m]["family"]
         families.setdefault(fam, []).append(m)
     fert_family = {fam: family_fertility(ms) for fam, ms in families.items()}
@@ -57,7 +57,7 @@ def main():
 
     # 2) 每個模型的 sp_trad / sp_simp_q / advance
     rows = []
-    for m in DEGRADING_MODELS:
+    for m in ANALYSIS_MODELS:
         meta = MODEL_META[m]
         fam = meta["family"]
         sp_t = model_sp(m, "traditional", drop_pp=drop_pp)

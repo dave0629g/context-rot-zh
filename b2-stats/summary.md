@@ -1,14 +1,15 @@
 # B2 推論統計結果摘要
 
 設定（共用）：
-- 樣本：退化型模型 = gemma3:4b、gemma3:12b、gemma3:27b（≤65K 字元）、llama3.1:8b、llama3.1:70b、llama3.3:70b。Qwen3.5 與 Gemma4 全系列因無衰減已排除。
-- 衰減起始點（starting_point）：以 ≤8K 字元的平均準確率為 baseline，首次降幅 ≥ 5pp 的長度；右截尾以實驗範圍最大長度 imputation。
-- decay_rate：對 (avg_tokens, accuracy%) 做最小平方法線性迴歸，斜率 × 1 = pp per 1000 tokens。
+- 樣本：退化型模型完整集合（6 個）= gemma3:4b、gemma3:12b、gemma3:27b（≤65K 字元）、llama3.1:8b、llama3.1:70b、llama3.3:70b。Qwen3.5 與 Gemma4 全系列因無衰減已排除。
+- **RQ1 / RQ3 之 family×scale 分析樣本 n=5（`ANALYSIS_MODELS`）**：另排除 `llama3.1:70b` —— 其與 `llama3.3:70b` 同屬 LLaMA 家族、同為 70B 規模，於 (family, scale_B) 設計矩陣佔據相同之 (LLaMA, 70.0) 格位，且二者衰減起始點於本實驗長度範圍內均右截尾於上限（log10 sp_tokens 相同），對 DV1 為重複觀測；保留較新世代 `llama3.3:70b`。
+- 衰減起始點（starting_point）：baseline = 長度 {500, 2000, 4000, 6000, 8000} 字元測點之平均準確率，首次降幅 ≥ 5pp（drop_pp=5.0）的長度；右截尾以實驗範圍最大長度 imputation。
+- decay_rate：對「全部長度測點」之 (avg_tokens, accuracy%) 做最小平方法線性迴歸，斜率 = pp per 1000 tokens（未裁切衰減區間）。
 - 評估口徑：採用 04_analyze.py 的 reevaluate（含 OpenCC 簡繁轉換、中文數字正規化、同義詞替換），與 results/analysis/ JSON 一致。
 
 ---
 
-## RQ1 結果（traditional 變項，n = 6）
+## RQ1 結果（traditional 變項，n = 5）
 
 模型層級指標：
 
@@ -18,46 +19,45 @@
 | gemma3:12b   | Gemma  | 12      | 75,529.10   | 4.8781          | -0.1224                   | False    |
 | gemma3:27b   | Gemma  | 27      | 49,062.28   | 4.6907          | -0.0167                   | True     |
 | llama3.1:8b  | LLaMA  | 8       | 57,248.30   | 4.7578          | -0.0776                   | False    |
-| llama3.1:70b | LLaMA  | 70      | 114,661.24  | 5.0594          | -0.1694                   | False    |
 | llama3.3:70b | LLaMA  | 70      | 114,661.24  | 5.0594          | -0.1188                   | False    |
 
 ### DV1：Y = log10(starting_point_tokens)
 
-完整模型（family + scale）：R² = 0.776，adj R² = 0.627，n = 6，F p = .106。
-- 截距 = 4.692 (SE = 0.067, p < .001)
-- C(tokenizer_family)[T.LLaMA] 係數 = 0.057 (SE = 0.110, p = .639)
-- scale_B 係數 = 0.00424 (SE = 0.00197, p = .120)
+完整模型（family + scale）：R² = 0.666，adj R² = 0.332，n = 5，F p = .334。
+- 截距 = 4.695 (SE = 0.084, p < .001)
+- C(tokenizer_family)[T.LLaMA] 係數 = 0.055 (SE = 0.135, p = .722)
+- scale_B 係數 = 0.00406 (SE = 0.00273, p = .275)
 
 對照模型：
-- family-only：R² = 0.430，p = .157。
-- scale-only：R² = 0.756，p = .024，scale_B 係數 = 0.00489 (SE = 0.00139, p = .024)。
+- family-only：R² = 0.296，F p = .343。
+- scale-only：R² = 0.638，F p = .105，scale_B 係數 = 0.00462 (SE = 0.00201, p = .105)。
 
 Unique R²：
-- tokenizer_family：0.020
-- scale：0.346
+- tokenizer_family：0.028
+- scale：0.370
 
 ### DV2：Y = decay_rate (pp / 1000 tokens)
 
-完整模型（family + scale）：R² = 0.089，adj R² = −0.519，n = 6，F p = .870。
-- 截距 = −0.211 (SE = 0.123, p = .184)
-- C(tokenizer_family)[T.LLaMA] 係數 = 0.053 (SE = 0.202, p = .811)
-- scale_B 係數 = 0.000741 (SE = 0.00361, p = .851)
+完整模型（family + scale）：R² = 0.151，adj R² = −0.699，n = 5，F p = .849。
+- 截距 = −0.224 (SE = 0.149, p = .271)
+- C(tokenizer_family)[T.LLaMA] 係數 = 0.062 (SE = 0.240, p = .820)
+- scale_B 係數 = 0.00163 (SE = 0.00485, p = .769)
 
 對照模型：
-- family-only：R² = 0.076，p = .597。
-- scale-only：R² = 0.068，p = .618。
+- family-only：R² = 0.103，F p = .599。
+- scale-only：R² = 0.122，F p = .564。
 
 Unique R²：
-- tokenizer_family：0.021
-- scale：0.013
+- tokenizer_family：0.028
+- scale：0.048
 
-樣本限制：n = 6，DV1 在 scale-only 達到 p < .05；其餘 F p > .05，係數標準誤偏大。
+樣本限制：n = 5（family×scale 設計僅 5 個觀測點），F p 均 > .05、係數標準誤偏大；DV1 之 scale 解釋力（Unique R² = .370）明顯大於 tokenizer_family（.028），DV2 兩者皆弱。
 
 ---
 
 ## RQ2 結果
 
-範圍：gemma3:4b 與 llama3.1:8b（固定樣本，不受 RQ1/RQ3 樣本擴充影響）。
+範圍：gemma3:4b 與 llama3.1:8b（固定樣本，不受 RQ1/RQ3 樣本選擇影響）。
 
 ### (a) 配對 t 檢定 + Cohen's dz（traditional vs simplified_q，配對單位：(model, length, position, needle_id)）
 
@@ -86,6 +86,8 @@ VIF 共線性檢查：
 
 LRT (M2 vs M1)：χ²(1) = 137.69，p = 8.51 × 10⁻³². AIC 與 BIC 均下降。
 
+> ⚙️ 重現環境註記（2026-06-07）：上方 χ²=137.69 須以 **python 3.11**（父層 `/Users/dave0629/Thesis/b2-stats/.venv`）執行始能重現。**python 3.13 下 `04_analyze.reevaluate` 對 needle N02 之 simplified_q 評分異常**（is_correct 由 0.84 崩為 0.01），會使 LRT 誤算為 χ²≈55.79；此為環境問題、非資料/方法問題。以 python 3.11 重跑 `rq2_analysis.py` 即得 137.69（n=3960，已實跑確認）。
+
 M2 主要係數：
 - 截距 = 1.1753 (SE = 0.0209, p < .001)
 - log10(length_chars) 係數 = −0.0549 (SE = 0.0051, p = 4.90 × 10⁻²⁷)
@@ -99,11 +101,11 @@ M2 主要係數：
 
 ---
 
-## RQ3 結果
+## RQ3 結果（n = 5）
 
 家族 fertility（traditional，tokens / char）：Gemma = 0.7420，LLaMA = 0.9098。
 
-每個退化型模型的衰減提前量（advance = sp_simp_q − sp_trad；正值代表繁體較早衰減）：
+每個分析樣本模型的衰減提前量（advance = sp_simp_q − sp_trad；正值代表繁體較早衰減）：
 
 | model        | family | sp_trad_chars | sp_simp_q_chars | advance_chars | advance_tokens |
 |--------------|--------|--------------:|----------------:|--------------:|---------------:|
@@ -111,7 +113,6 @@ M2 主要係數：
 | gemma3:12b   | Gemma  |       100,000 |         100,000 |             0 |              0 |
 | gemma3:27b   | Gemma  |        65,000 |          65,000 |     0 (截尾)  |              0 |
 | llama3.1:8b  | LLaMA  |        65,000 |         100,000 |        35,000 |      31,844.20 |
-| llama3.1:70b | LLaMA  |       130,000 |         130,000 |             0 |              0 |
 | llama3.3:70b | LLaMA  |       130,000 |         130,000 |             0 |              0 |
 
 家族平均：
@@ -119,6 +120,6 @@ M2 主要係數：
 | family | n_models | mean_advance_chars | sd_advance_chars | mean_advance_tokens | sd_advance_tokens |
 |--------|---------:|-------------------:|-----------------:|--------------------:|------------------:|
 | Gemma  | 3        |               0    |          0       |               0     |           0       |
-| LLaMA  | 3        |          11,666.67 |     20,207.26    |          10,614.73  |      18,385.26    |
+| LLaMA  | 2        |          17,500.00 |     24,748.74    |          15,922.10  |      22,517.25    |
 
-（長度採樣為離散 12 點 {500, 2K, 4K, 6K, 8K, 12K, 16K, 24K, 32K, 65K, 100K, 130K}；多數模型 sp_trad 與 sp_simp_q 落在同一 bucket，故 advance = 0；gemma3:27b 因 ≤65K 限制，繁簡均右截尾於 65K。）
+（長度採樣為離散 12 點 {500, 2K, 4K, 6K, 8K, 12K, 16K, 24K, 32K, 65K, 100K, 130K}；多數模型 sp_trad 與 sp_simp_q 落在同一 bucket，故 advance = 0；gemma3:27b 因 ≤65K 限制，繁簡均右截尾於 65K。LLaMA 家族 n=2，與論文表 4-18 之 15,922 tokens 一致。）

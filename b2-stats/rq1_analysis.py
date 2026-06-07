@@ -23,7 +23,7 @@ import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
 
-from compute_model_metrics import build_metrics_table, DEGRADING_MODELS
+from compute_model_metrics import build_metrics_table, ANALYSIS_MODELS
 
 
 def fit_ols(df: pd.DataFrame, formula: str):
@@ -107,8 +107,8 @@ def run_one_dv(df: pd.DataFrame, dv_expr: str, dv_label: str) -> tuple[list, lis
 
 
 def main():
-    # 主分析：drop_pp = 5
-    tab = build_metrics_table(DEGRADING_MODELS, variant="traditional",
+    # 主分析：drop_pp = 5，n=5（ANALYSIS_MODELS，排除 llama3.1:70b）
+    tab = build_metrics_table(ANALYSIS_MODELS, variant="traditional",
                               drop_pp=5.0, truncate_27b=True)
     tab["log10_sp_tokens"] = np.log10(tab["starting_point_tokens"])
     print("=== 模型層級指標（traditional, drop_pp=5）===")
